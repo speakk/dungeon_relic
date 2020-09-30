@@ -2,22 +2,22 @@ local lfs = love.filesystem
 
 local MediaManager = Class {
   init = function(self)
-    self.tree = {}
-    self.mediaEntities = {}
-    fillTree("media/images", "", self.tree, self.mediaEntities)
+    self.tree = {} -- Stores mediaEntity objects indexed by file path hierarchy
+    self.mediaEntities = {} -- A flat list of the above for ease of iteration
+    fillTree("media/images", "", self.tree, self.mediaEntities) -- Fill above 2 tables
     self.atlasCanvas = createAtlas(self.mediaEntities)
-    print("TREE IN END", inspect(self.tree))
   end,
   getTexture = function(self, path)
-    return getDepth(self.tree, 'media.images.' .. path).texture
+    return self:getMediaEntity(path).texture
+  end,
+  getMediaEntity = function(self, path)
+    return getDepth(self.tree, 'media.images.' .. path)
   end,
   getAtlas = function(self)
     return self.atlasCanvas
   end
 }
 
--- This function will return a string filetree of all files
--- in the folder and files in all subfolders
 function fillTree(folder, fileTree, tree, mediaEntities)
   local filesTable = lfs.getDirectoryItems(folder)
   for i,v in ipairs(filesTable) do
@@ -35,7 +35,6 @@ function fillTree(folder, fileTree, tree, mediaEntities)
         mediaEntity.metaData = require(file .. '.lua')
       end
 
-      --setBySelector(tree, file, '/', mediaEntity)
       setDepth(tree, file, mediaEntity, '/')
       table.push(mediaEntities,mediaEntity)
     elseif info.type == "directory" then
@@ -61,7 +60,6 @@ function getDepth(obj, path, splitter)
   return obj
 end
 
--- NOTE: Hardcoded '/'
 function setDepth(obj, path, value, splitter)
   splitter = splitter or '.'
   local tags = stringx.split(path, splitter)
@@ -94,7 +92,6 @@ function createAtlas(mediaEntities)
     local lastRowHeight = 0
 
     for _, mediaEntity in ipairs(mediaEntities) do
-      --local fileName = generateTileName(category.name, item.fileName)
       local sprite = love.graphics.newImage(mediaEntity.fileName)
       local spriteWidth, spriteHeight = sprite:getDimensions()
 
@@ -102,11 +99,6 @@ function createAtlas(mediaEntities)
 
       local quad = love.graphics.newQuad(currentX, currentY, spriteWidth, spriteHeight, atlasCanvas:getDimensions())
       mediaEntity.texture = quad
-
-      -- flatMediaDB[category.name .. "." .. item.name] = {
-      --   quad = quad,
-      --   hotPoints = item.hotPoints
-      -- }
 
       currentX = currentX + spriteWidth
       if spriteHeight > lastRowHeight then
@@ -118,9 +110,6 @@ function createAtlas(mediaEntities)
         currentY = currentY + lastRowHeight
         lastRowHeight = 0
       end
-
-      -- index = index + 1
-      -- table.insert(fileList, fileName)
     end
   end
 
