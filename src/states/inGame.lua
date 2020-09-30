@@ -13,13 +13,13 @@ function game:enter()
     self.world:emit('initTest')
 
     local entity = Concord.entity(self.world)
-    entity:give("sprite")
+    entity:give("sprite", 'characters.player')
     entity:give("position", 10, 20)
     local entity2 = Concord.entity(self.world)
-    entity2:give("sprite")
+    entity2:give("sprite", "characters.player")
     entity2:give("position", 150, 50)
 
-    print("Get image", inspect(mediaManager:getImg('player')))
+    print("Get image", inspect(mediaManager:getTexture('player')))
   end
 end
 
