@@ -1,6 +1,8 @@
 local Gamestate = require 'libs.hump.gamestate'
 require 'libs.batteries':export()
 
+love.window.setMode(800, 600, {resizable=true})
+
 -- Enable require without specifying 'src' in the beginning
 love.filesystem.setRequirePath(love.filesystem.getRequirePath() .. ";src/?.lua")
 

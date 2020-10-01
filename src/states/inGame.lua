@@ -5,6 +5,9 @@ local TESTING = true
 function game:enter()
   self.world = Concord.world()
   self.world:addSystems(
+    ECS.s.input,
+    ECS.s.playerControlled,
+    ECS.s.movement,
     ECS.s.draw,
     ECS.s.sprite
   )
@@ -15,11 +18,12 @@ function game:enter()
     local entity = Concord.entity(self.world)
     entity:give("sprite", 'characters.player')
     entity:give("position", 10, 20)
+    entity:give("velocity", 0, 0)
+    entity:give("acceleration", 0, 0)
+    entity:give("playerControlled")
     local entity2 = Concord.entity(self.world)
-    entity2:give("sprite", "characters.player")
+    entity2:give("sprite", "characters.secondball")
     entity2:give("position", 150, 50)
-
-    print("Get image", inspect(mediaManager:getTexture('player')))
   end
 end
 
@@ -28,6 +32,7 @@ function game:leave()
 end
 
 function game:update(dt)
+  self.world:emit("clearVelocities", dt)
   self.world:emit("update", dt)
 end
 
