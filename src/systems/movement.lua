@@ -2,20 +2,37 @@ local MovementSystem = Concord.system({ pool = { "velocity", "acceleration", "po
 
 local SPEED = 300 -- TODO: Make speed based on component
 
-function MovementSystem:clearVelocities(dt)
+function MovementSystem:clearMovementIntent(dt)
   for _, entity in ipairs(self.pool) do
-    entity.acceleration.vec:smuli(0, 0)
+    entity.direction.vec.length = 0
+    entity.acceleration.vec.length = 0
   end
 end
 
 function MovementSystem:update(dt)
   for _, entity in ipairs(self.pool) do
-    entity.velocity.vec:vaddi(entity.acceleration.vec)
-    entity.velocity.vec:mini(vec2(10, 10))
-    --entity.velocity.vec:normalisei() -- Use velocity more as a direction vector (TODO: Implement better movement)
-    entity.position.vec:vaddi(entity.velocity.vec:smuli(SPEED, SPEED):smuli(dt, dt))
-    entity.velocity.vec:apply_friction_xy(40, 40, dt)
+    -- Right now just copy direction -> acceleration. here. TODO: Move direction -> acceleration relationship into its own system
+    entity.acceleration.vec = entity.direction.vec.copy
+    entity.velocity.vec = entity.velocity.vec + entity.acceleration.vec
+    entity.position.vec = entity.position.vec + entity.velocity.vec * dt * SPEED
+    applyFriction2d(entity.velocity.vec, 15, dt)
   end
+end
+
+-- Friction code yoink'd from the batteries vec lib.
+
+function applyFriction1d(value, mu, dt)
+  local friction = mu * value * dt
+  if math.abs(friction) > math.abs(value) then
+    return 0
+  else
+    return value - friction
+  end
+end
+
+function applyFriction2d(vector, mu, dt)
+  vector.x = applyFriction1d(vector.x, mu, dt)
+  vector.y = applyFriction1d(vector.y, mu, dt)
 end
 
 return MovementSystem

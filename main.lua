@@ -11,6 +11,7 @@ Class = require 'libs.hump.class'
 inspect = require 'libs.inspect'
 mediaManager = require 'mediaManager'()
 Concord = require 'libs.concord'
+Vector = require 'libs.brinevector'
 
 -- CONCORD CONFIG START --
 -- Create global Concord aliases for ease of access

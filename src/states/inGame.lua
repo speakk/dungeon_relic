@@ -15,12 +15,15 @@ function game:enter()
   if TESTING then
     self.world:emit('initTest')
 
+    -- Make a couple test entities. TODO: Use Concord assemblages
     local entity = Concord.entity(self.world)
     entity:give("sprite", 'characters.player')
     entity:give("position", 10, 20)
     entity:give("velocity", 0, 0)
     entity:give("acceleration", 0, 0)
+    entity:give("direction", 0, 0)
     entity:give("playerControlled")
+
     local entity2 = Concord.entity(self.world)
     entity2:give("sprite", "characters.secondball")
     entity2:give("position", 150, 50)
@@ -32,7 +35,7 @@ function game:leave()
 end
 
 function game:update(dt)
-  self.world:emit("clearVelocities", dt)
+  self.world:emit("clearMovementIntent", dt)
   self.world:emit("update", dt)
 end
 
