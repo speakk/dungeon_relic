@@ -1,4 +1,10 @@
-## A minimalistic example of a Löve "game" with character movement and drawing sprites using the Concord ECS among other good community libraries.
+## A minimalistic example of a Löve "game" including:
+- Use of common Löve and lua libraries
+- Showing how to piece together an Entity Component System and gamestates
+- Character movement
+- Drawing system that supports z-index layers
+- Drawing sprites
+- Basic AI that follows the player character
 
 The idea of this repo is to serve as a minimal but functional example on how to set up a game template using common patterns such as:
 
