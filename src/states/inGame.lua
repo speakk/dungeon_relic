@@ -15,7 +15,7 @@ function game:enter()
   if TESTING then
     self.world:emit('initTest')
 
-    -- Make a couple test entities. TODO: Use Concord assemblages
+    -- Make a couple test entities.
     local entity = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.player'))
 
     local entity2 = Concord.entity(self.world)
