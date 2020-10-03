@@ -8,6 +8,8 @@ The idea of this repo is to serve as a minimal but functional example on how to 
 
 Also features a media manager that loads your media into an atlas manager that you can query with hierarchical accessors like 'decals.bushes.purpleBush' based on the directory hierarchy.
 
+Assemblages (functions that generate entities, usually giving them a bunch of predefined components) are loaded in a similar fashion and you can access them with selectors such as 'living.characters.player'.
+
 #### Usage (requires love installed on your system)
 ```
 git clone https://github.com/speakk/love_minimal_gameish
