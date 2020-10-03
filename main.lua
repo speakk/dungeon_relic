@@ -1,4 +1,5 @@
 local Gamestate = require 'libs.hump.gamestate'
+
 require 'libs.batteries':export()
 
 love.window.setMode(800, 600, {resizable=true})
@@ -16,8 +17,11 @@ Vector = require 'libs.brinevector'
 -- CONCORD CONFIG START --
 -- Create global Concord aliases for ease of access
 
+local assemblageUtil = require 'utils.assemblage'
+
 ECS = {
   c = Concord.components,
+  a = assemblageUtil.createAssemblageHierarchy("src/assemblages"),
   s = {}
 }
 

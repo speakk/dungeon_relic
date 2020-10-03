@@ -16,13 +16,7 @@ function game:enter()
     self.world:emit('initTest')
 
     -- Make a couple test entities. TODO: Use Concord assemblages
-    local entity = Concord.entity(self.world)
-    entity:give("sprite", 'characters.player')
-    entity:give("position", 10, 20)
-    entity:give("velocity", 0, 0)
-    entity:give("acceleration", 0, 0)
-    entity:give("direction", 0, 0)
-    entity:give("playerControlled")
+    local entity = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.player'))
 
     local entity2 = Concord.entity(self.world)
     entity2:give("sprite", "characters.secondball")
