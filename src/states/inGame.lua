@@ -7,6 +7,7 @@ function game:enter()
   self.world:addSystems(
     ECS.s.input,
     ECS.s.playerControlled,
+    ECS.s.aiControlled,
     ECS.s.movement,
     ECS.s.draw,
     ECS.s.sprite
@@ -17,10 +18,7 @@ function game:enter()
 
     -- Make a couple test entities.
     local entity = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.player'))
-
-    local entity2 = Concord.entity(self.world)
-    entity2:give("sprite", "characters.secondball")
-    entity2:give("position", 150, 50)
+    local entity2 = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.monsterA'))
   end
 end
 
