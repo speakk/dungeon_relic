@@ -3,11 +3,13 @@ local Camera = require 'libs.hump.camera'
 local CameraSystem = Concord.system({ pool = { 'cameraTarget', 'position', 'velocity', 'speed' }})
 
 local zoomInterpolationSpeed = 0.05
+local zoomFactor = 1 -- This gets dynamically updated based on velocity in update
+local minZoomFactor = 1
+local maxZoomFactor = 2
 
 function CameraSystem:init()
   self.camera = Camera(0, 0)
   self.camera.smoother = Camera.smooth.damped(20)
-  self.zoomFactor = 1 -- This gets dynamically updated based on velocity in update
 end
 
 function CameraSystem:attachCamera()
@@ -24,10 +26,11 @@ function CameraSystem:update(dt)
 
   if target then
     self.camera:lockPosition(Vector.split(target.position.vec))
-    local previousZoomFactor = self.zoomFactor
-    local targetZoomFactor = target.velocity.vec.length / (target.speed.value / 100) + 1
-    self.zoomFactor = mathx.lerp(previousZoomFactor, targetZoomFactor, zoomInterpolationSpeed)
-    self.camera:zoomTo(self.zoomFactor)
+    local previousZoomFactor = zoomFactor
+    local targetZoomFactor = target.velocity.vec.length * target.speed.value / (target.speed.value) + 1
+    local interpolatedZoomFactor = mathx.lerp(previousZoomFactor, targetZoomFactor, zoomInterpolationSpeed)
+    zoomFactor = mathx.clamp(interpolatedZoomFactor, minZoomFactor, maxZoomFactor)
+    self.camera:zoomTo(zoomFactor)
   end
 end
 
