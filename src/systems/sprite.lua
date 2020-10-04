@@ -3,9 +3,14 @@ local SpriteSystem = Concord.system({ pool = { "sprite", "position" } })
 function draw(self)
   for _, entity in ipairs(self.pool) do
     local spriteId = entity.sprite.spriteId
-    local position = entity.position.vec
+    local mediaEntity = mediaManager:getMediaEntity(spriteId)
 
-    love.graphics.draw(mediaManager:getAtlas(), mediaManager:getTexture(spriteId), position.x, position.y)
+    local position = entity.position.vec
+    local origin = Vector(unpack(mediaEntity.origin))
+
+    local finalPosition = position + origin
+
+    love.graphics.draw(mediaManager:getAtlas(), mediaEntity.texture, finalPosition.x, finalPosition.y)
   end
 end
 

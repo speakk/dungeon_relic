@@ -33,6 +33,8 @@ function fillTree(folder, fileTree, tree, mediaEntities)
 
       if lfs.getInfo(file .. '.lua') then
         mediaEntity.metaData = require(file .. '.lua')
+      else
+        mediaEntity.metaData = {}
       end
 
       setDepth(tree, file, mediaEntity, '/')
@@ -99,6 +101,12 @@ function createAtlas(mediaEntities)
 
       local quad = love.graphics.newQuad(currentX, currentY, spriteWidth, spriteHeight, atlasCanvas:getDimensions())
       mediaEntity.texture = quad
+
+      -- If no origin, default to bottom center
+      mediaEntity.origin = mediaEntity.metaData.origin or {
+        x = spriteWidth/2,
+        y = spriteHeight
+      }
 
       currentX = currentX + spriteWidth
       if spriteHeight > lastRowHeight then
