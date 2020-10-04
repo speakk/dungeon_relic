@@ -1,7 +1,5 @@
 local MovementSystem = Concord.system({ pool = { "velocity", "acceleration", "position" } })
 
-local SPEED = 300 -- TODO: Make speed based on component
-
 function MovementSystem:clearMovementIntent(dt)
   for _, entity in ipairs(self.pool) do
     entity.direction.vec.length = 0
@@ -14,7 +12,7 @@ function MovementSystem:update(dt)
     -- Right now just copy direction -> acceleration. here. TODO: Move direction -> acceleration relationship into its own system
     entity.acceleration.vec = entity.direction.vec.copy
     entity.velocity.vec = entity.velocity.vec + entity.acceleration.vec
-    entity.position.vec = entity.position.vec + entity.velocity.vec * dt * SPEED
+    entity.position.vec = entity.position.vec + entity.velocity.vec * dt * entity.speed.value
     applyFriction2d(entity.velocity.vec, 15, dt)
   end
 end

@@ -9,6 +9,7 @@ function game:enter()
     ECS.s.playerControlled,
     ECS.s.aiControlled,
     ECS.s.movement,
+    ECS.s.camera,
     ECS.s.draw,
     ECS.s.sprite
   )
@@ -32,7 +33,9 @@ function game:update(dt)
 end
 
 function game:draw()
+  self.world:emit("attachCamera")
   self.world:emit("draw")
+  self.world:emit("detachCamera")
 end
 
 return game

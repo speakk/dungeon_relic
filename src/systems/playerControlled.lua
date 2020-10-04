@@ -1,4 +1,4 @@
-local PlayerControlledSystem = Concord.system({ pool = { "playerControlled", "direction" } })
+local PlayerControlledSystem = Concord.system({ pool = { 'playerControlled', 'direction' } })
 
 function PlayerControlledSystem:moveLeft()
   for _, entity in ipairs(self.pool) do
