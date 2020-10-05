@@ -1,3 +1,5 @@
+local mapGenerator = require 'utils.mapGenerator'
+
 local game = {}
 
 local TESTING = true
@@ -10,9 +12,14 @@ function game:enter()
     ECS.s.aiControlled,
     ECS.s.movement,
     ECS.s.camera,
-    ECS.s.draw,
-    ECS.s.sprite
+    ECS.s.sprite,
+    ECS.s.mapDraw,
+    ECS.s.draw
   )
+
+  self.world:emit('systemsLoaded')
+
+  self.world:emit('mapChange', mapGenerator.generateTestMap())
 
   if TESTING then
     self.world:emit('initTest')
@@ -30,6 +37,10 @@ end
 function game:update(dt)
   self.world:emit("clearMovementIntent", dt)
   self.world:emit("update", dt)
+end
+
+function game:resize(width, height)
+  self.world:emit('windowResize', width, height)
 end
 
 function game:draw()
