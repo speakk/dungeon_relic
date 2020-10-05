@@ -1,4 +1,4 @@
-local MovementSystem = Concord.system({ pool = { "velocity", "acceleration", "position" } })
+local MovementSystem = Concord.system({ pool = { "velocity", "acceleration", "direction", "position" } })
 
 function MovementSystem:clearMovementIntent(dt)
   for _, entity in ipairs(self.pool) do
