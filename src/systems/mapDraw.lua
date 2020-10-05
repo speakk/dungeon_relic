@@ -1,4 +1,4 @@
-local MapSystem = Concord.system({})
+local MapDrawSystem = Concord.system({})
 
 local function draw(self)
   for _, canvas in ipairs(self.canvases) do
@@ -30,12 +30,12 @@ local function drawLayersToCanvases(map)
   return canvases
 end
 
-function MapSystem:mapChange(map)
+function MapDrawSystem:mapChange(map)
   self.canvases = drawLayersToCanvases(map)
 end
 
-function MapSystem:systemsLoaded()
+function MapDrawSystem:systemsLoaded()
   self:getWorld():emit("registerDrawCallback", map, draw, self, 0)
 end
 
-return MapSystem
+return MapDrawSystem
