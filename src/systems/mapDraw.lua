@@ -8,7 +8,6 @@ local function draw(self)
       offsetY = 0
     end
 
-    --print("Drawing canvasContainer", canvasContainer.canvas, offsetY)
     love.graphics.draw(canvasContainer.canvas, 0, offsetY)
   end
 end
@@ -23,11 +22,9 @@ local function drawCanvas(map, tiles, canvasSizeX, canvasSizeY)
   love.graphics.setCanvas(canvas)
 
   for _, tile in ipairs(tiles) do
-    print("TILE?", tile.x, tile.y, tile.spriteId)
     local mediaEntity = mediaManager:getMediaEntity(tile.spriteId)
-    local finalX = tile.x * tileSize - tileSize
-    local finalY = tile.y * tileSize - tileSize
-    --print("Drawing tile at", finalX, finalY, mediaEntity.texture)
+    local finalX = tile.x * tileSize
+    local finalY = tile.y * tileSize
     love.graphics.draw(mediaManager:getAtlas(), mediaEntity.texture, finalX, finalY)
   end
 
@@ -43,8 +40,6 @@ local function drawCanvasRows(map, layer)
   local canvasContainers = {}
 
   for index, row in ipairs(layer.rows) do
-    print("Draw canvasRows row", index)
-    print("Canvas size", #(row.tiles) * map.tileSize, map.tileSize*2)
     local canvasContainer = drawCanvas(map, row.tiles, #(row.tiles) * map.tileSize, map.tileSize*2)
     canvasContainer.offset = (index - 1) * map.tileSize
     table.insert(canvasContainers, canvasContainer)

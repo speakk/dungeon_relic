@@ -14,8 +14,8 @@ return {
           tiles = functional.generate_2d(widthTiles, heightTiles, function(x, y)
             return {
               spriteId = 'tiles.ground_1',
-              x = x,
-              y = y
+              x = x - 1,
+              y = y - 1
             }
           end)
         },
@@ -28,7 +28,7 @@ return {
                 print("i is", i)
                 return {
                   spriteId = 'tiles.wall_1',
-                  x = i,
+                  x = i - 1,
                   y = 0
                 }
               end)
@@ -37,7 +37,7 @@ return {
               tiles = functional.generate(20, function(i)
                 return {
                   spriteId = 'tiles.wall_1',
-                  x = i+5,
+                  x = i+5 - 1,
                   y = 0
                 }
               end)
