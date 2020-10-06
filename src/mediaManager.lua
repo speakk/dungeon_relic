@@ -108,6 +108,8 @@ function createAtlas(mediaEntities)
         y = spriteHeight
       }
 
+      print("Setting origin at", mediaEntity.origin.x, mediaEntity.origin.y, "for", mediaEntity.fileName)
+
       currentX = currentX + spriteWidth
       if spriteHeight > lastRowHeight then
         lastRowHeight = spriteHeight
