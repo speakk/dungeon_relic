@@ -1,4 +1,4 @@
-local mapGenerator = require 'utils.mapGenerator'
+local MapManager = require 'mapManager'
 
 local game = {}
 
@@ -13,13 +13,21 @@ function game:enter()
     ECS.s.movement,
     ECS.s.camera,
     ECS.s.sprite,
-    ECS.s.mapDraw,
     ECS.s.draw
   )
 
   self.world:emit('systemsLoaded')
 
-  self.world:emit('mapChange', mapGenerator.generateTestMap())
+  self.mapManager = MapManager()
+  self.mapManager:setMap(self.mapManager.generateTestMap(), self.world)
+
+  self.world:emit('mapChange', self.mapManager:getMap())
+
+  -- self.pathFinding = {
+  --   grid = {},
+  --   finder = {},
+  --   updateFinder(
+  -- }
 
   if TESTING then
     self.world:emit('initTest')

@@ -1,4 +1,4 @@
-function createAssemblageHierarchy(directory)
+local function createAssemblageHierarchy(directory)
   local assemblageNames = love.filesystem.getDirectoryItems(directory)
 
   local assemblageContainer = { }

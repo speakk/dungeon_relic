@@ -1,0 +1,2 @@
+return Concord.component("gridCollisionItem")
+
