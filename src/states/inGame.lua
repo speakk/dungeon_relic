@@ -10,9 +10,9 @@ function game:enter()
     ECS.s.input,
     ECS.s.playerControlled,
     ECS.s.aiControlled,
-    ECS.s.shoot,
+    ECS.s.bullet,
     ECS.s.movement,
-    ECS.s.collisionResolve,
+    ECS.s.physicsBody,
     ECS.s.camera,
     ECS.s.sprite,
     ECS.s.draw

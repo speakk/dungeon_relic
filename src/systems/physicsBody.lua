@@ -1,8 +1,8 @@
 HC = require 'libs.HC'
 
-local CollisionResolveSystem = Concord.system({ pool = {"physicsBody", "position"}})
+local PhysicsBodySystem = Concord.system({ pool = {"physicsBody", "position"}})
 
-function CollisionResolveSystem:init()
+function PhysicsBodySystem:init()
   self.pool.onEntityAdded = function(_, entity)
     entity.physicsBody.body = HC.circle(entity.position.vec.x, entity.position.vec.y, entity.physicsBody.radius)
     entity.physicsBody.body.parent = entity
@@ -22,8 +22,15 @@ local function containsAnyInTable(a, b)
     end
   end
 end
+
+local function handleCollisionEvent(world, source, target)
+  local event = source.physicsBody.collisionEvent
+  if event then
+    world:emit(event.name, source, target)
+  end
+end
       
-function CollisionResolveSystem:update(dt)
+function PhysicsBodySystem:update(dt)
   for _, entity in ipairs(self.pool) do
     entity.physicsBody.body:moveTo(Vector.split(entity.position.vec))
     for otherShape, delta in pairs(HC.collisions(entity.physicsBody.body)) do
@@ -31,9 +38,11 @@ function CollisionResolveSystem:update(dt)
 
       if not containsIgnore then
         entity.position.vec = entity.position.vec + Vector(delta.x, delta.y)
+        handleCollisionEvent(self:getWorld(), entity, otherShape.parent)
+        handleCollisionEvent(self:getWorld(), otherShape.parent, entity)
       end
     end
   end
 end
 
-return CollisionResolveSystem
+return PhysicsBodySystem

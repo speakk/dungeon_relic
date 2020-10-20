@@ -38,7 +38,7 @@ function SpriteSystem:init()
   end
 
   self.pool.onEntityRemoved = function(_, entity)
-    table.remove(sortPool, entity)
+    table.remove_value(sortPool, entity)
   end
 end
 
