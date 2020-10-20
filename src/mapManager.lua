@@ -181,7 +181,7 @@ MapManager.generateTestMap = function()
           },
           {
             name = 'physicsBody',
-            properties = { 70 }
+            properties = { 70, { 'wall' }, { 'wall' }, true }
           }
         }
       }

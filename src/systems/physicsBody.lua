@@ -37,9 +37,11 @@ function PhysicsBodySystem:update(dt)
       local containsIgnore = containsAnyInTable(entity.physicsBody.targetIgnoreTags, otherShape.parent.physicsBody.tags) or containsAnyInTable(entity.physicsBody.tags, otherShape.parent.physicsBody.targetIgnoreTags)
 
       if not containsIgnore then
-        entity.position.vec = entity.position.vec + Vector(delta.x, delta.y)
         handleCollisionEvent(self:getWorld(), entity, otherShape.parent)
         handleCollisionEvent(self:getWorld(), otherShape.parent, entity)
+        if not entity.physicsBody.static then
+          entity.position.vec = entity.position.vec + Vector(delta.x, delta.y)
+        end
       end
     end
   end
