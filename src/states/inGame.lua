@@ -25,18 +25,12 @@ function game:enter()
 
   self.world:emit('mapChange', self.mapManager:getMap())
 
-  -- self.pathFinding = {
-  --   grid = {},
-  --   finder = {},
-  --   updateFinder(
-  -- }
-
   if TESTING then
     self.world:emit('initTest')
 
     -- Make a couple test entities.
     local entity = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.player'))
-    --local entity2 = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.monsterA'))
+    local entity2 = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.monsterA'))
   end
 end
 
