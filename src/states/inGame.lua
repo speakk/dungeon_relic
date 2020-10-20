@@ -10,7 +10,9 @@ function game:enter()
     ECS.s.input,
     ECS.s.playerControlled,
     ECS.s.aiControlled,
+    ECS.s.shoot,
     ECS.s.movement,
+    ECS.s.collisionResolve,
     ECS.s.camera,
     ECS.s.sprite,
     ECS.s.draw
@@ -34,7 +36,7 @@ function game:enter()
 
     -- Make a couple test entities.
     local entity = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.player'))
-    local entity2 = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.monsterA'))
+    --local entity2 = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.monsterA'))
   end
 end
 
@@ -43,7 +45,7 @@ function game:leave()
 end
 
 function game:update(dt)
-  self.world:emit("clearMovementIntent", dt)
+  self.world:emit("clearDirectionIntent", dt)
   self.world:emit("update", dt)
 end
 

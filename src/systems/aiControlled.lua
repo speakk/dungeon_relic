@@ -1,5 +1,5 @@
 local AIControlledSystem = Concord.system({
-  pool = { "aiControlled", "direction" },
+  pool = { "aiControlled", "directionIntent" },
   players = { "playerControlled", "position" }
 })
 
@@ -18,7 +18,7 @@ function AIControlledSystem:update(dt)
   for _, entity in ipairs(self.pool) do
     local difference = (target.position.vec - entity.position.vec)
     if difference.length > stopFollowingDistance then
-      entity.direction.vec = difference.normalized
+      entity.directionIntent.vec = difference.normalized
     end
   end
 end

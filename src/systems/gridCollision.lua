@@ -20,3 +20,5 @@ function GridCollisionSystem:init(_)
     setCollisionValue(entity.position.vec.x, entity.position.vec.y, 0)
   end
 end
+
+return GridCollisionSystem

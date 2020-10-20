@@ -2,7 +2,7 @@ local Gamestate = require 'libs.hump.gamestate'
 
 local positionUtils = require 'utils.position'
 
-local PathFindingSystem = Concord.system({ pool = { "pathFind", "position", "direction" } })
+local PathFindingSystem = Concord.system({ pool = { "pathFind", "position", "directionIntent" } })
 
 function PathFindingSystem:update()
   for _, entity in ipairs(self.pool) do
@@ -24,8 +24,8 @@ function PathFindingSystem:update()
       local currentPath = entity.pathFind.currentPath
       local nextNodePosition = currentPath[entity.pathFind.currentIndex]
       local nextPixelPositionX, nextPixelPositionY = positionUtils.gridToPixels(nextNodePosition.x, nextNodePosition.y)
-      local direction = entity.position.vec - Vector(nextPixelPositionX, nextPixelPositionY)
-      entity.direction.vec = direction.normalized
+      local directionIntent = entity.position.vec - Vector(nextPixelPositionX, nextPixelPositionY)
+      entity.directionIntent.vec = directionIntent.normalized
 
       --local currentPath = entity.currentPath[entity.pathFind.currentIndex].x
 

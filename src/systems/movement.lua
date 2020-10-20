@@ -1,9 +1,8 @@
-local MovementSystem = Concord.system({ pool = { "velocity", "acceleration", "direction", "position" } })
+local MovementSystem = Concord.system({ pool = { "velocity", "directionIntent", "position" }, clearDirectionIntents = { "clearDirectionIntent", "directionIntent" } })
 
-function MovementSystem:clearMovementIntent(_)
-  for _, entity in ipairs(self.pool) do
-    entity.direction.vec.length = 0
-    entity.acceleration.vec.length = 0
+function MovementSystem:clearDirectionIntent(_)
+  for _, entity in ipairs(self.clearDirectionIntents) do
+    entity.directionIntent.vec.length = 0
   end
 end
 
@@ -37,9 +36,9 @@ end
 function MovementSystem:update(dt)
   for _, entity in ipairs(self.pool) do
     local oldPosition = entity.position.vec.copy
-    -- Right now just copy direction -> acceleration. here. TODO: Move direction -> acceleration relationship into its own system
-    entity.acceleration.vec = entity.direction.vec.copy
-    entity.velocity.vec = entity.velocity.vec + entity.acceleration.vec
+    -- Right now just copy directionIntent -> acceleration. here. TODO: Move directionIntent -> acceleration relationship into its own system
+    local acceleration = entity.directionIntent.vec.copy
+    entity.velocity.vec = entity.velocity.vec + acceleration
     entity.position.vec = entity.position.vec + entity.velocity.vec * dt * entity.speed.value
     applyFriction2d(entity.velocity.vec, 15, dt)
 
@@ -50,6 +49,10 @@ function MovementSystem:update(dt)
     if position.y < self.mapBounds.min.y then position.y = self.mapBounds.min.y velocity.y = 0 end
     if position.x > self.mapBounds.max.x - sizeVec.x then position.x = self.mapBounds.max.x - sizeVec.x velocity.x = 0 end
     if position.y > self.mapBounds.max.y - sizeVec.y then position.y = self.mapBounds.max.y - sizeVec.y velocity.y = 0 end
+
+    if oldPosition ~= entity.position.vec then
+      self:getWorld():emit("entityMoved", oldPosition)
+    end
 
     -- local sizeVec = entity.size and entity.size.vec or Vector(0, 0)
     -- entity.position.vec = entity.position.vec:clamp(self.mapBounds.min, self.mapBounds.max - sizeVec)

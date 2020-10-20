@@ -178,6 +178,10 @@ MapManager.generateTestMap = function()
           },
           {
             name = 'gridCollisionItem'
+          },
+          {
+            name = 'physicsBody',
+            properties = { 70 }
           }
         }
       }

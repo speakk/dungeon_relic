@@ -17,8 +17,8 @@ function InputSystem:update(dt)
     self:getWorld():emit('moveLeft')
   end
 
-  if love.keyboard.isDown('space') then
-    self:getWorld():emit('shoot')
+  if love.keyboard.isDown('z') then
+    self:getWorld():emit('playerShoot')
   end
 end
 
