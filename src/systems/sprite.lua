@@ -15,6 +15,7 @@ end
 local function draw(self)
   self.tilesetBatch:clear()
 
+  --local zSorted = table.insertion_sort(sortPool, function(a, b) return compareY(a, b) end)
   local zSorted = table.insertion_sort(sortPool, function(a, b) return compareY(a, b) end)
   for _, entity in ipairs(zSorted) do
     local spriteId = entity.sprite.spriteId

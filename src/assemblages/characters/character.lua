@@ -5,4 +5,5 @@ return function(entity, x, y)
   entity:give("directionIntent")
   entity:give("clearDirectionIntent")
   entity:give("physicsBody", 13)
+  entity:give("health", 100)
 end

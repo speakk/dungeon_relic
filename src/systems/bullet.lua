@@ -10,12 +10,10 @@ function BulletSystem:shoot(sourceEntity, from, direction, bulletTypeSelector, t
   bullet.physicsBody.collisionEvent = { name = "bulletCollision" }
 end
 
-function BulletSystem:bulletCollision(bullet, target)
-  if target.health then
-    self:getWorld():emit("takeDamage", bullet.damage)
-  end
+function BulletSystem:bulletCollision(bulletEntity, target)
+  self:getWorld():emit("takeDamage", target, bulletEntity.damager.value)
 
-  bullet:destroy()
+  bulletEntity:destroy()
 end
 
 return BulletSystem
