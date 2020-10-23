@@ -34,7 +34,7 @@ function PhysicsBodySystem:update(dt)
   for _, entity in ipairs(self.pool) do
     entity.physicsBody.body:moveTo(Vector.split(entity.position.vec))
     for otherShape, delta in pairs(HC.collisions(entity.physicsBody.body)) do
-      local containsIgnore = containsAnyInTable(entity.physicsBody.targetIgnoreTags, otherShape.parent.physicsBody.tags) or containsAnyInTable(entity.physicsBody.tags, otherShape.parent.physicsBody.targetIgnoreTags)
+      local containsIgnore = containsAnyInTable(otherShape.parent.physicsBody.tags, entity.physicsBody.targetIgnoreTags) or containsAnyInTable(entity.physicsBody.tags, otherShape.parent.physicsBody.targetIgnoreTags)
 
       if not containsIgnore then
         handleCollisionEvent(self:getWorld(), entity, otherShape.parent)

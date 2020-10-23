@@ -24,9 +24,9 @@ function PlayerControlledSystem:moveDown()
   end
 end
 
-function PlayerControlledSystem:playerShoot()
+function PlayerControlledSystem:playerShoot(direction)
   for _, entity in ipairs(self.pool) do
-    self:getWorld():emit("shoot", entity, entity.position.vec, entity.directionIntent.vec, "bullets.basicBullet", { "player" })
+    self:getWorld():emit("shoot", entity, entity.position.vec, direction, "bullets.basicBullet", { "player" })
   end
 end
 

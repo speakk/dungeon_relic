@@ -6,7 +6,7 @@ function BulletSystem:shoot(sourceEntity, from, direction, bulletTypeSelector, t
 
   bullet.position.vec = from.copy
   bullet.directionIntent.vec = direction.copy
-  bullet.physicsBody.targetIgnoreTags = targetIgnoreTags
+  table.append_inplace(bullet.physicsBody.targetIgnoreTags, targetIgnoreTags)
   bullet.physicsBody.collisionEvent = { name = "bulletCollision" }
 end
 

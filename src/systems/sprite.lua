@@ -3,6 +3,9 @@ local SpriteSystem = Concord.system({ pool = { "sprite", "position" } })
 local sortPool = {}
 
 local function compareY(a, b)
+  if a.sprite.zIndex ~= b.sprite.zIndex then
+    return a.sprite.zIndex < b.sprite.zIndex
+  end
   local spriteA = mediaManager:getMediaEntity(a.sprite.spriteId)
   local spriteB = mediaManager:getMediaEntity(b.sprite.spriteId)
 
@@ -15,7 +18,6 @@ end
 local function draw(self)
   self.tilesetBatch:clear()
 
-  --local zSorted = table.insertion_sort(sortPool, function(a, b) return compareY(a, b) end)
   local zSorted = table.insertion_sort(sortPool, function(a, b) return compareY(a, b) end)
   for _, entity in ipairs(zSorted) do
     local spriteId = entity.sprite.spriteId
@@ -27,7 +29,7 @@ local function draw(self)
 
     local finalPosition = position - origin
 
-    love.graphics.draw(mediaEntity.atlas, mediaEntity.quad, finalPosition.x, finalPosition.y)
+    love.graphics.draw(mediaEntity.atlas, mediaEntity.quad, finalPosition.x, finalPosition.y, 0, entity.sprite.scale, entity.sprite.scale)
   end
 end
 

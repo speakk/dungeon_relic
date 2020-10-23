@@ -15,6 +15,8 @@ function game:enter()
     ECS.s.physicsBody,
     ECS.s.health,
     ECS.s.death,
+    ECS.s.particle,
+    ECS.s.selfDestroy,
     ECS.s.camera,
     ECS.s.sprite,
     ECS.s.draw
@@ -33,7 +35,7 @@ function game:enter()
     -- Make a couple test entities.
     local entity = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.player'))
 
-    for i=1,10 do
+    for i=1,100 do
       local entity2 = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.monsterA'))
       entity2.position.vec = Vector(love.math.random(1000), love.math.random(1000))
     end

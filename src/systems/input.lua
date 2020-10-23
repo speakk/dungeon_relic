@@ -17,8 +17,31 @@ function InputSystem:update(dt)
     self:getWorld():emit('moveLeft')
   end
 
-  if love.keyboard.isDown('z') then
-    self:getWorld():emit('playerShoot')
+  local shooting = false
+  local shootingDirection = Vector()
+
+  if love.keyboard.isDown('a') then
+    shooting = true
+    shootingDirection = shootingDirection + Vector(-1, 0)
+  end
+
+  if love.keyboard.isDown('d') then
+    shooting = true
+    shootingDirection = shootingDirection + Vector(1, 0)
+  end
+
+  if love.keyboard.isDown('w') then
+    shooting = true
+    shootingDirection = shootingDirection + Vector(0, -1)
+  end
+
+  if love.keyboard.isDown('s') then
+    shooting = true
+    shootingDirection = shootingDirection + Vector(0, 1)
+  end
+
+  if shooting then
+    self:getWorld():emit('playerShoot', shootingDirection.normalized)
   end
 end
 
