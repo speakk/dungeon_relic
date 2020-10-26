@@ -1,3 +1,6 @@
+local shash = require 'libs.shash'
+local Timer = require 'libs.hump.timer'
+
 local MapManager = require 'mapManager'
 
 local game = {}
@@ -13,6 +16,8 @@ function game:enter()
     ECS.s.bullet,
     ECS.s.movement,
     ECS.s.physicsBody,
+    ECS.s.spatialHash,
+    ECS.s.gridCollision,
     ECS.s.health,
     ECS.s.death,
     ECS.s.particle,
@@ -22,12 +27,19 @@ function game:enter()
     ECS.s.draw
   )
 
+  local hashCellSize = 256
+  self.spatialHash = shash.new(hashCellSize)
+  print("HASH?", self.spatialHash)
+
   self.world:emit('systemsLoaded')
 
+
   self.mapManager = MapManager()
-  self.mapManager:setMap(self.mapManager.generateTestMap(), self.world)
+
+  self.mapManager:setMap(MapManager.generateMap(), self.world)
 
   self.world:emit('mapChange', self.mapManager:getMap())
+
 
   if TESTING then
     self.world:emit('initTest')
@@ -35,10 +47,10 @@ function game:enter()
     -- Make a couple test entities.
     local entity = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.player'))
 
-    for i=1,100 do
-      local entity2 = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.monsterA'))
-      entity2.position.vec = Vector(love.math.random(1000), love.math.random(1000))
-    end
+    --for i=1,100 do
+    --  local entity2 = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.monsterA'))
+    --  entity2.position.vec = Vector(love.math.random(1000), love.math.random(1000))
+    --end
   end
 end
 
@@ -47,6 +59,7 @@ function game:leave()
 end
 
 function game:update(dt)
+  Timer.update(dt)
   self.world:emit("clearDirectionIntent", dt)
   self.world:emit("update", dt)
 end
@@ -58,6 +71,7 @@ end
 function game:draw()
   self.world:emit("attachCamera")
   self.world:emit("draw")
+  self.world:emit("drawDebugWithCamera")
   self.world:emit("detachCamera")
 end
 

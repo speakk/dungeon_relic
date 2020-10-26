@@ -51,7 +51,7 @@ function MovementSystem:update(dt)
     if position.y > self.mapBounds.max.y - sizeVec.y then position.y = self.mapBounds.max.y - sizeVec.y velocity.y = 0 end
 
     if oldPosition ~= entity.position.vec then
-      self:getWorld():emit("entityMoved", oldPosition)
+      self:getWorld():emit("entityMoved", entity, oldPosition)
     end
 
     -- local sizeVec = entity.size and entity.size.vec or Vector(0, 0)

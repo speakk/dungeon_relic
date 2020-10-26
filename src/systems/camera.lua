@@ -43,6 +43,7 @@ function CameraSystem:update(dt)
     local finalX = mathx.lerp(startX, targetX, lerpSpeed)
     local finalY = mathx.lerp(startY, targetY, lerpSpeed)
     self.camera:setPosition(finalX, finalY)
+    self:getWorld():emit("cameraUpdated", self.camera)
 
     -- Set zoom level based on target velocity (also do linear interpolation
     -- between old value and new)

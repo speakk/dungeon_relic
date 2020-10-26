@@ -1,3 +1,5 @@
+local Gamestate = require 'libs.hump.gamestate'
+
 local SpriteSystem = Concord.system({ pool = { "sprite", "position" } })
 
 local sortPool = {}
@@ -15,10 +17,26 @@ local function compareY(a, b)
   return posA < posB
 end
 
-local function draw(self)
-  self.tilesetBatch:clear()
+function SpriteSystem:cameraUpdated(camera)
+  self.camera = camera
+end
 
-  local zSorted = table.insertion_sort(sortPool, function(a, b) return compareY(a, b) end)
+local function draw(self)
+  if not self.camera then return end
+
+  --self.tilesetBatch:clear()
+
+  local l, t, w, h = self.camera:getVisible()
+
+  local screenSpatialGroup = {}
+  Gamestate.current().spatialHash:each(l, t, w, h, function(entity)
+    table.insert(screenSpatialGroup, entity)
+  end)
+
+  local inHash = functional.filter(sortPool, function(entity)
+    return functional.contains(screenSpatialGroup, entity)
+  end)
+  local zSorted = table.insertion_sort(inHash, function(a, b) return compareY(a, b) end)
   for _, entity in ipairs(zSorted) do
     local spriteId = entity.sprite.spriteId
     local mediaEntity = mediaManager:getMediaEntity(spriteId)
