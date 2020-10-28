@@ -6,16 +6,10 @@ local GridCollisionSystem = Concord.system({ pool = { "gridCollisionItem" } })
 
 local debugRectangles = {}
 
-local function setCollisionValue(x, y, value, self)
-  local mapManager = Gamestate.current().mapManager
-  mapManager:setCollisionMapValue(
-  x,
-  y,
-  value)
-
-  self:updateCollisionTileMap()
-end
-
+-- For optimization purposes, merge individual tiles into bigger rectangles.
+-- Steps through tiles one by one and checks if there's already a "rectangle"
+-- on the left. If it exists, extend it. These rectangles can then be used
+-- for collision instead of hundreds of individual tiles.
 local function mergeTilesIntoRectangles(map, tileSize)
   local function getSafe(twoDimTable, x, y)
     if twoDimTable[y] then
@@ -88,12 +82,19 @@ local function mergeTilesIntoRectangles(map, tileSize)
   return toBeMerged
 end
 
-local bufferLength = 1.0
+-- Updating the collision rectangles from tile map is a heavy operation,
+-- so buffer consecutive calls to the function
+local bufferLength = 0.2
 local bufferTimer = nil
 function GridCollisionSystem:updateCollisionTileMap()
   if bufferTimer then return end
   bufferTimer = Timer.after(bufferLength, function()
     bufferTimer = nil
+
+    for _, entity in ipairs(self.tileRectangleEntities) do
+      entity:destroy()
+    end
+
     local collisionMap = Gamestate.current().mapManager:getCollisionMap()
     local tileRectangles = mergeTilesIntoRectangles(collisionMap, Gamestate.current().mapManager.map.tileSize)
     debugRectangles = tileRectangles
@@ -101,17 +102,10 @@ function GridCollisionSystem:updateCollisionTileMap()
     local tileSize = Gamestate.current().mapManager.map.tileSize
 
     for _, rect in ipairs(tileRectangles) do
-      local polygonTileCoords = {
-        rect.startX, rect.startY,
-        rect.endX + 1, rect.startY,
-        rect.endX + 1, rect.endY + 1,
-        rect.startX, rect.endY + 1
-      }
-      local polygon = functional.map(polygonTileCoords, function(coord) return coord*tileSize end)
-
       local entity = Concord.entity(self:getWorld())
       entity:give("position", rect.startX * tileSize, rect.startY * tileSize)
       entity:give("physicsBody", (rect.endX + 1 - rect.startX) * tileSize, (rect.endY + 1 - rect.startY) * tileSize, { "wall" }, nil, true)
+      table.insert(self.tileRectangleEntities, entity)
     end
   end)
 end
@@ -134,7 +128,19 @@ function GridCollisionSystem:drawDebugWithCamera()
   end
 end
 
+local function setCollisionValue(x, y, value, self)
+  local mapManager = Gamestate.current().mapManager
+  mapManager:setCollisionMapValue(
+  x,
+  y,
+  value)
+
+  self:updateCollisionTileMap()
+end
+
 function GridCollisionSystem:init(_)
+  self.tileRectangleEntities = {}
+
   self.pool.onEntityAdded = function(_, entity)
     setCollisionValue(entity.gridCollisionItem.x, entity.gridCollisionItem.y, 1, self)
   end
