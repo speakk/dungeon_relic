@@ -4,6 +4,6 @@ return function(entity, x, y)
   entity:give("velocity")
   entity:give("directionIntent")
   entity:give("clearDirectionIntent")
-  entity:give("physicsBody", "circle", { radius = 16 })
+  entity:give("physicsBody", 16, 16)
   entity:give("health", 100)
 end

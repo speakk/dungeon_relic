@@ -6,7 +6,7 @@ return function(entity, x, y)
   entity:give("velocity")
   entity:give("selfDestroy", 500)
   entity:give("directionIntent")
-  entity:give("physicsBody", "circle", { radius = 3}, { "bullet" }, { "bullet" })
+  entity:give("physicsBody", 3, 3, { "bullet" }, { "bullet" })
   entity:give("sprite", "bullets.basicBullet")
 end
 

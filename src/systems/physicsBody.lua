@@ -1,24 +1,14 @@
-HC = require 'libs.HC'
+local Gamestate = require 'libs.hump.gamestate'
 
-local PhysicsBodySystem = Concord.system({ pool = {"physicsBody"} })
-
-local getHCProperties = {
-  circle = function(entity)
-    return entity.position.vec.x, entity.position.vec.y, entity.physicsBody.HCproperties.radius
-  end,
-  polygon = function(entity)
-    return unpack(entity.physicsBody.HCproperties.polygon)
-  end
-}
+local PhysicsBodySystem = Concord.system({ pool = {"physicsBody", "position"} })
 
 function PhysicsBodySystem:init()
   self.pool.onEntityAdded = function(_, entity)
-    entity.physicsBody.body = HC[entity.physicsBody.shapeType](getHCProperties[entity.physicsBody.shapeType](entity))
-    entity.physicsBody.body.parent = entity
+    Gamestate.current().bumpWorld:add(entity, entity.position.vec.x, entity.position.vec.y, entity.physicsBody.width, entity.physicsBody.height)
   end
 
   self.pool.onEntityRemoved = function(_, entity)
-    HC.remove(entity.physicsBody.body)
+    Gamestate.current().bumpWorld:remove(entity)
   end
 end
 
@@ -39,26 +29,28 @@ local function handleCollisionEvent(world, source, target)
   end
 end
 
-function PhysicsBodySystem:drawDebugWithCamera()
-  for _, entity in ipairs(self.pool) do
-    entity.physicsBody.body:draw("fill")
-  end
-end
-      
 function PhysicsBodySystem:update(dt)
   for _, entity in ipairs(self.pool) do
     if entity.position then
-      entity.physicsBody.body:moveTo(Vector.split(entity.position.vec))
-      for otherShape, delta in pairs(HC.collisions(entity.physicsBody.body)) do
-        local containsIgnore = containsAnyInTable(otherShape.parent.physicsBody.tags, entity.physicsBody.targetIgnoreTags) or containsAnyInTable(entity.physicsBody.tags, otherShape.parent.physicsBody.targetIgnoreTags)
+      local actualX, actualY, collisions, length = Gamestate.current().bumpWorld:move(entity, entity.position.vec.x, entity.position.vec.y, function(item, other)
+        local containsIgnore = containsAnyInTable(other.physicsBody.tags, item.physicsBody.targetIgnoreTags) or containsAnyInTable(item.physicsBody.tags, other.physicsBody.targetIgnoreTags)
 
         if not containsIgnore then
-          handleCollisionEvent(self:getWorld(), entity, otherShape.parent)
-          handleCollisionEvent(self:getWorld(), otherShape.parent, entity)
-          if not entity.physicsBody.static then
-            entity.position.vec = entity.position.vec + Vector(delta.x, delta.y)
-          end
+          return "slide"
+        else
+          return false
         end
+      end)
+
+      if not entity.physicsBody.static then
+        entity.position.vec.x = actualX
+        entity.position.vec.y = actualY
+      end
+
+      for _, collision in ipairs(collisions) do
+        --print("Handle collision", collision)
+        handleCollisionEvent(self:getWorld(), collision.item, collision.other)
+        handleCollisionEvent(self:getWorld(), collision.other, collision.item)
       end
     end
   end

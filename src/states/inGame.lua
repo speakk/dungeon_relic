@@ -1,5 +1,6 @@
 local shash = require 'libs.shash'
 local Timer = require 'libs.hump.timer'
+local bump = require 'libs.bump'
 
 local MapManager = require 'mapManager'
 
@@ -31,6 +32,8 @@ function game:enter()
   self.spatialHash = shash.new(hashCellSize)
   print("HASH?", self.spatialHash)
 
+  self.bumpWorld = bump.newWorld(64)
+
   self.world:emit('systemsLoaded')
 
 
@@ -47,10 +50,10 @@ function game:enter()
     -- Make a couple test entities.
     local entity = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.player'))
 
-    --for i=1,100 do
-    --  local entity2 = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.monsterA'))
-    --  entity2.position.vec = Vector(love.math.random(1000), love.math.random(1000))
-    --end
+    for i=1,300 do
+      local entity2 = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.monsterA'))
+      entity2.position.vec = Vector(love.math.random(1000), love.math.random(1000))
+    end
   end
 end
 
