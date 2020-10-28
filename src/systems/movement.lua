@@ -1,4 +1,7 @@
-local MovementSystem = Concord.system({ pool = { "velocity", "directionIntent", "position" }, clearDirectionIntents = { "clearDirectionIntent", "directionIntent" } })
+local MovementSystem = Concord.system({
+  pool = { "velocity", "directionIntent", "position" },
+  clearDirectionIntents = { "clearDirectionIntent", "directionIntent" }
+})
 
 function MovementSystem:clearDirectionIntent(_)
   for _, entity in ipairs(self.clearDirectionIntents) do
@@ -53,14 +56,6 @@ function MovementSystem:update(dt)
     if oldPosition ~= entity.position.vec then
       self:getWorld():emit("entityMoved", entity, oldPosition)
     end
-
-    -- local sizeVec = entity.size and entity.size.vec or Vector(0, 0)
-    -- entity.position.vec = entity.position.vec:clamp(self.mapBounds.min, self.mapBounds.max - sizeVec)
-    -- local diff = entity.position.vec - oldPosition
-    -- entity.velocity.vec = entity.velocity.vec:clamp(-diff, diff)
-    -- print("diff",diff, entity.velocity.vec)
-    -- --entity.velocity.vec = diff
-    -- --entity.velocity.vec = (entity.position.vec + entity.velocity.vec):clamp(self.mapBounds.min, self.mapBounds.max - sizeVec) - entity.position.vec
   end
 end
 

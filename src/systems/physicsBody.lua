@@ -30,10 +30,13 @@ local function handleCollisionEvent(world, source, target)
 end
 
 function PhysicsBodySystem:update(dt)
+  local bumpWorld = Gamestate.current().bumpWorld
   for _, entity in ipairs(self.pool) do
     if entity.position then
-      local actualX, actualY, collisions, length = Gamestate.current().bumpWorld:move(entity, entity.position.vec.x, entity.position.vec.y, function(item, other)
-        local containsIgnore = containsAnyInTable(other.physicsBody.tags, item.physicsBody.targetIgnoreTags) or containsAnyInTable(item.physicsBody.tags, other.physicsBody.targetIgnoreTags)
+      local actualX, actualY, collisions, _ = bumpWorld:move(entity, entity.position.vec.x, entity.position.vec.y,
+      function(item, other)
+        local containsIgnore = containsAnyInTable(other.physicsBody.tags, item.physicsBody.targetIgnoreTags)
+        or containsAnyInTable(item.physicsBody.tags, other.physicsBody.targetIgnoreTags)
 
         if not containsIgnore then
           return "slide"
@@ -48,7 +51,6 @@ function PhysicsBodySystem:update(dt)
       end
 
       for _, collision in ipairs(collisions) do
-        --print("Handle collision", collision)
         handleCollisionEvent(self:getWorld(), collision.item, collision.other)
         handleCollisionEvent(self:getWorld(), collision.other, collision.item)
       end

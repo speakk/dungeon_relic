@@ -26,7 +26,7 @@ function SpatialHashSystem:init()
   end
 end
 
-function SpatialHashSystem:entityMoved(entity)
+function SpatialHashSystem:entityMoved(entity) -- luacheck: ignore
   Gamestate.current().spatialHash:update(
     entity,
     entity.position.vec.x,

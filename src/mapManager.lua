@@ -193,7 +193,7 @@ MapManager.generateMap = function()
   local sparsenessModifier = 25
   local deadEndRemovalModifier = 90
   local generator = astray.Astray:new(
-    width/2-1, 
+    width/2-1,
     height/2-1,
     changeDirectionModifier,
     sparsenessModifier,
@@ -209,9 +209,8 @@ MapManager.generateMap = function()
   for y = 0, #tiles[1] do
     for iy=1,scalingFactor do
       local scaledRow = {}
-      local row = tiles[y]
       for x=0,#tiles do
-        for ix=1,scalingFactor do
+        for _=1,scalingFactor do
           table.insert(scaledRow, tiles[y][x])
         end
       end

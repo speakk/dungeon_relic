@@ -1,5 +1,4 @@
 local Gamestate = require 'libs.hump.gamestate'
-local positionUtil = require 'utils.position'
 local Timer = require 'libs.hump.timer'
 
 local GridCollisionSystem = Concord.system({ pool = { "gridCollisionItem" } })
@@ -10,7 +9,7 @@ local debugRectangles = {}
 -- Steps through tiles one by one and checks if there's already a "rectangle"
 -- on the left. If it exists, extend it. These rectangles can then be used
 -- for collision instead of hundreds of individual tiles.
-local function mergeTilesIntoRectangles(map, tileSize)
+local function mergeTilesIntoRectangles(map)
   local function getSafe(twoDimTable, x, y)
     if twoDimTable[y] then
       return twoDimTable[y][x]
@@ -96,7 +95,7 @@ function GridCollisionSystem:updateCollisionTileMap()
     end
 
     local collisionMap = Gamestate.current().mapManager:getCollisionMap()
-    local tileRectangles = mergeTilesIntoRectangles(collisionMap, Gamestate.current().mapManager.map.tileSize)
+    local tileRectangles = mergeTilesIntoRectangles(collisionMap)
     debugRectangles = tileRectangles
 
     local tileSize = Gamestate.current().mapManager.map.tileSize
@@ -110,7 +109,7 @@ function GridCollisionSystem:updateCollisionTileMap()
   end)
 end
 
-function GridCollisionSystem:drawDebugWithCamera()
+function GridCollisionSystem:drawDebugWithCamera() --luacheck: ignore
   local tileSize = Gamestate.current().mapManager.map.tileSize
   for _, rect in ipairs(debugRectangles) do
     love.graphics.setColor(1,1,0)
