@@ -228,8 +228,6 @@ local MapManager = Class {
   -- Note: x and y are grid coordinates, not pixel
   -- value: 0 = no collision 1 = collision
   setCollisionMapValue = function(self, x, y, value)
-    --self.collisionMap[positionUtil.positionToString(x, y)] = value
-    print("setCollisionMapValue", x, y, value)
     self.collisionMap[y][x] = value
   end,
 
@@ -277,7 +275,7 @@ MapManager.generateMap = function()
 
   -- Astray:new(width/2-1, height/2-1, changeDirectionModifier (1-30), sparsenessModifier (25-70), deadEndRemovalModifier (70-99) ) | RoomGenerator:new(rooms, minWidth, maxWidth, minHeight, maxHeight)
 
-  local width, height = 40, 40
+  local width, height = 14, 14
   local changeDirectionModifier = 30
   local sparsenessModifier = 25
   local deadEndRemovalModifier = 90
