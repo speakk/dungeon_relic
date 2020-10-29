@@ -188,7 +188,7 @@ MapManager.generateMap = function()
 
   -- Astray:new(width/2-1, height/2-1, changeDirectionModifier (1-30), sparsenessModifier (25-70), deadEndRemovalModifier (70-99) ) | RoomGenerator:new(rooms, minWidth, maxWidth, minHeight, maxHeight)
 
-  local width, height = 14, 14
+  local width, height = 20, 20
   local changeDirectionModifier = 30
   local sparsenessModifier = 25
   local deadEndRemovalModifier = 90

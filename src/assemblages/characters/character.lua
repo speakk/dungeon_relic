@@ -4,6 +4,7 @@ return function(entity, x, y)
   entity:give("velocity")
   entity:give("directionIntent")
   entity:give("clearDirectionIntent")
-  entity:give("physicsBody", 16, 16)
+  -- TODO: Remove { "player" } from ignoreGroups, using it to make ease of movement better
+  entity:give("physicsBody", 16, 16, nil, { "player" })
   entity:give("health", 100)
 end

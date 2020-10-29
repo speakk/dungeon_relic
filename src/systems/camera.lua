@@ -1,4 +1,3 @@
-local Gamera = require 'libs.gamera'
 local lume = require 'libs.lume'
 
 local CameraSystem = Concord.system({ pool = { 'cameraTarget', 'position', 'velocity', 'speed' }})
@@ -9,9 +8,14 @@ local minZoomFactor = 1.6
 local maxZoomFactor = 2
 
 function CameraSystem:init()
-  self.camera = Gamera.new(0, 0, love.graphics.getWidth(), love.graphics.getHeight())
+end
+
+function CameraSystem:setCamera(camera)
+  self.camera = camera
   self.camera:setScale(1.5)
-  self.map = {}
+  if self.map then
+    self.camera:setWorld(0, 0, self.map.size.x * self.map.tileSize, self.map.size.y * map.tileSize)
+  end
 end
 
 function CameraSystem:attachCamera()

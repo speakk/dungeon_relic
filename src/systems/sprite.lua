@@ -17,7 +17,7 @@ local function compareY(a, b)
   return posA < posB
 end
 
-function SpriteSystem:cameraUpdated(camera)
+function SpriteSystem:setCamera(camera)
   self.camera = camera
 end
 

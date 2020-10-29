@@ -103,7 +103,11 @@ function GridCollisionSystem:updateCollisionTileMap()
     for _, rect in ipairs(tileRectangles) do
       local entity = Concord.entity(self:getWorld())
       entity:give("position", rect.startX * tileSize, rect.startY * tileSize)
-      entity:give("physicsBody", (rect.endX + 1 - rect.startX) * tileSize, (rect.endY + 1 - rect.startY) * tileSize, { "wall" }, nil, true)
+      local width = (rect.endX + 1 - rect.startX) * tileSize
+      local height = (rect.endY + 1 - rect.startY) * tileSize
+      entity:give("physicsBody", width, height, { "wall" }, nil, true)
+      entity:give("lightBlocker", width, height)
+      entity:give("lightBlockerActive")
       table.insert(self.tileRectangleEntities, entity)
     end
   end)
