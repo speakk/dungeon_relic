@@ -100,7 +100,6 @@ local MediaManager = Class {
     return self.tree[path]
   end,
   setMediaEntity = function(self, path, mediaEntity)
-    print("setMediaEntity", path, mediaEntity)
     self.tree[path] = mediaEntity
   end,
   getAtlas = function(self)

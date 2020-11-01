@@ -32,12 +32,6 @@ for y=0,tilesetH-1 do
   end
 end
 
---local bitmaskValues = { n = 1, w = 2, e = 4, s = 8 }
--- local bitmaskValues = {
---   nw = 1, n = 2, ne = 4,
---   w = 8, e = 16,
---   sw = 32, s = 64, se = 128
--- }
 local bitmaskValues = {
   n = 1, ne = 2, e = 4,
   se = 8, s = 16,
@@ -68,7 +62,6 @@ local function calculateAutotileBitmask(x, y, map)
   local value = 0
   for dir, coords in pairs(allDirections) do
     if not isBlocked(getMapValueSafe(map, coords.x, coords.y)) then
-      --value = value + bitmaskValues[dir]
       if coords.neighbors then
         local hasBothNeighbors = true
         for _, neighborDir in pairs(coords.neighbors) do
@@ -256,6 +249,7 @@ local MapManager = Class {
   end,
 
   setMap = function(self, map, world)
+    print("setMap, new map ahoy!", map)
     clearMediaEntries(self.floorCanvasEntities)
     clearEntities(self.floorCanvasEntities)
 
@@ -264,8 +258,11 @@ local MapManager = Class {
         return 0
       end)
     end)
+
     self.map = map
+
     self.floorCanvasEntities = drawFloor(map, world)
+
     for _, entity in ipairs(self.floorCanvasEntities) do
       world:addEntity(entity)
     end
@@ -284,7 +281,7 @@ local MapManager = Class {
   end
 }
 
-local function generateSimpleMap(width, height)
+local function generateSimpleMap(seed, width, height)
   local map = {}
   local bias = 0.2
   local scale = 0.1
@@ -293,7 +290,7 @@ local function generateSimpleMap(width, height)
     table.insert(map, row)
 
     for x=1,width do
-      local value = love.math.noise(x * scale + bias, y * scale + bias)
+      local value = love.math.noise(x * scale + bias + seed, y * scale + bias + seed)
       if value > 0.8 then
         row[x] = 'void'
       else
@@ -305,12 +302,13 @@ local function generateSimpleMap(width, height)
   return map
 end
 
-MapManager.generateMap = function()
+MapManager.generateMap = function(levelNumber)
   local tileSize = 32
 
   local width = 80
   local height = 80
-  local tiles = generateSimpleMap(width, height)
+  
+  local tiles = generateSimpleMap(levelNumber, width, height)
 
   return {
     tileSize = tileSize,

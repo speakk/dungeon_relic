@@ -1,15 +1,19 @@
+local Gamestate = require 'libs.hump.gamestate'
 local shash = require 'libs.shash'
 local Timer = require 'libs.hump.timer'
 local bump = require 'libs.bump'
 local Gamera = require 'libs.gamera'
 
+local switchLevels = require 'states.switchLevels'
 local MapManager = require 'mapManager'
 
 local game = {}
 
 local TESTING = true
 
-function game:enter()
+function game:enter(_, level)
+  self.currentLevelNumber = level or 1
+
   self.world = Concord.world()
   self.world:addSystems(
     ECS.s.input,
@@ -19,6 +23,8 @@ function game:enter()
     ECS.s.bullet,
     ECS.s.movement,
     ECS.s.physicsBody,
+    ECS.s.levelChange,
+    ECS.s.portal,
     ECS.s.spatialHash,
     ECS.s.gridCollision,
     ECS.s.light,
@@ -43,18 +49,20 @@ function game:enter()
 
   self.mapManager = MapManager()
 
-  self.mapManager:setMap(MapManager.generateMap(), self.world)
+  self.mapManager:setMap(MapManager.generateMap(self.currentLevelNumber), self.world)
 
   self.world:emit('mapChange', self.mapManager:getMap())
-
 
   if TESTING then
     self.world:emit('initTest')
 
     -- Make a couple test entities.
     local entity = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.player'))
+    entity:give("position", 300, 450)
     entity:give("lightSource", 200, 1, 0.2, 0.2, 0.5)
 
+    local portalEntity = Concord.entity(self.world):assemble(ECS.a.getBySelector('dungeon_features.portal'))
+    portalEntity:give("position", 450, 450)
 
     --for i=1,1 do
     --  local entity2 = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.monsterA'))
@@ -66,6 +74,7 @@ function game:enter()
 end
 
 function game:leave()
+  self.world:emit("systemsCleanUp")
   self.world:clear()
 end
 
@@ -77,6 +86,12 @@ end
 
 function game:resize(width, height)
   self.world:emit('windowResize', width, height)
+end
+
+function game:descendLevel()
+  local newLevelNumber = self.currentLevelNumber + 1
+  print("newLevelNumber", newLevelNumber)
+  Gamestate.switch(switchLevels, self.currentLevelNumber, newLevelNumber)
 end
 
 function game:draw()

@@ -79,14 +79,10 @@ local function mergeTilesIntoRectangles(map)
   return toBeMerged
 end
 
--- Updating the collision rectangles from tile map is a heavy operation,
--- so buffer consecutive calls to the function
-local bufferLength = 0.2
-local bufferTimer = nil
 function GridCollisionSystem:updateCollisionTileMap()
-  if bufferTimer then return end
-  bufferTimer = Timer.after(bufferLength, function()
-    bufferTimer = nil
+  if self.bufferTimer then return end
+  self.bufferTimer = Timer.after(self.bufferLength, function()
+    self.bufferTimer = nil
 
     for _, entity in ipairs(self.tileRectangleEntities) do
       entity:destroy()
@@ -122,6 +118,12 @@ end
 
 function GridCollisionSystem:init(_)
   self.tileRectangleEntities = {}
+
+  -- Updating the collision rectangles from tile map is a heavy operation,
+  -- so buffer consecutive calls to the function
+  -- Used in function GridCollisionSystem:updateCollisionTileMap()
+  self.bufferLength = 0.2
+  self.bufferTimer = nil
 
   self.pool.onEntityAdded = function(_, entity)
     setCollisionValue(entity.gridCollisionItem.x, entity.gridCollisionItem.y, 1, self)
