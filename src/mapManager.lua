@@ -6,37 +6,80 @@ local function isPositionAvailable(self, x, y)
   return self.collisionMap[positionUtil.positionToString(x, y)]
 end
 
+local tilesetImage = love.graphics.newImage('media/tileset/tileset.png')
+local tilesetTileSize = 32
+local tilesetW = 4
+local tilesetH = 4
+
+local tilesetQuads = {}
+for y=0,tilesetH-1 do
+  for x=0,tilesetW-1 do
+    print("Making quad", x*tilesetTileSize, y*tilesetTileSize, tilesetTileSize, tilesetImage:getDimensions())
+    local quad = love.graphics.newQuad(x*tilesetTileSize, y*tilesetTileSize, tilesetTileSize, tilesetTileSize, tilesetImage:getDimensions())
+    table.insert(tilesetQuads, quad)
+  end
+end
+
 local tileValueToMediaId = {
-  empty = 'tiles.ground_1',
-  wall = 'tiles.wall_1' 
+  empty = {'tiles.ground_1'},
+  wall = {'tiles.wall_b_1', 'tiles.wall_b_2'}
 }
 
-local function drawTile(x, y, tileValue, tileSize, world)
-  local mediaId = tileValueToMediaId[tileValue]
-  local mediaEntity = mediaManager:getMediaEntity(mediaId)
-  local finalX = (x) * tileSize -- TODO -3, really?
+local bitmaskValues = { n = 1, w = 2, e = 4, s = 8 }
+
+local function getMapValueSafe(map, x, y)
+  if not map[y] or not map[y][x] then return 'empty' end
+  return map[y][x]
+end
+
+local function calculateAutotileBitmask(x, y, map)
+  local north = getMapValueSafe(map, x, y-1)
+  local west = getMapValueSafe(map, x-1, y)
+  local east = getMapValueSafe(map, x+1, y)
+  local south = getMapValueSafe(map, x, y+1)
+
+  local isEmpty = function(mapValue)
+    return mapValue == 'empty'
+  end
+
+  local value = 0
+  if isEmpty(north) then value = value + bitmaskValues.n end
+  if isEmpty(west) then value = value + bitmaskValues.w end
+  if isEmpty(east) then value = value + bitmaskValues.e end
+  if isEmpty(south) then value = value + bitmaskValues.s end
+
+  return value
+end
+
+local function drawTile(x, y, tileValue, tileSize, world, tiles)
+  local finalX = (x) * tileSize
   local finalY = (y) * tileSize
-  love.graphics.draw(mediaEntity.atlas, mediaEntity.quad, finalX, finalY)
+  local autotileBitmask = calculateAutotileBitmask(x, y, tiles) + 1
+  print("final mask", autotileBitmask)
+  print("final quad", tilesetQuads[autotileBitmask])
+
+  love.graphics.draw(tilesetImage, tilesetQuads[autotileBitmask], finalX, finalY)
 end
 
 local tileValueToEntity = {
-  wall = function(x, y, tileValue, tileSize, world)
+  floor = function(x, y, tileValue, tileSize, world)
+    --local mediaId = table.pick_random(tileValueToMediaId[tileValue])
     local entity = Concord.entity(world)
       :give("position", x * tileSize, y * tileSize)
-      :give("sprite", tileValueToMediaId[tileValue])
+      --:give("sprite", mediaId)
       :give("gridCollisionItem", x, y)
 
     return entity
   end
 }
 
-local function createEntity(x, y, tileValue, tileSize, world)
-  tileValueToEntity[tileValue](x, y, tileValue, tileSize, world)
+local function createEntity(x, y, tileValue, tileSize, world, tiles)
+  tileValueToEntity[tileValue](x, y, tileValue, tileSize, world, tiles)
 end
 
 local handleTile = {
   empty = drawTile,
-  wall = createEntity
+  floor = createEntity
 }
 
 local function drawCanvas(map, tiles, world, canvasSizeX, canvasSizeY)
@@ -50,7 +93,7 @@ local function drawCanvas(map, tiles, world, canvasSizeX, canvasSizeY)
       local tileValue = tiles[y][x]
       local tileHandler = handleTile[tileValue]
       if tileHandler then
-        tileHandler(x, y, tileValue, tileSize, world)
+        tileHandler(x, y, tileValue, tileSize, world, tiles)
       end
     end
   end
@@ -183,46 +226,69 @@ local MapManager = Class {
   end
 }
 
-MapManager.generateMap = function()
-  local tileSize = 64
+local function generateSimpleMap(width, height)
+  local map = {}
+  local bias = 0.2
+  local scale = 0.1
+  for y=1,height do
+    local row = {}
+    table.insert(map, row)
 
-  -- Astray:new(width/2-1, height/2-1, changeDirectionModifier (1-30), sparsenessModifier (25-70), deadEndRemovalModifier (70-99) ) | RoomGenerator:new(rooms, minWidth, maxWidth, minHeight, maxHeight)
-
-  local width, height = 20, 20
-  local changeDirectionModifier = 30
-  local sparsenessModifier = 25
-  local deadEndRemovalModifier = 90
-  local generator = astray.Astray:new(
-    width/2-1,
-    height/2-1,
-    changeDirectionModifier,
-    sparsenessModifier,
-    deadEndRemovalModifier,
-    astray.RoomGenerator:new(10, 2, 4, 2, 4)
-  )
-  local map = generator:Generate()
-  local tiles = generator:CellToTiles(map)
-
-  local scalingFactor = 2
-  local scaledMap = {}
-
-  for y = 0, #tiles[1] do
-    for iy=1,scalingFactor do
-      local scaledRow = {}
-      for x=0,#tiles do
-        for _=1,scalingFactor do
-          table.insert(scaledRow, tiles[y][x])
-        end
+    for x=1,width do
+      local value = love.math.noise(x * scale + bias, y * scale + bias)
+      if value < 0.6 then
+        row[x] = 'empty'
+      else
+        row[x] = 'floor'
       end
-      table.insert(scaledMap, scaledRow)
     end
   end
 
+  return map
+end
+
+MapManager.generateMap = function()
+  local tileSize = 32
+
+  -- Astray:new(width/2-1, height/2-1, changeDirectionModifier (1-30), sparsenessModifier (25-70), deadEndRemovalModifier (70-99) ) | RoomGenerator:new(rooms, minWidth, maxWidth, minHeight, maxHeight)
+
+  local width = 40
+  local height = 40
+  local tiles = generateSimpleMap(width, height)
+  -- local width, height = 20, 20
+  -- local changeDirectionModifier = 30
+  -- local sparsenessModifier = 25
+  -- local deadEndRemovalModifier = 90
+  -- local generator = astray.Astray:new(
+  --   width/2-1,
+  --   height/2-1,
+  --   changeDirectionModifier,
+  --   sparsenessModifier,
+  --   deadEndRemovalModifier,
+  --   astray.RoomGenerator:new(10, 2, 4, 2, 4)
+  -- )
+  -- local map = generator:Generate()
+  -- local tiles = generator:CellToTiles(map)
+
+  -- local scalingFactor = 2
+  -- local scaledMap = {}
+
+  -- for y = 0, #tiles[1] do
+  --   for iy=1,scalingFactor do
+  --     local scaledRow = {}
+  --     for x=0,#tiles do
+  --       for _=1,scalingFactor do
+  --         table.insert(scaledRow, tiles[y][x])
+  --       end
+  --     end
+  --     table.insert(scaledMap, scaledRow)
+  --   end
+  -- end
+
   return {
     tileSize = tileSize,
-    size = { x = width * scalingFactor, y = height * scalingFactor },
-    mapData = map,
-    tiles = scaledMap
+    size = { x = width, y = height },
+    tiles = tiles
   }
 end
 

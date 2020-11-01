@@ -9,40 +9,40 @@ local LightSystem = Concord.system({
 })
 
 function LightSystem:init(world)
-  lighting.Init()
+  -- lighting.Init()
 
-  self.lightSources.onEntityAdded = function(pool, entity)
-    entity.lightSource.light = lighting.CreateCircleLight(
-      entity.position.vec.x,
-      entity.position.vec.y,
-      entity.lightSource.radius
-    )
+  -- self.lightSources.onEntityAdded = function(pool, entity)
+  --   entity.lightSource.light = lighting.CreateCircleLight(
+  --     entity.position.vec.x,
+  --     entity.position.vec.y,
+  --     entity.lightSource.radius
+  --   )
 
-    entity.lightSource.light:SetColor(
-      entity.lightSource.r,
-      entity.lightSource.g,
-      entity.lightSource.b,
-      entity.lightSource.a
-    )
+  --   entity.lightSource.light:SetColor(
+  --     entity.lightSource.r,
+  --     entity.lightSource.g,
+  --     entity.lightSource.b,
+  --     entity.lightSource.a
+  --   )
 
-  end
+  -- end
 
-  self.lightSources.onEntityRemoved = function(pool, entity)
-    lighting.Remove(entity.lightSource.light.id, true)
-  end
+  -- self.lightSources.onEntityRemoved = function(pool, entity)
+  --   lighting.Remove(entity.lightSource.light.id, true)
+  -- end
 
-  self.lightBlockers.onEntityAdded = function(pool, entity)
-    entity.lightBlocker.blocker = lighting.CreateRectangonalBlocker(
-      entity.position.vec.x,
-      entity.position.vec.y,
-      entity.lightBlocker.width,
-      entity.lightBlocker.height
-    )
-  end
+  -- self.lightBlockers.onEntityAdded = function(pool, entity)
+  --   entity.lightBlocker.blocker = lighting.CreateRectangonalBlocker(
+  --     entity.position.vec.x,
+  --     entity.position.vec.y,
+  --     entity.lightBlocker.width,
+  --     entity.lightBlocker.height
+  --   )
+  -- end
 
-  self.lightBlockers.onEntityRemoved = function(pool, entity)
-    entity.lightBlocker.blocker:Remove()
-  end
+  -- self.lightBlockers.onEntityRemoved = function(pool, entity)
+  --   entity.lightBlocker.blocker:Remove()
+  -- end
 end
 
 function LightSystem:drawLights()

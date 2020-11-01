@@ -54,7 +54,7 @@ function game:enter()
     local entity = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.player'))
     entity:give("lightSource", 200, 1, 0.2, 0.2, 0.5)
 
-    for i=1,100 do
+    for i=1,1 do
       local entity2 = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.monsterA'))
       entity2.position.vec = Vector(love.math.random(1000), love.math.random(1000))
       entity2:give("lightSource", love.math.random(10, 100), love.math.random(0.6, 1), love.math.random(0.6, 1), love.math.random(0.6, 1))

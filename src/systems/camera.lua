@@ -12,7 +12,7 @@ end
 
 function CameraSystem:setCamera(camera)
   self.camera = camera
-  self.camera:setScale(1.5)
+  self.camera:setScale(2.5)
   if self.map then
     self.camera:setWorld(0, 0, self.map.size.x * self.map.tileSize, self.map.size.y * map.tileSize)
   end

@@ -42,7 +42,8 @@ local function draw(self)
     local mediaEntity = mediaManager:getMediaEntity(spriteId)
 
     local position = entity.position.vec
-    --local origin = Vector(mediaEntity.origin.x, mediaEntity.origin.y)
+    local _, _, quadWidth, quadHeight = mediaEntity.quad:getViewport()
+    --local origin = Vector(mediaEntity.origin.x - quadWidth / 2, mediaEntity.origin.y - quadHeight)
     local origin = Vector(0, 0)
 
     local finalPosition = position - origin
