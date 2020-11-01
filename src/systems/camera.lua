@@ -14,8 +14,14 @@ function CameraSystem:setCamera(camera)
   self.camera = camera
   self.camera:setScale(2.5)
   if self.map then
-    self.camera:setWorld(0, 0, self.map.size.x * self.map.tileSize, self.map.size.y * map.tileSize)
+    local tileSize = self.map.tileSize
+    self.camera:setWorld(tileSize, tileSize, self.map.size.x * tileSize + tileSize, self.map.size.y * tileSize + tileSize)
   end
+end
+
+function CameraSystem:drawDebug()
+  love.graphics.setColor(1,1,1,1)
+  love.graphics.print("FPS: "..tostring(love.timer.getFPS( )), 10, 10)
 end
 
 function CameraSystem:attachCamera()
@@ -27,7 +33,7 @@ function CameraSystem:detachCamera()
 end
 
 function CameraSystem:mapChange(map)
-  self.camera:setWorld(0, 0, map.size.x * map.tileSize, map.size.y * map.tileSize)
+  self.camera:setWorld(map.tileSize, map.tileSize, map.size.x * map.tileSize - map.tileSize, map.size.y * map.tileSize - map.tileSize)
   self.map = map
 end
 

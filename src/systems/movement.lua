@@ -12,8 +12,8 @@ end
 function MovementSystem:mapChange(map)
   local tileSize = map.tileSize
   self.mapBounds = {
-    min = Vector(0, 0),
-    max = Vector(map.size.x * tileSize, map.size.y * tileSize)
+    min = Vector(map.tileSize, map.tileSize),
+    max = Vector((map.size.x + 1) * tileSize, (map.size.y + 1) * tileSize)
   }
 
   print("mapBounds", self.mapBounds.min, self.mapBounds.max)

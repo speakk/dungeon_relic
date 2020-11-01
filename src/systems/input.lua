@@ -45,4 +45,10 @@ function InputSystem:update(dt)
   end
 end
 
+function InputSystem:keyPressed(pressedKey, scancode, isrepeat)
+  if pressedKey == 't' then
+    self:getWorld():emit("toggleDebug")
+  end
+end
+
 return InputSystem

@@ -13,6 +13,7 @@ function game:enter()
   self.world = Concord.world()
   self.world:addSystems(
     ECS.s.input,
+    ECS.s.debug,
     ECS.s.playerControlled,
     ECS.s.aiControlled,
     ECS.s.bullet,
@@ -81,8 +82,13 @@ function game:draw()
   self.world:emit("attachCamera")
   self.world:emit("draw")
   self.world:emit("drawLights")
-  self.world:emit("drawDebugWithCamera")
+  if self.debug then self.world:emit("drawDebugWithCamera") end
   self.world:emit("detachCamera")
+  if self.debug then self.world:emit("drawDebug") end
+end
+
+function game:keypressed(pressedKey, scancode, isrepeat)
+  self.world:emit('keyPressed', pressedKey, scancode, isrepeat)
 end
 
 return game
