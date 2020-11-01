@@ -4,7 +4,7 @@ local function isPositionAvailable(self, x, y)
   return self.collisionMap[positionUtil.positionToString(x, y)]
 end
 
-local tilesetImage = love.graphics.newImage('media/tileset/tileset2.png')
+local tilesetImage = love.graphics.newImage('media/tileset/tileset3.png')
 local bitmaskIndices = {
   0, 4, 84, 92, 124, 116, 80,
   16, 28, 117, 95, 255, 253, 113,
@@ -17,11 +17,8 @@ local bitmaskIndices = {
 
 local bitmaskToTilesetIndex = {}
 for i=1, #bitmaskIndices do
-  print("setting bitmaskToTilesetIndex", bitmaskIndices[i], "to be", i)
   bitmaskToTilesetIndex[bitmaskIndices[i]] = i
 end
-
-print("indexmap", inspect(bitmaskToTilesetIndex))
 
 local tilesetTileSize = 32
 local tilesetW = 7
@@ -30,7 +27,6 @@ local tilesetH = 7
 local tilesetQuads = {}
 for y=0,tilesetH-1 do
   for x=0,tilesetW-1 do
-    --print("Making quad", x*tilesetTileSize, y*tilesetTileSize, tilesetTileSize, tilesetImage:getDimensions())
     local quad = love.graphics.newQuad(x*tilesetTileSize, y*tilesetTileSize, tilesetTileSize, tilesetTileSize, tilesetImage:getDimensions())
     table.insert(tilesetQuads, quad)
   end
@@ -71,16 +67,13 @@ local function calculateAutotileBitmask(x, y, map)
 
   local value = 0
   for dir, coords in pairs(allDirections) do
-    print("Checking if not blocked for coords", dir, coords.x, coords.y, getMapValueSafe(map, coords.x, coords.y), "is blocked:", isBlocked(getMapValueSafe(map, coords.x, coords.y)), "bitmask", bitmaskValues[dir])
     if not isBlocked(getMapValueSafe(map, coords.x, coords.y)) then
       --value = value + bitmaskValues[dir]
       if coords.neighbors then
-        print("checking neighbors")
         local hasBothNeighbors = true
         for _, neighborDir in pairs(coords.neighbors) do
           local neighbor = allDirections[neighborDir]
           if isBlocked(getMapValueSafe(map, neighbor.x, neighbor.y)) then
-            print("One neighbor was false, so not adding")
             hasBothNeighbors = false
           end
         end
@@ -94,8 +87,6 @@ local function calculateAutotileBitmask(x, y, map)
     end
   end
 
-  print("value", value)
-
   return value
 end
 
@@ -103,12 +94,8 @@ local function drawTile(x, y, _, tileSize, _, tiles, offsetX, offsetY)
   local finalX = (x - offsetX) * tileSize
   local finalY = (y - offsetY) * tileSize
   local autotileBitmask = calculateAutotileBitmask(x, y, tiles)
-  --print("final mask", autotileBitmask)
-  --print("final quad", tilesetQuads[autotileBitmask])
-  --print("final x, y", finalX, finalY)
 
   local index = bitmaskToTilesetIndex[autotileBitmask]
-  print("index", autotileBitmask, index, tilesetQuads[index])
   if tilesetQuads[index] then
     love.graphics.draw(tilesetImage, tilesetQuads[index], finalX, finalY)
   end
@@ -137,7 +124,6 @@ local handleTile = {
 
 local canvasFD = 1
 local function drawCanvas(map, tiles, world, canvasSizeX, canvasSizeY, startX, startY, endX, endY)
-  print("DRAW CANVAS", canvasFD, startX, startY, endX - startX, endY - startY)
   canvasFD = canvasFD + 1
   local tileSize = map.tileSize
   local canvas = love.graphics.newCanvas(canvasSizeX, canvasSizeY)
@@ -163,8 +149,6 @@ local function drawFloor(map, world)
 
   local canvasesX = math.floor(map.size.x/canvasSizeInTilesX)
   local canvasesY = math.floor(map.size.y/canvasSizeInTilesY)
-
-  print("canvasesX, canvasesY", canvasesX, canvasesY)
 
   local entities = {}
 
@@ -197,9 +181,6 @@ local function drawFloor(map, world)
       :give('sprite', mediaPath)
       :give('size', canvasWidth, canvasHeight)
       :give('position', startX * map.tileSize, startY * map.tileSize)
-
-      -- print("position", entity.position.vec.x, entity.position.vec.y)
-      -- print("size", canvasWidth, canvasHeight)
 
       table.insert(entities, entity)
     end
