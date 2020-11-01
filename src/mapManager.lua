@@ -1,5 +1,3 @@
-local astray = require 'libs.astray'
-
 local positionUtil = require 'utils.position'
 
 local function isPositionAvailable(self, x, y)
@@ -46,7 +44,7 @@ local function calculateAutotileBitmask(x, y, map)
   return value
 end
 
-local function drawTile(x, y, tileValue, tileSize, world, tiles, offsetX, offsetY)
+local function drawTile(x, y, _, tileSize, _, tiles, offsetX, offsetY)
   local finalX = (x - offsetX) * tileSize
   local finalY = (y - offsetY) * tileSize
   local autotileBitmask = calculateAutotileBitmask(x, y, tiles) + 1
@@ -58,7 +56,7 @@ local function drawTile(x, y, tileValue, tileSize, world, tiles, offsetX, offset
 end
 
 local tileValueToEntity = {
-  floor = function(x, y, tileValue, tileSize, world)
+  floor = function(x, y, _, _, world)
     --local mediaId = table.pick_random(tileValueToMediaId[tileValue])
     local entity = Concord.entity(world)
       --:give("position", (x - 1) * tileSize, (y - 1) * tileSize)
@@ -152,9 +150,10 @@ local function drawFloor(map, world)
   return entities
 end
 
-local function clearMediaEntries(mediaEntries)
-  for _, mediaEntry in ipairs(mediaEntries) do
-    mediaManager:removeMediaEntity('mapCache.' .. mediaEntry.name)
+local function clearMediaEntries(entities)
+  if not entities then return end
+  for _, entity in ipairs(entities) do
+    mediaManager:removeMediaEntity(entity.sprite.image)
   end
 end
 
@@ -218,14 +217,11 @@ local MapManager = Class {
   end,
 
   setMap = function(self, map, world)
-    --print("Setting map", inspect(map))
-    
+    clearMediaEntries(self.floorCanvasEntities)
     clearEntities(self.floorCanvasEntities)
-    -- clearEntities(self.layerSprites)
-    -- clearMediaEntries(self.mediaEntries)
 
-    self.collisionMap = functional.generate(map.size.y, function(y)
-      return functional.generate(map.size.x, function(x)
+    self.collisionMap = functional.generate(map.size.y, function(_)
+      return functional.generate(map.size.x, function(_)
         return 0
       end)
     end)
@@ -273,40 +269,9 @@ end
 MapManager.generateMap = function()
   local tileSize = 32
 
-  -- Astray:new(width/2-1, height/2-1, changeDirectionModifier (1-30), sparsenessModifier (25-70), deadEndRemovalModifier (70-99) ) | RoomGenerator:new(rooms, minWidth, maxWidth, minHeight, maxHeight)
-
   local width = 80
   local height = 80
   local tiles = generateSimpleMap(width, height)
-  -- local width, height = 20, 20
-  -- local changeDirectionModifier = 30
-  -- local sparsenessModifier = 25
-  -- local deadEndRemovalModifier = 90
-  -- local generator = astray.Astray:new(
-  --   width/2-1,
-  --   height/2-1,
-  --   changeDirectionModifier,
-  --   sparsenessModifier,
-  --   deadEndRemovalModifier,
-  --   astray.RoomGenerator:new(10, 2, 4, 2, 4)
-  -- )
-  -- local map = generator:Generate()
-  -- local tiles = generator:CellToTiles(map)
-
-  -- local scalingFactor = 2
-  -- local scaledMap = {}
-
-  -- for y = 0, #tiles[1] do
-  --   for iy=1,scalingFactor do
-  --     local scaledRow = {}
-  --     for x=0,#tiles do
-  --       for _=1,scalingFactor do
-  --         table.insert(scaledRow, tiles[y][x])
-  --       end
-  --     end
-  --     table.insert(scaledMap, scaledRow)
-  --   end
-  -- end
 
   return {
     tileSize = tileSize,

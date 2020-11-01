@@ -3,8 +3,6 @@ local Timer = require 'libs.hump.timer'
 
 local GridCollisionSystem = Concord.system({ pool = { "gridCollisionItem" } })
 
-local debugRectangles = {}
-
 -- For optimization purposes, merge individual tiles into bigger rectangles.
 -- Steps through tiles one by one and checks if there's already a "rectangle"
 -- on the left. If it exists, extend it. These rectangles can then be used
@@ -96,7 +94,6 @@ function GridCollisionSystem:updateCollisionTileMap()
 
     local collisionMap = Gamestate.current().mapManager:getCollisionMap()
     local tileRectangles = mergeTilesIntoRectangles(collisionMap)
-    debugRectangles = tileRectangles
 
     local tileSize = Gamestate.current().mapManager.map.tileSize
 
@@ -111,24 +108,6 @@ function GridCollisionSystem:updateCollisionTileMap()
       table.insert(self.tileRectangleEntities, entity)
     end
   end)
-end
-
-function GridCollisionSystem:drawDebugWithCamera() --luacheck: ignore
-  local tileSize = Gamestate.current().mapManager.map.tileSize
-  for _, rect in ipairs(debugRectangles) do
-    love.graphics.setColor(1,1,0)
-    local polygonTileCoords = {
-      rect.startX, rect.startY,
-      rect.endX + 1, rect.startY,
-      rect.endX + 1, rect.endY + 1,
-      rect.startX, rect.endY + 1
-    }
-    local polygon = functional.map(polygonTileCoords, function(coord) return coord*tileSize end)
-    love.graphics.polygon("line", polygon)
-    love.graphics.setColor(1,0,0)
-    love.graphics.printf(rect.id, rect.startX*tileSize, rect.startY*tileSize, 200)
-    love.graphics.setColor(1,1,1)
-  end
 end
 
 local function setCollisionValue(x, y, value, self)
