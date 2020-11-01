@@ -4,42 +4,97 @@ local function isPositionAvailable(self, x, y)
   return self.collisionMap[positionUtil.positionToString(x, y)]
 end
 
-local tilesetImage = love.graphics.newImage('media/tileset/tileset.png')
+local tilesetImage = love.graphics.newImage('media/tileset/tileset2.png')
+local bitmaskIndices = {
+  0, 4, 84, 92, 124, 116, 80,
+  16, 28, 117, 95, 255, 253, 113,
+  21, 87, 221, 127, 255, 247, 209,
+  29, 125, 119, 199, 215, 213, 81,
+  31, 255, 241, 20, 65, 17, 1,
+  23, 223, 245, 85, 68, 93, 112,
+  5, 71, 197, 69, 64, 7, 193
+}
+
+local bitmaskToTilesetIndex = {}
+for i=1, #bitmaskIndices do
+  print("setting bitmaskToTilesetIndex", bitmaskIndices[i], "to be", i)
+  bitmaskToTilesetIndex[bitmaskIndices[i]] = i
+end
+
+print("indexmap", inspect(bitmaskToTilesetIndex))
+
 local tilesetTileSize = 32
-local tilesetW = 4
-local tilesetH = 4
+local tilesetW = 7
+local tilesetH = 7
 
 local tilesetQuads = {}
 for y=0,tilesetH-1 do
   for x=0,tilesetW-1 do
-    print("Making quad", x*tilesetTileSize, y*tilesetTileSize, tilesetTileSize, tilesetImage:getDimensions())
+    --print("Making quad", x*tilesetTileSize, y*tilesetTileSize, tilesetTileSize, tilesetImage:getDimensions())
     local quad = love.graphics.newQuad(x*tilesetTileSize, y*tilesetTileSize, tilesetTileSize, tilesetTileSize, tilesetImage:getDimensions())
     table.insert(tilesetQuads, quad)
   end
 end
 
-local bitmaskValues = { n = 1, w = 2, e = 4, s = 8 }
+--local bitmaskValues = { n = 1, w = 2, e = 4, s = 8 }
+-- local bitmaskValues = {
+--   nw = 1, n = 2, ne = 4,
+--   w = 8, e = 16,
+--   sw = 32, s = 64, se = 128
+-- }
+local bitmaskValues = {
+  n = 1, ne = 2, e = 4,
+  se = 8, s = 16,
+  sw = 32, w = 64, nw = 128
+}
 
 local function getMapValueSafe(map, x, y)
-  if not map[y] or not map[y][x] then return 'empty' end
+  if not map[y] or not map[y][x] then return 'void' end
   return map[y][x]
 end
 
 local function calculateAutotileBitmask(x, y, map)
-  local north = getMapValueSafe(map, x, y-1)
-  local west = getMapValueSafe(map, x-1, y)
-  local east = getMapValueSafe(map, x+1, y)
-  local south = getMapValueSafe(map, x, y+1)
+  local allDirections = {
+    n = { x = x, y = y - 1 },
+    nw = { x = x-1, y = y-1, neighbors = { "n", "w" } },
+    ne = { x = x+1, y = y-1, neighbors = { "n", "e" } },
+    w = { x = x-1, y = y },
+    e = { x = x+1, y = y },
+    s = { x = x, y = y+1 },
+    sw = { x = x-1, y = y+1, neighbors = { "s", "w" } },
+    se = { x = x+1, y = y+1, neighbors = { "s", "e" } }
+  }
 
-  local isEmpty = function(mapValue)
-    return mapValue == 'empty'
+  local isBlocked = function(mapValue)
+    return mapValue == 'void'
   end
 
   local value = 0
-  if isEmpty(north) then value = value + bitmaskValues.n end
-  if isEmpty(west) then value = value + bitmaskValues.w end
-  if isEmpty(east) then value = value + bitmaskValues.e end
-  if isEmpty(south) then value = value + bitmaskValues.s end
+  for dir, coords in pairs(allDirections) do
+    print("Checking if not blocked for coords", dir, coords.x, coords.y, getMapValueSafe(map, coords.x, coords.y), "is blocked:", isBlocked(getMapValueSafe(map, coords.x, coords.y)), "bitmask", bitmaskValues[dir])
+    if not isBlocked(getMapValueSafe(map, coords.x, coords.y)) then
+      --value = value + bitmaskValues[dir]
+      if coords.neighbors then
+        print("checking neighbors")
+        local hasBothNeighbors = true
+        for _, neighborDir in pairs(coords.neighbors) do
+          local neighbor = allDirections[neighborDir]
+          if isBlocked(getMapValueSafe(map, neighbor.x, neighbor.y)) then
+            print("One neighbor was false, so not adding")
+            hasBothNeighbors = false
+          end
+        end
+
+        if hasBothNeighbors then
+          value = value + bitmaskValues[dir]
+        end
+      else
+        value = value + bitmaskValues[dir]
+      end
+    end
+  end
+
+  print("value", value)
 
   return value
 end
@@ -47,16 +102,20 @@ end
 local function drawTile(x, y, _, tileSize, _, tiles, offsetX, offsetY)
   local finalX = (x - offsetX) * tileSize
   local finalY = (y - offsetY) * tileSize
-  local autotileBitmask = calculateAutotileBitmask(x, y, tiles) + 1
+  local autotileBitmask = calculateAutotileBitmask(x, y, tiles)
   --print("final mask", autotileBitmask)
   --print("final quad", tilesetQuads[autotileBitmask])
-  print("final x, y", finalX, finalY)
+  --print("final x, y", finalX, finalY)
 
-  love.graphics.draw(tilesetImage, tilesetQuads[autotileBitmask], finalX, finalY)
+  local index = bitmaskToTilesetIndex[autotileBitmask]
+  print("index", autotileBitmask, index, tilesetQuads[index])
+  if tilesetQuads[index] then
+    love.graphics.draw(tilesetImage, tilesetQuads[index], finalX, finalY)
+  end
 end
 
 local tileValueToEntity = {
-  floor = function(x, y, _, _, world)
+  void = function(x, y, _, _, world)
     --local mediaId = table.pick_random(tileValueToMediaId[tileValue])
     local entity = Concord.entity(world)
       --:give("position", (x - 1) * tileSize, (y - 1) * tileSize)
@@ -72,8 +131,8 @@ local function createEntity(x, y, tileValue, tileSize, world, tiles)
 end
 
 local handleTile = {
-  empty = drawTile,
-  floor = createEntity
+  floor = drawTile,
+  void = createEntity
 }
 
 local canvasFD = 1
@@ -86,7 +145,6 @@ local function drawCanvas(map, tiles, world, canvasSizeX, canvasSizeY, startX, s
 
   for y = startY, endY -1 do
     for x = startX, endX -1 do
-      print("x, y in draw canvas", x, y)
       local tileValue = tiles[y][x]
       local tileHandler = handleTile[tileValue]
       if tileHandler then
@@ -140,8 +198,8 @@ local function drawFloor(map, world)
       :give('size', canvasWidth, canvasHeight)
       :give('position', startX * map.tileSize, startY * map.tileSize)
 
-      print("position", entity.position.vec.x, entity.position.vec.y)
-      print("size", canvasWidth, canvasHeight)
+      -- print("position", entity.position.vec.x, entity.position.vec.y)
+      -- print("size", canvasWidth, canvasHeight)
 
       table.insert(entities, entity)
     end
@@ -255,8 +313,8 @@ local function generateSimpleMap(width, height)
 
     for x=1,width do
       local value = love.math.noise(x * scale + bias, y * scale + bias)
-      if value < 0.6 then
-        row[x] = 'empty'
+      if value > 0.8 then
+        row[x] = 'void'
       else
         row[x] = 'floor'
       end
