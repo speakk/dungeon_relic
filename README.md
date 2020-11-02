@@ -34,3 +34,6 @@ If you have any questions or comments, feel free to pop by at the [official Love
 
 #### A screenshot (that lil fella moves with w-a-s-d)
 ![Screenshot](screenshot.jpg)
+
+## Notes on how to think in terms of an ECS
+When working on ECS components, it's funny how if you need a door for example, your first thought is often to make a component to tag it as "door", when really door is the concept (entity) that can be broken into its subparts, like "openable" and "physical" and "sprite", etc. So often when one needs a new kind of functionality, one needs to define just one system and add one component (because usually you'll already have your "sprite" and "physical" and such common systems already there, so those can be utilized to combine them into what now has all the aspects of making a functioning door. Then one can make anything behave like a door by tagging any entity with "openable".
