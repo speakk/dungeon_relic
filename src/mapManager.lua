@@ -96,13 +96,7 @@ end
 
 local tileValueToEntity = {
   void = function(x, y, _, _, world)
-    --local mediaId = table.pick_random(tileValueToMediaId[tileValue])
-    local entity = Concord.entity(world)
-      --:give("position", (x - 1) * tileSize, (y - 1) * tileSize)
-      --:give("sprite", mediaId)
-      :give("gridCollisionItem", x, y)
-
-    return entity
+    return Concord.entity(world):give("gridCollisionItem", x, y)
   end
 }
 
