@@ -24,7 +24,10 @@ function game:enter(_, level)
     ECS.s.movement,
     ECS.s.physicsBody,
     ECS.s.levelChange,
+    -- Dungeon features ->
     ECS.s.portal,
+    ECS.s.spawner,
+    -- Dungeon features END
     ECS.s.spatialHash,
     ECS.s.gridCollision,
     ECS.s.light,
@@ -63,6 +66,9 @@ function game:enter(_, level)
 
     local portalEntity = Concord.entity(self.world):assemble(ECS.a.getBySelector('dungeon_features.portal'))
     portalEntity:give("position", 450, 450)
+
+    local spawnerEntity = Concord.entity(self.world):assemble(ECS.a.getBySelector('dungeon_features.spawner'))
+    spawnerEntity:give("position", 250, 250)
 
     --for i=1,1 do
     --  local entity2 = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.monsterA'))
