@@ -62,20 +62,18 @@ function game:enter(_, level)
     -- Make a couple test entities.
     local entity = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.player'))
     entity:give("position", 300, 450)
-    entity:give("lightSource", 200, 1, 0.6, 0.6, 1.1)
+    entity:give("lightSource", 300, 1, 0.6, 0.6, 1.0)
 
-    local portalEntity = Concord.entity(self.world):assemble(ECS.a.getBySelector('dungeon_features.portal'))
-    portalEntity:give("position", 450, 450)
+    Concord.entity(self.world)
+    :give("position", 100, 450)
+    --:give("lightSource", 200, 0.6, 1.0, 0.6, 1.0)
+
+    Concord.entity(self.world)
+    :give("position", 600, 700)
+    --:give("lightSource", 200, 1.0, 1.0, 0.6, 1.0)
 
     local spawnerEntity = Concord.entity(self.world):assemble(ECS.a.getBySelector('dungeon_features.spawner'))
     spawnerEntity:give("position", 250, 250)
-
-    --for i=1,1 do
-    --  local entity2 = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.monsterA'))
-    --  entity2.position.vec = Vector(love.math.random(1000), love.math.random(1000))
-    --  entity2:give("lightSource", love.math.random(10, 100), love.math.random(0.6, 1), love.math.random(0.6, 1), love.math.random(0.6, 1))
-    --  entity2:give("lightSourceActive")
-    --end
   end
 end
 

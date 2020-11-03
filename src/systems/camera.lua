@@ -19,11 +19,6 @@ function CameraSystem:setCamera(camera)
   end
 end
 
-function CameraSystem:drawDebug()
-  love.graphics.setColor(1,1,1,1)
-  love.graphics.print("FPS: "..tostring(love.timer.getFPS( )), 10, 10)
-end
-
 function CameraSystem:attachCamera()
   self.camera:setUpCamera()
 end

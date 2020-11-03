@@ -102,6 +102,10 @@ local tileValueToEntity = {
   void = function(x, y, _, _, _, world)
     return Concord.entity(world):give("gridCollisionItem", x, y)
   end,
+  exit = function(x, y, _, _, tileSize, world)
+    local portal = Concord.entity(world):assemble(ECS.a.getBySelector("dungeon_features.portal"))
+    portal:give("position", x*tileSize, y*tileSize)
+  end,
   wall = function(x, y, _, _, _, world)
     return Concord.entity(world):give("gridCollisionItem", x, y)
   end
@@ -114,12 +118,12 @@ end
 local handleTile = {
   wall = {drawTile, createEntity},
   floor = {drawTile},
-  void = {createEntity}
+  void = {createEntity},
+  exit = {createEntity}
 }
 
-local canvasFD = 1
 local function drawCanvas(tileSize, layers, world, canvasSizeX, canvasSizeY, startX, startY, endX, endY)
-  canvasFD = canvasFD + 1
+  print("Drawing map canvas, size: ", canvasSizeX, canvasSizeY, "start x, y", startX, startY, "end x, y", endX, endY)
   local canvas = love.graphics.newCanvas(canvasSizeX, canvasSizeY)
   love.graphics.setCanvas(canvas)
 
@@ -130,11 +134,13 @@ local function drawCanvas(tileSize, layers, world, canvasSizeX, canvasSizeY, sta
     local tiles = layer.tiles
     for y = startY, endY -1 do
       for x = startX, endX -1 do
-        local tileValue = tiles[y][x]
-        local tileHandlers = handleTile[tileValue]
-        if tileHandlers then
-          for _, tileHandler in ipairs(tileHandlers) do
-            tileHandler(x, y, tileValue, layer.tilesetImage, tileSize, world, tiles, startX, startY)
+        if tiles[y] and tiles[y][x] then
+          local tileValue = tiles[y][x]
+          local tileHandlers = handleTile[tileValue]
+          if tileHandlers then
+            for _, tileHandler in ipairs(tileHandlers) do
+              tileHandler(x, y, tileValue, layer.tilesetImage, tileSize, world, tiles, startX, startY)
+            end
           end
         end
       end
@@ -150,8 +156,8 @@ local function drawMap(map, world)
   local canvasSizeInTilesX = 10
   local canvasSizeInTilesY = 10
 
-  local canvasesX = math.floor(map.size.x/canvasSizeInTilesX)
-  local canvasesY = math.floor(map.size.y/canvasSizeInTilesY)
+  local canvasesX = math.ceil(map.size.x/canvasSizeInTilesX)
+  local canvasesY = math.ceil(map.size.y/canvasSizeInTilesY)
 
   local entities = {}
 
@@ -296,12 +302,16 @@ local function createLayer(width, height, tilesetImage, valueFunction)
     tilesetImage = tilesetImage,
     tiles = {}
   }
-  for y=1,height do
-    local row = {}
-    table.insert(layer.tiles, row)
+  if width and height then
+    for y=1,height do
+      local row = {}
+      table.insert(layer.tiles, row)
 
-    for x=1,width do
-      row[x] = valueFunction(x, y)
+      for x=1,width do
+        if valueFunction then
+          row[x] = valueFunction(x, y)
+        end
+      end
     end
   end
 
@@ -332,14 +342,17 @@ local function generateSimpleMap(seed, width, height)
     end
   end))
 
+  local featuresLayer = createLayer(width, height)
+  featuresLayer.tiles[math.random(1, height)][math.random(1, width)] = "exit"
+
   return map
 end
 
 MapManager.generateMap = function(levelNumber)
   local tileSize = 32
 
-  local width = 80
-  local height = 80
+  local width = 20
+  local height = 20
 
   local map = generateSimpleMap(levelNumber, width, height)
 

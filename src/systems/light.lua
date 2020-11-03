@@ -52,7 +52,7 @@ end
 
 function LightSystem:preDrawLights()
   love.graphics.setCanvas({ self.lightCanvas, stencil = true})
-  love.graphics.clear(0.3, 0.3, 0.3)
+  love.graphics.clear(0.4, 0.4, 0.4)
   lighting.Draw()
   love.graphics.setCanvas()
 end
@@ -66,38 +66,38 @@ end
 function LightSystem:update(_)
   lighting.Update()
 
-  if self.camera then
-    local l, t, w, h = self.camera:getVisible()
-    local onScreenAll = {}
-    Gamestate.current().spatialHash:each(l, t, w, h, function(entity)
-      table.insert(onScreenAll, entity)
-    end)
+  -- if self.camera then
+  --   local l, t, w, h = self.camera:getVisible()
+  --   local onScreenAll = {}
+  --   Gamestate.current().spatialHash:each(l, t, w, h, function(entity)
+  --     table.insert(onScreenAll, entity)
+  --   end)
 
-    -- for _, potentialLightSource in ipairs(self.potentialLightSources) do
-    --   if functional.contains(onScreenAll, potentialLightSource) then
-    --     -- Remove from onScreenAll to optimize finding it for the next
-    --     -- potentialLightSource
-    --     table.remove_value(onScreenAll, potentialLightSource)
-    --     if not potentialLightSource.lightSourceActive then
-    --       potentialLightSource:ensure("lightSourceActive")
-    --     end
-    --   else
-    --     potentialLightSource:remove("lightSourceActive")
-    --   end
-    -- end
-    -- for _, potentialLightBlocker in ipairs(self.potentialLightBlockers) do
-    --   if functional.contains(onScreenAll, potentialLightBlocker) then
-    --     -- Remove from onScreenAll to optimize finding it for the next
-    --     -- potentialLightBlocker
-    --     table.remove_value(onScreenAll, potentialLightBlocker)
-    --     if not potentialLightBlocker.lightBlockerActive then
-    --       potentialLightBlocker:give("lightBlockerActive")
-    --     end
-    --   else
-    --     potentialLightBlocker:remove("lightBlockerActive")
-    --   end
-    -- end
-  end
+  --   -- for _, potentialLightSource in ipairs(self.potentialLightSources) do
+  --   --   if functional.contains(onScreenAll, potentialLightSource) then
+  --   --     -- Remove from onScreenAll to optimize finding it for the next
+  --   --     -- potentialLightSource
+  --   --     table.remove_value(onScreenAll, potentialLightSource)
+  --   --     if not potentialLightSource.lightSourceActive then
+  --   --       potentialLightSource:ensure("lightSourceActive")
+  --   --     end
+  --   --   else
+  --   --     potentialLightSource:remove("lightSourceActive")
+  --   --   end
+  --   -- end
+  --   -- for _, potentialLightBlocker in ipairs(self.potentialLightBlockers) do
+  --   --   if functional.contains(onScreenAll, potentialLightBlocker) then
+  --   --     -- Remove from onScreenAll to optimize finding it for the next
+  --   --     -- potentialLightBlocker
+  --   --     table.remove_value(onScreenAll, potentialLightBlocker)
+  --   --     if not potentialLightBlocker.lightBlockerActive then
+  --   --       potentialLightBlocker:give("lightBlockerActive")
+  --   --     end
+  --   --   else
+  --   --     potentialLightBlocker:remove("lightBlockerActive")
+  --   --   end
+  --   -- end
+  -- end
 end
 
 
