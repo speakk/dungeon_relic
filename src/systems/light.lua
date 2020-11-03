@@ -2,51 +2,65 @@ local Gamestate = require 'libs.hump.gamestate'
 local lighting = require 'libs.Yellows-Lighting-Lib'
 
 local LightSystem = Concord.system({
-  lightSources = { "lightSource", "position", "lightSourceActive"},
-  potentialLightSources = { "lightSource", "position"},
-  potentialLightBlockers = { "lightBlocker", "position"},
-  lightBlockers = { "lightBlocker", "position", "lightBlockerActive" },
+  lightSources = { "lightSource", "position"},
+  --potentialLightSources = { "lightSource", "position"},
+  --potentialLightBlockers = { "lightBlocker", "position"},
+  lightBlockers = { "lightBlocker", "position"},
 })
 
 function LightSystem:init(world)
-  -- lighting.Init()
+  self.lightCanvas = love.graphics.newCanvas(love.graphics.getDimensions())
+  lighting.Init()
 
-  -- self.lightSources.onEntityAdded = function(pool, entity)
-  --   entity.lightSource.light = lighting.CreateCircleLight(
-  --     entity.position.vec.x,
-  --     entity.position.vec.y,
-  --     entity.lightSource.radius
-  --   )
+  self.lightSources.onEntityAdded = function(pool, entity)
+    entity.lightSource.light = lighting.CreateCircleLight(
+      entity.position.vec.x,
+      entity.position.vec.y,
+      entity.lightSource.radius
+    )
 
-  --   entity.lightSource.light:SetColor(
-  --     entity.lightSource.r,
-  --     entity.lightSource.g,
-  --     entity.lightSource.b,
-  --     entity.lightSource.a
-  --   )
+    entity.lightSource.light:SetColor(
+      entity.lightSource.r,
+      entity.lightSource.g,
+      entity.lightSource.b,
+      entity.lightSource.a
+    )
 
-  -- end
+  end
 
-  -- self.lightSources.onEntityRemoved = function(pool, entity)
-  --   lighting.Remove(entity.lightSource.light.id, true)
-  -- end
+  self.lightSources.onEntityRemoved = function(_, entity)
+    lighting.Remove(entity.lightSource.light.id, true)
+  end
 
-  -- self.lightBlockers.onEntityAdded = function(pool, entity)
-  --   entity.lightBlocker.blocker = lighting.CreateRectangonalBlocker(
-  --     entity.position.vec.x,
-  --     entity.position.vec.y,
-  --     entity.lightBlocker.width,
-  --     entity.lightBlocker.height
-  --   )
-  -- end
+  self.lightBlockers.onEntityAdded = function(_, entity)
+    entity.lightBlocker.blocker = lighting.CreateRectangonalBlocker(
+      entity.position.vec.x,
+      entity.position.vec.y,
+      entity.lightBlocker.width,
+      entity.lightBlocker.height
+    )
+  end
 
-  -- self.lightBlockers.onEntityRemoved = function(pool, entity)
-  --   entity.lightBlocker.blocker:Remove()
-  -- end
+  self.lightBlockers.onEntityRemoved = function(pool, entity)
+    entity.lightBlocker.blocker:Remove()
+  end
+end
+
+function LightSystem:windowResize(width, height)
+  self.lightCanvas = love.graphics.newCanvas(width, height)
+end
+
+function LightSystem:preDrawLights()
+  love.graphics.setCanvas({ self.lightCanvas, stencil = true})
+  love.graphics.clear(0.3, 0.3, 0.3)
+  lighting.Draw()
+  love.graphics.setCanvas()
 end
 
 function LightSystem:drawLights()
-  lighting.Draw()
+  love.graphics.setBlendMode("multiply", "premultiplied")
+  love.graphics.draw(self.lightCanvas)
+  love.graphics.setBlendMode("alpha")
 end
 
 function LightSystem:update(_)

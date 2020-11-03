@@ -62,7 +62,7 @@ function game:enter(_, level)
     -- Make a couple test entities.
     local entity = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.player'))
     entity:give("position", 300, 450)
-    entity:give("lightSource", 200, 1, 0.2, 0.2, 0.5)
+    entity:give("lightSource", 200, 1, 0.6, 0.6, 1.1)
 
     local portalEntity = Concord.entity(self.world):assemble(ECS.a.getBySelector('dungeon_features.portal'))
     portalEntity:give("position", 450, 450)
@@ -103,9 +103,10 @@ end
 function game:draw()
   self.world:emit("attachCamera")
   self.world:emit("draw")
-  self.world:emit("drawLights")
+  self.world:emit("preDrawLights")
   if self.debug then self.world:emit("drawDebugWithCamera") end
   self.world:emit("detachCamera")
+  self.world:emit("drawLights")
   if self.debug then self.world:emit("drawDebug") end
 end
 
