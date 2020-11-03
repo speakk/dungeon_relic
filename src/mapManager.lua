@@ -4,7 +4,9 @@ local function isPositionAvailable(self, x, y)
   return self.collisionMap[positionUtil.positionToString(x, y)]
 end
 
-local tilesetImage = love.graphics.newImage('media/tileset/tileset3.png')
+local tilesetImageFloor = love.graphics.newImage('media/tileset/tileset3.png')
+local tilesetImageWall = love.graphics.newImage('media/tileset/tileset4.png')
+
 local bitmaskIndices = {
   0, 4, 84, 92, 124, 116, 80,
   16, 28, 117, 95, 255, 253, 113,
@@ -27,7 +29,9 @@ local tilesetH = 7
 local tilesetQuads = {}
 for y=0,tilesetH-1 do
   for x=0,tilesetW-1 do
-    local quad = love.graphics.newQuad(x*tilesetTileSize, y*tilesetTileSize, tilesetTileSize, tilesetTileSize, tilesetImage:getDimensions())
+    local quad = love.graphics.newQuad(x*tilesetTileSize, y*tilesetTileSize,
+      tilesetTileSize, tilesetTileSize,
+      tilesetW*tilesetTileSize, tilesetH*tilesetTileSize)
     table.insert(tilesetQuads, quad)
   end
 end
@@ -83,54 +87,66 @@ local function calculateAutotileBitmask(x, y, map)
   return value
 end
 
-local function drawTile(x, y, _, tileSize, _, tiles, offsetX, offsetY)
+local function drawTile(x, y, _, tileSet, tileSize, _, tiles, offsetX, offsetY)
   local finalX = (x - offsetX) * tileSize
   local finalY = (y - offsetY) * tileSize
   local autotileBitmask = calculateAutotileBitmask(x, y, tiles)
 
   local index = bitmaskToTilesetIndex[autotileBitmask]
   if tilesetQuads[index] then
-    love.graphics.draw(tilesetImage, tilesetQuads[index], finalX, finalY)
+    love.graphics.draw(tileSet, tilesetQuads[index], finalX, finalY)
   end
 end
 
 local tileValueToEntity = {
-  void = function(x, y, _, _, world)
+  void = function(x, y, _, _, _, world)
+    return Concord.entity(world):give("gridCollisionItem", x, y)
+  end,
+  wall = function(x, y, _, _, _, world)
     return Concord.entity(world):give("gridCollisionItem", x, y)
   end
 }
 
-local function createEntity(x, y, tileValue, tileSize, world, tiles)
-  tileValueToEntity[tileValue](x, y, tileValue, tileSize, world, tiles)
+local function createEntity(x, y, tileValue, tileSet, tileSize, world, tiles)
+  tileValueToEntity[tileValue](x, y, tileValue, tileSet, tileSize, world, tiles)
 end
 
 local handleTile = {
-  floor = drawTile,
-  void = createEntity
+  wall = {drawTile, createEntity},
+  floor = {drawTile},
+  void = {createEntity}
 }
 
 local canvasFD = 1
-local function drawCanvas(map, tiles, world, canvasSizeX, canvasSizeY, startX, startY, endX, endY)
+local function drawCanvas(tileSize, layers, world, canvasSizeX, canvasSizeY, startX, startY, endX, endY)
   canvasFD = canvasFD + 1
-  local tileSize = map.tileSize
   local canvas = love.graphics.newCanvas(canvasSizeX, canvasSizeY)
   love.graphics.setCanvas(canvas)
 
-  for y = startY, endY -1 do
-    for x = startX, endX -1 do
-      local tileValue = tiles[y][x]
-      local tileHandler = handleTile[tileValue]
-      if tileHandler then
-        tileHandler(x, y, tileValue, tileSize, world, tiles, startX, startY)
+  -- NOTE: Right now drawing all layers right on each other in the same canvas.
+  -- Consider possible benefits of having the layers being drawn separately
+  -- (would allow parallax movement between layers etc)
+  for _, layer in ipairs(layers) do
+    local tiles = layer.tiles
+    for y = startY, endY -1 do
+      for x = startX, endX -1 do
+        local tileValue = tiles[y][x]
+        local tileHandlers = handleTile[tileValue]
+        if tileHandlers then
+          for _, tileHandler in ipairs(tileHandlers) do
+            tileHandler(x, y, tileValue, layer.tilesetImage, tileSize, world, tiles, startX, startY)
+          end
+        end
       end
     end
+
   end
 
   love.graphics.setCanvas()
   return canvas
 end
 
-local function drawFloor(map, world)
+local function drawMap(map, world)
   local canvasSizeInTilesX = 10
   local canvasSizeInTilesY = 10
 
@@ -149,8 +165,8 @@ local function drawFloor(map, world)
       local canvasHeight = canvasSizeInTilesY * map.tileSize
 
       local canvas = drawCanvas(
-      map,
-      map.tiles,
+      map.tileSize,
+      map.layers,
       world,
       canvasWidth, canvasHeight,
       startX, startY, endX, endY
@@ -255,9 +271,9 @@ local MapManager = Class {
 
     self.map = map
 
-    self.floorCanvasEntities = drawFloor(map, world)
+    self.mapCanvasEntities = drawMap(map, world)
 
-    for _, entity in ipairs(self.floorCanvasEntities) do
+    for _, entity in ipairs(self.mapCanvasEntities) do
       world:addEntity(entity)
     end
   end,
@@ -275,23 +291,46 @@ local MapManager = Class {
   end
 }
 
-local function generateSimpleMap(seed, width, height)
-  local map = {}
-  local bias = 0.2
-  local scale = 0.1
+local function createLayer(width, height, tilesetImage, valueFunction)
+  local layer = {
+    tilesetImage = tilesetImage,
+    tiles = {}
+  }
   for y=1,height do
     local row = {}
-    table.insert(map, row)
+    table.insert(layer.tiles, row)
 
     for x=1,width do
-      local value = love.math.noise(x * scale + bias + seed, y * scale + bias + seed)
-      if value > 0.8 then
-        row[x] = 'void'
-      else
-        row[x] = 'floor'
-      end
+      row[x] = valueFunction(x, y)
     end
   end
+
+  return layer
+end
+
+local function generateSimpleMap(seed, width, height)
+  local map = { layers = {} }
+  local scale = 0.1
+
+  table.insert(map.layers, createLayer(width, height, tilesetImageFloor, function(x, y)
+    local bias = 0.2
+    local value = love.math.noise(x * scale + bias + seed, y * scale + bias + seed)
+    if value > 0.8 then
+      return 'void'
+    else
+      return 'floor'
+    end
+  end))
+
+  table.insert(map.layers, createLayer(width, height, tilesetImageWall, function(x, y)
+    local bias = 0.3
+    local value = love.math.noise(x * scale + bias + seed, y * scale + bias + seed)
+    if value > 0.2 then
+      return nil
+    else
+      return 'wall'
+    end
+  end))
 
   return map
 end
@@ -301,13 +340,13 @@ MapManager.generateMap = function(levelNumber)
 
   local width = 80
   local height = 80
-  
-  local tiles = generateSimpleMap(levelNumber, width, height)
+
+  local map = generateSimpleMap(levelNumber, width, height)
 
   return {
     tileSize = tileSize,
     size = { x = width, y = height },
-    tiles = tiles
+    layers = map.layers
   }
 end
 

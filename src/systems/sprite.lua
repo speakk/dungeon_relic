@@ -2,8 +2,6 @@ local Gamestate = require 'libs.hump.gamestate'
 
 local SpriteSystem = Concord.system({ pool = { "sprite", "position" } })
 
-local sortPool = {}
-
 local function compareY(a, b)
   if a.sprite.zIndex ~= b.sprite.zIndex then
     return a.sprite.zIndex < b.sprite.zIndex
@@ -33,7 +31,7 @@ local function draw(self)
     table.insert(screenSpatialGroup, entity)
   end)
 
-  local inHash = functional.filter(sortPool, function(entity)
+  local inHash = functional.filter(self.pool, function(entity)
     return functional.contains(screenSpatialGroup, entity)
   end)
   local zSorted = table.insertion_sort(inHash, function(a, b) return compareY(a, b) end)
@@ -59,14 +57,6 @@ end
 
 function SpriteSystem:init()
   self.tilesetBatch = love.graphics.newSpriteBatch(mediaManager:getAtlas(), 500)
-
-  self.pool.onEntityAdded = function(_, entity)
-    table.insert(sortPool, entity)
-  end
-
-  self.pool.onEntityRemoved = function(_, entity)
-    table.remove_value(sortPool, entity)
-  end
 end
 
 function SpriteSystem:systemsLoaded()
