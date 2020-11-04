@@ -59,10 +59,17 @@ function game:enter(_, level)
   if TESTING then
     self.world:emit('initTest')
 
+    local map = self.mapManager.map
+
     -- Make a couple test entities.
     local entity = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.player'))
-    entity:give("position", 300, 450)
+    entity:give("position", love.math.random(map.size.x * map.tileSize), love.math.random(map.size.y * map.tileSize))
     entity:give("lightSource", 300, 1, 0.6, 0.6, 1.0)
+
+    if self.currentLevelNumber > 1 then
+      local ascendEntity = Concord.entity(self.world):assemble(ECS.a.getBySelector('dungeon_features.portal_up'))
+      ascendEntity:give("position", Vector.split(entity.position.vec + Vector(64, 0)))
+    end
 
     Concord.entity(self.world)
     :give("position", 100, 450)
@@ -94,6 +101,12 @@ end
 
 function game:descendLevel()
   local newLevelNumber = self.currentLevelNumber + 1
+  print("newLevelNumber", newLevelNumber)
+  Gamestate.switch(switchLevels, self.currentLevelNumber, newLevelNumber)
+end
+
+function game:ascendLevel()
+  local newLevelNumber = self.currentLevelNumber - 1
   print("newLevelNumber", newLevelNumber)
   Gamestate.switch(switchLevels, self.currentLevelNumber, newLevelNumber)
 end

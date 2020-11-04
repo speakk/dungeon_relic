@@ -103,7 +103,7 @@ local tileValueToEntity = {
     return Concord.entity(world):give("gridCollisionItem", x, y)
   end,
   exit = function(x, y, _, _, tileSize, world)
-    local portal = Concord.entity(world):assemble(ECS.a.getBySelector("dungeon_features.portal"))
+    local portal = Concord.entity(world):assemble(ECS.a.getBySelector("dungeon_features.portal_down"))
     portal:give("position", x*tileSize, y*tileSize)
   end,
   wall = function(x, y, _, _, _, world)
@@ -343,7 +343,8 @@ local function generateSimpleMap(seed, width, height)
   end))
 
   local featuresLayer = createLayer(width, height)
-  featuresLayer.tiles[math.random(1, height)][math.random(1, width)] = "exit"
+  featuresLayer.tiles[math.random(3, height-3)][math.random(3, width-3)] = "exit"
+  table.insert(map.layers, featuresLayer)
 
   return map
 end

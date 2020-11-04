@@ -25,7 +25,7 @@ end
 local function handleCollisionEvent(world, source, target)
   local event = source.physicsBody.collisionEvent
   if event then
-    world:emit(event.name, source, target)
+    world:emit(event.name, source, target, event.properties)
   end
 end
 
