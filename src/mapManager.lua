@@ -1,3 +1,4 @@
+local Gamestate = require 'libs.hump.gamestate'
 local positionUtil = require 'utils.position'
 
 local function isPositionAvailable(self, x, y)

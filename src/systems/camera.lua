@@ -45,8 +45,8 @@ function CameraSystem:update(dt)
     local startX, startY = self.camera:getPosition()
     local targetX, targetY = Vector.split(target.position.vec)
     local lerpSpeed = 0.1
-    local finalX = mathx.lerp(startX, targetX, lerpSpeed)
-    local finalY = mathx.lerp(startY, targetY, lerpSpeed)
+    local finalX = math.floor(mathx.lerp(startX, targetX, lerpSpeed))
+    local finalY = math.floor(mathx.lerp(startY, targetY, lerpSpeed))
     self.camera:setPosition(finalX, finalY)
     self:getWorld():emit("cameraUpdated", self.camera)
 

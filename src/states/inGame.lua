@@ -11,8 +11,11 @@ local game = {}
 
 local TESTING = true
 
+
 function game:enter(_, level)
+  self.originalSeed, _ = love.math.getRandomSeed()
   self.currentLevelNumber = level or 1
+  love.math.setRandomSeed(self.currentLevelNumber + self.originalSeed)
 
   self.world = Concord.world()
   self.world:addSystems(
@@ -62,13 +65,30 @@ function game:enter(_, level)
     local map = self.mapManager.map
 
     -- Make a couple test entities.
-    local entity = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.player'))
-    entity:give("position", love.math.random(map.size.x * map.tileSize), love.math.random(map.size.y * map.tileSize))
-    entity:give("lightSource", 300, 1, 0.6, 0.6, 1.0)
+    local player = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.player'))
+
+    local function randomEmptySpot(tiles)
+      local emptySpots = {}
+
+      for y=1,#tiles do
+        for x=1, #tiles[y] do
+          if tiles[y][x] == 0 then
+            table.insert(emptySpots, { x = x, y =y })
+          end
+        end
+      end
+
+      local spot = table.pick_random(emptySpots)
+      return spot.x, spot.y
+    end
+
+    local randomEmptyX, randomEmptyY = randomEmptySpot(self.mapManager:getCollisionMap())
+    player:give("position", randomEmptyX*map.tileSize, randomEmptyY*map.tileSize)
+    player:give("lightSource", 300, 1, 0.6, 0.6, 1.0)
 
     if self.currentLevelNumber > 1 then
       local ascendEntity = Concord.entity(self.world):assemble(ECS.a.getBySelector('dungeon_features.portal_up'))
-      ascendEntity:give("position", Vector.split(entity.position.vec + Vector(64, 0)))
+      ascendEntity:give("position", Vector.split(player.position.vec + Vector(64, 0)))
     end
 
     Concord.entity(self.world)
@@ -79,8 +99,9 @@ function game:enter(_, level)
     :give("position", 600, 700)
     --:give("lightSource", 200, 1.0, 1.0, 0.6, 1.0)
 
+    randomEmptyX, randomEmptyY = randomEmptySpot(self.mapManager:getCollisionMap())
     local spawnerEntity = Concord.entity(self.world):assemble(ECS.a.getBySelector('dungeon_features.spawner'))
-    spawnerEntity:give("position", 250, 250)
+    spawnerEntity:give("position", randomEmptyX*map.tileSize, randomEmptyY*map.tileSize)
   end
 end
 
