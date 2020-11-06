@@ -14,11 +14,12 @@ function UISystem:init() --luacheck: ignore
       uiType = "bar",
       maxValue = 0,
       value = 0,
-      color = { r = 1, g = 0, b = 0, a = 1 },
+      color = { r = 0.9, g = 0.2, b = 0.15, a = 1 },
       colorBackground = { r = 0.5, g = 0, b = 0, a = 1 },
+      padding = { x = 30, y = 30 },
       anchor = "bottomLeft",
       width = {
-        percentage = 30,
+        percentage = 20,
         minPx = 100
       },
       height = {
@@ -50,7 +51,8 @@ local anchors = {
   bottomLeft = { "l", "b" },
 }
 
-local function getAnchorPosition(name, width, height, parent)
+local function getAnchorPosition(name, width, height, parent, padding)
+  local paddingCopy = { x = padding.x or 0, y = padding.y or 0 }
   local anchorPoints = anchors[name] or error("No anchor by the name" .. name)
   local anchorX = anchorPoints[1]
   local anchorY = anchorPoints[2]
@@ -58,12 +60,14 @@ local function getAnchorPosition(name, width, height, parent)
   local modY = 0
   if anchorX == "r" then
     modX = -width
+    paddingCopy.x = -paddingCopy.x
   end
   if anchorY == "b" then
     modY = -height
+    paddingCopy.y = -paddingCopy.y
   end
-  local x = parent[anchorPoints[1]] + modX
-  local y = parent[anchorPoints[2]] + modY
+  local x = parent[anchorPoints[1]] + modX + paddingCopy.x
+  local y = parent[anchorPoints[2]] + modY + paddingCopy.y
   return x, y
 end
 
@@ -109,7 +113,7 @@ function UISystem:drawUI()
       local maxHeight = element.height.maxPx or height
       height = math.clamp(height, minHeight, maxHeight)
     end
-    local x, y = getAnchorPosition(element.anchor, width, height, parent)
+    local x, y = getAnchorPosition(element.anchor, width, height, parent, element.padding)
     uiTypeHandlers[element.uiType](element, x, y, width, height)
   end
 end
