@@ -1,5 +1,10 @@
 local UISystem = Concord.system( { players = { "playerControlled", "health"} })
 
+local healthBarImage = love.graphics.newImage('media/ui/healthbar.png')
+local healthImgW, healthImgH = healthBarImage:getDimensions()
+
+local imageScale = 3
+
 function UISystem:init() --luacheck: ignore
   self.players.onEntityAdded = function(_, entity)
     functional.find_match(self.elements, function(element)
@@ -14,16 +19,18 @@ function UISystem:init() --luacheck: ignore
       uiType = "bar",
       maxValue = 0,
       value = 0,
-      color = { r = 0.9, g = 0.2, b = 0.15, a = 1 },
+      color = { r = 0.7, g = 0.1, b = 0, a = 1 },
       colorBackground = { r = 0.5, g = 0, b = 0, a = 1 },
-      padding = { x = 30, y = 30 },
+      padding = { x = 60, y = 60 },
+      rounding = 30,
+      overlayImage = healthBarImage,
+      overlayImageOffset = { x = -10, y = 0 },
       anchor = "bottomLeft",
       width = {
-        percentage = 20,
-        minPx = 100
+        px = healthImgW * imageScale / 1.2
       },
       height = {
-        px = 60
+        px = healthImgH * imageScale / 1.4
       }
     }
   }
@@ -35,6 +42,7 @@ function UISystem:updateHealthBar(value, maxValue)
   end)
 
   healthBar.value = value or healthBar.value
+  if healthBar.value < 0 then healthBar.value = 0 end
   healthBar.maxValue = maxValue or healthBar.maxValue
 end
 
@@ -73,7 +81,11 @@ end
 
 local uiTypeHandlers = {
   bar = function(element, x, y, width, height)
-    local roundness = 10
+    if element.backgroundImage then
+      love.graphics.draw(element.backgroundImage, x, y, 0, imageScale, imageScale)
+    end
+
+    local roundness = element.rounding or 10
     local colorB = element.colorBackground
     love.graphics.setColor(colorB.r, colorB.g, colorB.b, colorB.a)
     love.graphics.rectangle('fill', x, y, width, height, roundness, roundness)
@@ -87,6 +99,20 @@ local uiTypeHandlers = {
     end
     love.graphics.setColor(colorA.r, colorA.g, colorA.b, colorA.a)
     love.graphics.rectangle('fill', x, y, width * element.value/element.maxValue, height, roundness, roundness)
+
+    if element.overlayImage then
+      local imgW, imgH = element.overlayImage:getDimensions()
+      imgW = imgW * imageScale
+      imgH = imgH * imageScale
+      local imgX = x + (width - imgW) / 2
+      local imgY = y + (height - imgH) / 2
+      if element.overlayImageOffset then
+        imgX = imgX + element.overlayImageOffset.x
+        imgY = imgY + element.overlayImageOffset.y
+      end
+      love.graphics.setColor(1,1,1,1)
+      love.graphics.draw(element.overlayImage, imgX, imgY, 0, imageScale, imageScale)
+    end
   end
 }
 
