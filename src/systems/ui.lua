@@ -15,7 +15,7 @@ function UISystem:init() --luacheck: ignore
       maxValue = 0,
       value = 0,
       color = { r = 1, g = 0, b = 0, a = 1 },
-      colorB = { r = 0.5, g = 0, b = 0, a = 1 },
+      colorBackground = { r = 0.5, g = 0, b = 0, a = 1 },
       anchor = "bottomLeft",
       width = {
         percentage = 30,
@@ -69,13 +69,20 @@ end
 
 local uiTypeHandlers = {
   bar = function(element, x, y, width, height)
-    local colorA = element.color
-    local colorB = element.colorB
-    love.graphics.setColor(colorA.r, colorA.g, colorA.b, colorA.a)
-    love.graphics.rectangle('fill', x, y, width, height)
-
+    local roundness = 10
+    local colorB = element.colorBackground
     love.graphics.setColor(colorB.r, colorB.g, colorB.b, colorB.a)
-    love.graphics.rectangle('fill', x, y, width * element.value/element.maxValue, height)
+    love.graphics.rectangle('fill', x, y, width, height, roundness, roundness)
+
+    local colorA = element.color
+    local valueWidth = width * element.value/element.maxValue
+
+    -- Love rectangle bugs out with very narrow rectangle and rounded corners
+    if roundness > valueWidth then
+      roundness = 0
+    end
+    love.graphics.setColor(colorA.r, colorA.g, colorA.b, colorA.a)
+    love.graphics.rectangle('fill', x, y, width * element.value/element.maxValue, height, roundness, roundness)
   end
 }
 
