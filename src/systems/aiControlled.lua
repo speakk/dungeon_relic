@@ -4,7 +4,7 @@ local AIControlledSystem = Concord.system({
 })
 
 -- Stop jittering if object is right on top of the other
-local stopFollowingDistance = 20
+local stopFollowingDistance = 2
 
 function AIControlledSystem:update(dt)
   -- Make AI follow the player

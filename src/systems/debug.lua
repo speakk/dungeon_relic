@@ -11,6 +11,7 @@ function DebugSystem:disableDebug() -- luacheck: ignore
 end
 
 function DebugSystem:toggleDebug() -- luacheck: ignore
+  print("Toggled")
   Gamestate.current().debug = not Gamestate.current().debug
 end
 

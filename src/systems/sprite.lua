@@ -40,16 +40,23 @@ local function draw(self)
     local mediaEntity = mediaManager:getMediaEntity(spriteId)
 
     local position = entity.position.vec
+    local orh
+    if mediaEntity.quad then
+      _, _, _, orh = mediaEntity.quad:getViewport()
+    else
+      _, orh = mediaEntity.image:getDimensions()
+    end
     --local _, _, quadWidth, quadHeight = mediaEntity.quad:getViewport()
     --local origin = Vector(mediaEntity.origin.x - quadWidth / 2, mediaEntity.origin.y - quadHeight)
+    --local origin = Vector(0, orh/2)
     local origin = Vector(0, 0)
 
-    local finalPosition = position - origin
+    --local finalPosition = position - origin
 
     if mediaEntity.atlas then
-      love.graphics.draw(mediaEntity.atlas, mediaEntity.quad, finalPosition.x, finalPosition.y, 0, entity.sprite.scale, entity.sprite.scale)
+      love.graphics.draw(mediaEntity.atlas, mediaEntity.quad, position.x, position.y, 0, entity.sprite.scale, entity.sprite.scale, origin.x, origin.y)
     else
-      love.graphics.draw(mediaEntity.image, finalPosition.x, finalPosition.y, 0, entity.sprite.scale, entity.sprite.scale)
+      love.graphics.draw(mediaEntity.image, position.x, position.y, 0, entity.sprite.scale, entity.sprite.scale, origin.x, origin.y)
 
     end
   end

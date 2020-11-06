@@ -25,6 +25,11 @@ end
 local function handleCollisionEvent(world, source, target)
   local event = source.physicsBody.collisionEvent
   if event then
+    if event.targetTags then
+      if not target.physicsBody.tags or not containsAnyInTable(event.targetTags, target.physicsBody.tags) then
+        return
+      end
+    end
     world:emit(event.name, source, target, event.properties)
   end
 end
@@ -84,8 +89,16 @@ function PhysicsBodySystem:update(dt)
       function(item, other)
         local containsIgnore = containsAnyInTable(other.physicsBody.tags, item.physicsBody.targetIgnoreTags)
         or containsAnyInTable(item.physicsBody.tags, other.physicsBody.targetIgnoreTags)
+        if containsIgnore then
+          return false
+        end
 
-        if not containsIgnore then
+        local hasRequired = true
+        if item.physicsBody.targetTags then
+          hasRequired = containsAnyInTable(item.physicsBody.targetTags, other.physicsBody.tags)
+        end
+
+        if hasRequired then
           return "slide"
         else
           return false

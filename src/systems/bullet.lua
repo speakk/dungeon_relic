@@ -1,7 +1,7 @@
 local BulletSystem = Concord.system({})
 
 function BulletSystem:shoot(sourceEntity, from, direction, bulletTypeSelector, targetIgnoreTags)
-  local bulletTypeSelector = bulletTypeSelector or 'bullets.basicBullet'
+  bulletTypeSelector = bulletTypeSelector or 'bullets.basicBullet'
   local bullet = Concord.entity(self:getWorld()):assemble(ECS.a.getBySelector(bulletTypeSelector))
 
   bullet.position.vec = from.copy

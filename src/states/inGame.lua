@@ -24,6 +24,7 @@ function game:enter(_, level)
     ECS.s.playerControlled,
     ECS.s.aiControlled,
     ECS.s.bullet,
+    ECS.s.monster,
     ECS.s.movement,
     ECS.s.physicsBody,
     ECS.s.levelChange,
@@ -40,7 +41,8 @@ function game:enter(_, level)
     ECS.s.selfDestroy,
     ECS.s.camera,
     ECS.s.sprite,
-    ECS.s.draw
+    ECS.s.draw,
+    ECS.s.ui
   )
 
   local hashCellSize = 256
@@ -133,12 +135,14 @@ function game:ascendLevel()
 end
 
 function game:draw()
+  love.graphics.setColor(1,1,1,1)
   self.world:emit("attachCamera")
   self.world:emit("draw")
   self.world:emit("preDrawLights")
   if self.debug then self.world:emit("drawDebugWithCamera") end
   self.world:emit("detachCamera")
   self.world:emit("drawLights")
+  self.world:emit("drawUI")
   if self.debug then self.world:emit("drawDebug") end
 end
 
