@@ -1,5 +1,6 @@
 local Gamestate = require 'libs.hump.gamestate'
-local lighting = require 'libs.Yellows-Lighting-Lib'
+--local light = require 'utils.light'
+local Lighter = require 'libs.lighter'
 
 local LightSystem = Concord.system({
   lightSources = { "lightSource", "position"},
@@ -8,41 +9,78 @@ local LightSystem = Concord.system({
   lightBlockers = { "lightBlocker", "position"},
 })
 
+local testPolygon = {
+  100, 100,
+  300, 100,
+  300, 300,
+  100, 300,
+  100, 100
+}
+
+local testPolygon2 = {
+  500, 500,
+  850, 500,
+  850, 850,
+  500, 850,
+  500, 500
+}
+
 function LightSystem:init(world)
   self.lightCanvas = love.graphics.newCanvas(love.graphics.getDimensions())
-  lighting.Init()
+  self.lighter = Lighter()
 
   self.lightSources.onEntityAdded = function(pool, entity)
-    entity.lightSource.light = lighting.CreateCircleLight(
-      entity.position.vec.x,
-      entity.position.vec.y,
-      entity.lightSource.radius
-    )
+    entity.lightSource.light = self.lighter:addLight(
+     entity.position.vec.x,
+     entity.position.vec.y,
+     entity.lightSource.radius,
+     entity.lightSource.r,
+     entity.lightSource.g,
+     entity.lightSource.b,
+     entity.lightSource.a
+   )
+    --entity.lightSource.light = lighting.CreateCircleLight(
+    --  entity.position.vec.x,
+    --  entity.position.vec.y,
+    --  entity.lightSource.radius
+    --)
 
-    entity.lightSource.light:SetColor(
-      entity.lightSource.r,
-      entity.lightSource.g,
-      entity.lightSource.b,
-      entity.lightSource.a
-    )
+    --entity.lightSource.light:SetColor(
+    --  entity.lightSource.r,
+    --  entity.lightSource.g,
+    --  entity.lightSource.b,
+    --  entity.lightSource.a
+    --)
 
   end
 
   self.lightSources.onEntityRemoved = function(_, entity)
-    lighting.Remove(entity.lightSource.light.id, true)
+    self.lighter:removeLight(entity.lightSource.light)
+    --lighting.Remove(entity.lightSource.light.id, true)
   end
 
   self.lightBlockers.onEntityAdded = function(_, entity)
-    entity.lightBlocker.blocker = lighting.CreateRectangonalBlocker(
-      entity.position.vec.x,
-      entity.position.vec.y,
-      entity.lightBlocker.width,
-      entity.lightBlocker.height
-    )
+    local pos = entity.position.vec
+    local w, h = entity.lightBlocker.width, entity.lightBlocker.height
+    entity.lightBlocker.blocker = self.lighter:addPolygon({
+      pos.x, pos.y,
+      pos.x + w, pos.y,
+      pos.x + w, pos.y + h,
+      pos.x, pos.y + h,
+      pos.x, pos.y
+    })
+
+    --entity.lightBlocker.blocker = lighting.CreateRectangonalBlocker(
+    --  entity.position.vec.x,
+    --  entity.position.vec.y,
+    --  entity.lightBlocker.width,
+    --  entity.lightBlocker.height
+    --)
   end
 
-  self.lightBlockers.onEntityRemoved = function(pool, entity)
-    entity.lightBlocker.blocker:Remove()
+  self.lightBlockers.onEntityRemoved = function(_, entity)
+    self.lighter:removePolygon(entity.lightBlocker.blocker)
+    --entity.lightBlocker.blocker:Remove()
   end
 end
 
@@ -53,7 +91,7 @@ end
 function LightSystem:preDrawLights()
   love.graphics.setCanvas({ self.lightCanvas, stencil = true})
   love.graphics.clear(0.4, 0.4, 0.4)
-  lighting.Draw()
+  self.lighter:drawLights()
   love.graphics.setCanvas()
 end
 
@@ -63,8 +101,9 @@ function LightSystem:drawLights()
   love.graphics.setBlendMode("alpha")
 end
 
-function LightSystem:update(_)
-  lighting.Update()
+function LightSystem:update(dt)
+
+  --lighting.Update()
 
   -- if self.camera then
   --   local l, t, w, h = self.camera:getVisible()
@@ -107,11 +146,12 @@ end
 
 function LightSystem:entityMoved(entity)
   if entity.lightSource and entity.lightSource.light then
-    entity.lightSource.light:SetPos(Vector.split(entity.position.vec))
+    self.lighter:updateLight(entity.lightSource.light, Vector.split(entity.position.vec))
+    --entity.lightSource.light:SetPos(Vector.split(entity.position.vec))
   end
 
   if entity.lightBlocker and entity.lightBlocker.blocker then
-    entity.lightBlocker.blocker:SetPos(Vector.split(entity.position.vec))
+    --entity.lightBlocker.blocker:SetPos(Vector.split(entity.position.vec))
   end
 end
 

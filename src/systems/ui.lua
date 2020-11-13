@@ -1,4 +1,4 @@
-local UISystem = Concord.system( { players = { "playerControlled", "health"} })
+local UISystem = Concord.system( { players = { "playerControlled", "health", "mana"} })
 
 local healthBarImage = love.graphics.newImage('media/ui/healthbar.png')
 local healthImgW, healthImgH = healthBarImage:getDimensions()
@@ -7,10 +7,17 @@ local imageScale = 3
 
 function UISystem:init() --luacheck: ignore
   self.players.onEntityAdded = function(_, entity)
-    functional.find_match(self.elements, function(element)
-      element.value = entity.health.value
-      element.maxValue = entity.health.maxHealth
+    local healthBar = functional.find_match(self.elements, function(element)
+      return element.id == "healthBar"
     end)
+    healthBar.value = entity.health.value
+    healthBar.maxValue = entity.health.maxHealth
+
+    local manaBar = functional.find_match(self.elements, function(element)
+      return element.id == "manaBar"
+    end)
+    manaBar.value = entity.mana.value
+    manaBar.maxValue = entity.mana.maxMana
   end
 
   self.elements = {
@@ -19,9 +26,28 @@ function UISystem:init() --luacheck: ignore
       uiType = "bar",
       maxValue = 0,
       value = 0,
-      color = { r = 0.7, g = 0.1, b = 0, a = 1 },
-      colorBackground = { r = 0.5, g = 0, b = 0, a = 1 },
+      color = { r = 0.5, g = 0.1, b = 0.1, a = 1 },
+      colorBackground = { r = 0.3, g = 0, b = 0, a = 1 },
       padding = { x = 60, y = 60 },
+      rounding = 30,
+      overlayImage = healthBarImage,
+      overlayImageOffset = { x = -10, y = 0 },
+      anchor = "bottomLeft",
+      width = {
+        px = healthImgW * imageScale / 1.2
+      },
+      height = {
+        px = healthImgH * imageScale / 1.4
+      }
+    },
+    {
+      id = "manaBar",
+      uiType = "bar",
+      maxValue = 0,
+      value = 0,
+      color = { r = 0.2, g = 0.1, b = 0.4, a = 1 },
+      colorBackground = { r = 0.1, g = 0, b = 0.2, a = 1 },
+      padding = { x = 60, y = 150 },
       rounding = 30,
       overlayImage = healthBarImage,
       overlayImageOffset = { x = -10, y = 0 },
@@ -36,23 +62,27 @@ function UISystem:init() --luacheck: ignore
   }
 end
 
-function UISystem:updateHealthBar(value, maxValue)
-  local healthBar = functional.find_match(self.elements, function(element)
-    return element.id == "healthBar"
+function UISystem:updateBar(id, value, maxValue)
+  local bar = functional.find_match(self.elements, function(element)
+    return element.id == id
   end)
 
-  healthBar.value = value or healthBar.value
-  if healthBar.value < 0 then healthBar.value = 0 end
-  healthBar.maxValue = maxValue or healthBar.maxValue
+  bar.value = value or bar.value
+  if bar.value < 0 then bar.value = 0 end
+  bar.maxValue = maxValue or bar.maxValue
+
 end
 
 function UISystem:healthChanged(target, newValue)
   if functional.contains(self.players, target) then
-    self:updateHealthBar(newValue)
+    self:updateBar("healthBar", newValue)
   end
 end
 
-function UISystem:update(dt)
+function UISystem:manaChanged(target, newValue)
+  if functional.contains(self.players, target) then
+    self:updateBar("manaBar", newValue)
+  end
 end
 
 local anchors = {

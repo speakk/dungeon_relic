@@ -4,7 +4,7 @@ local SpriteSystem = Concord.system({ pool = { "sprite", "position" } })
 
 local function compareY(a, b)
   if a.sprite.zIndex ~= b.sprite.zIndex then
-    return a.sprite.zIndex < b.sprite.zIndex
+    return a.sprite.zIndex > b.sprite.zIndex
   end
   local spriteA = mediaManager:getMediaEntity(a.sprite.spriteId)
   local spriteB = mediaManager:getMediaEntity(b.sprite.spriteId)

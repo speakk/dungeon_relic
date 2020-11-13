@@ -1,5 +1,5 @@
 --[[
-Copyright (c) 2012 Matthias Richter
+Copyright (c) 2012-2013 Matthias Richter
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]]--
 
-local sqrt, cos, sin = math.sqrt, math.cos, math.sin
+local sqrt, cos, sin, atan2 = math.sqrt, math.cos, math.sin, math.atan2
 
 local function str(x,y)
 	return "("..tonumber(x)..","..tonumber(y)..")"
@@ -78,13 +78,40 @@ local function len(x,y)
 	return sqrt(x*x + y*y)
 end
 
+local function fromPolar(angle, radius)
+	radius = radius or 1
+	return cos(angle)*radius, sin(angle)*radius
+end
+
+local function randomDirection(len_min, len_max)
+	len_min = len_min or 1
+	len_max = len_max or len_min
+
+	assert(len_max > 0, "len_max must be greater than zero")
+	assert(len_max >= len_min, "len_max must be greater than or equal to len_min")
+
+	return fromPolar(math.random()*2*math.pi,
+	                 math.random() * (len_max-len_min) + len_min)
+end
+
+local function toPolar(x, y)
+	return atan2(y,x), len(x,y)
+end
+
+local function dist2(x1,y1, x2,y2)
+	return len2(x1-x2, y1-y2)
+end
+
 local function dist(x1,y1, x2,y2)
 	return len(x1-x2, y1-y2)
 end
 
 local function normalize(x,y)
 	local l = len(x,y)
-	return x/l, y/l
+	if l > 0 then
+		return x/l, y/l
+	end
+	return x,y
 end
 
 local function rotate(phi, x,y)
@@ -106,14 +133,32 @@ local function mirror(x,y, u,v)
 	return s*u - x, s*v - y
 end
 
+-- ref.: http://blog.signalsondisplay.com/?p=336
+local function trim(maxLen, x, y)
+	local s = maxLen * maxLen / len2(x, y)
+	s = s > 1 and 1 or math.sqrt(s)
+	return x * s, y * s
+end
+
+local function angleTo(x,y, u,v)
+	if u and v then
+		return atan2(y, x) - atan2(v, u)
+	end
+	return atan2(y, x)
+end
 
 -- the module
 return {
 	str = str,
 
+	fromPolar       = fromPolar,
+	toPolar         = toPolar,
+	randomDirection = randomDirection,
+
 	-- arithmetic
 	mul    = mul,
 	div    = div,
+	idiv   = idiv,
 	add    = add,
 	sub    = sub,
 	permul = permul,
@@ -129,10 +174,13 @@ return {
 	-- misc operations
 	len2          = len2,
 	len           = len,
+	dist2         = dist2,
 	dist          = dist,
 	normalize     = normalize,
 	rotate        = rotate,
 	perpendicular = perpendicular,
 	project       = project,
 	mirror        = mirror,
+	trim          = trim,
+	angleTo       = angleTo,
 }

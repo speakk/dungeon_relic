@@ -5,5 +5,6 @@ return function(entity, x, y)
   entity:give("size", 20, 32)
   entity:give("sprite", 'characters.player2')
   entity:give("cameraTarget")
+  entity:give("mana", 100)
   entity:give("physicsBody", 13, 13, { "player" })
 end
