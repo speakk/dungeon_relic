@@ -15,7 +15,7 @@ function CameraSystem:setCamera(camera)
   self.camera:setScale(5.0)
   if self.map then
     local tileSize = self.map.tileSize
-    self.camera:setWorld(tileSize, tileSize, self.map.size.x * tileSize + tileSize, self.map.size.y * tileSize + tileSize)
+    self.camera:setWorld(tileSize, tileSize, self.map.size.x * tileSize, self.map.size.y * tileSize)
   end
 end
 
@@ -28,7 +28,7 @@ function CameraSystem:detachCamera()
 end
 
 function CameraSystem:mapChange(map)
-  self.camera:setWorld(map.tileSize, map.tileSize, map.size.x * map.tileSize - map.tileSize, map.size.y * map.tileSize - map.tileSize)
+  self.camera:setWorld(map.tileSize, map.tileSize, map.size.x * map.tileSize, map.size.y * map.tileSize)
   self.map = map
 end
 
