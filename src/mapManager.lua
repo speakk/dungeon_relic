@@ -354,8 +354,8 @@ end
 MapManager.generateMap = function(levelNumber)
   local tileSize = 32
 
-  local width = 20
-  local height = 20
+  local width = 24
+  local height = 24
 
   local map = generateSimpleMap(levelNumber, width, height)
 

@@ -44,15 +44,18 @@ function PhysicsBodySystem:drawDebugWithCamera() --luacheck: ignore
     local pos = entity.position.vec
     local w = entity.physicsBody.width
     local h = entity.physicsBody.height
-    local polygon = {
-      pos.x, pos.y,
-      pos.x + w, pos.y,
-      pos.x + w, pos.y + h,
-      pos.x, pos.y + h,
-    }
-    love.graphics.polygon("line", polygon)
+    love.graphics.rectangle("line", pos.x, pos.y, w, h)
     love.graphics.setColor(1,1,1)
   end
+
+  local bumpWorld = Gamestate.current().bumpWorld
+  local items, len = bumpWorld:getItems()
+  love.graphics.setColor(0,1,0)
+  for _, item in ipairs(items) do
+    local x,y,w,h = bumpWorld:getRect(item)
+    love.graphics.rectangle('line', x, y, w, h)
+  end
+  love.graphics.setColor(1,1,1)
 end
 
 
@@ -84,7 +87,7 @@ function PhysicsBodySystem:update(dt)
 
   local bumpWorld = Gamestate.current().bumpWorld
   for _, entity in ipairs(self.pool) do
-    if entity.position then
+    if entity.position and not entity.physicsBody.static then
       local actualX, actualY, collisions, _ = bumpWorld:move(entity, entity.position.vec.x, entity.position.vec.y,
       function(item, other)
         local containsIgnore = containsAnyInTable(other.physicsBody.tags, item.physicsBody.targetIgnoreTags)

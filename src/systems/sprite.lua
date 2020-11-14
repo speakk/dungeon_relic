@@ -42,14 +42,14 @@ local function draw(self)
     local mediaEntity = mediaManager:getMediaEntity(spriteId)
 
     local position = entity.position.vec
-    local orh
     local currentQuadIndex = entity.sprite.currentQuadIndex or 1
     local currentQuad = mediaEntity.quads[currentQuadIndex]
-      _, _, _, orh = currentQuad:getViewport()
+      _, _, w, h = currentQuad:getViewport()
     --local _, _, quadWidth, quadHeight = mediaEntity.quad:getViewport()
     --local origin = Vector(mediaEntity.origin.x - quadWidth / 2, mediaEntity.origin.y - quadHeight)
     --local origin = Vector(0, orh/2)
-    local origin = Vector(0, 0)
+    --local origin = mediaEntity.origin or { x = 0, y = h*0.6 }
+    local origin = { x = 0, y = 0 }
 
     --local finalPosition = position - origin
 
