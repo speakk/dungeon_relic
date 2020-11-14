@@ -5,70 +5,113 @@ local function simplifyFileName(path)
   return path:match("(.+)%..+"):gsub("/", ".")
 end
 
-local function fillTree(folder, fileTree, tree, mediaEntities, root)
+local function fillTree(folder, fileTree, root, result)
   if not root then root = folder end
+  result = result or {}
 
   local filesTable = lfs.getDirectoryItems(folder)
   for _, fileName in ipairs(filesTable) do
     local file = folder .. "/" .. fileName
     local info = lfs.getInfo(file)
     if info.type == "file" then
-      fileTree = fileTree .. "\n" ..file
+      local extension = file:match("[^.]+$")
+      if extension == "png" or extension == "jpg" then
+        fileTree = fileTree .. "\n" ..file
 
-      local mediaEntity = {
-        fileName = file
-      }
+        -- local mediaEntity = {
+        --   fileName = file
+        -- }
 
-      if lfs.getInfo(file .. '.lua') then
-        mediaEntity.metaData = require(file .. '.lua')
-      else
-        mediaEntity.metaData = {}
+        local name = simplifyFileName(file:gsub(root, ""):sub(2, #file))
+
+        -- if lfs.getInfo(file .. '_metadata.lua') then
+        --   mediaEntity.metaData = require((file .. '_metadata'):gsub('/', '.'))
+        -- else
+        --   mediaEntity.metaData = {}
+        -- end
+
+        local resultEntity = {
+          fileName = file,
+          selector = name
+        }
+
+        local metaDataName = (file:gsub(extension, "") .. 'lua'):gsub("#.", "/")
+        if lfs.getInfo(metaDataName) then
+          resultEntity.metaData = require(metaDataName:gsub(".lua", ""))
+        end
+
+        table.insert(result, resultEntity)
       end
-
-      local name = simplifyFileName(file:gsub(root, ""):sub(2, #file))
-      tree[name] = mediaEntity
-      table.push(mediaEntities,mediaEntity)
+      --mediaEntity.name = name
+      --tree[name] = mediaEntity
+      --table.push(mediaEntities,mediaEntity)
     elseif info.type == "directory" then
       fileTree = fileTree.."\n"..file.." (DIR)"
-      fileTree = fillTree(file, fileTree, tree, mediaEntities, root)
+      fileTree, result = fillTree(file, fileTree, root, result)
     end
+    --end
   end
-  return fileTree
+
+  return fileTree, result
 end
 
 
-local function createAtlas(mediaEntities)
+local function createMediaEntities(self, fileEntries)
   local atlasWidth = 1280
   local atlasHeight = 1280
-  local atlasCanvas = love.graphics.newCanvas(atlasWidth, atlasHeight)
-  do
-    love.graphics.setCanvas(atlasCanvas)
-    love.graphics.clear()
+  local currentCanvas
 
-    local currentX = 0
-    local currentY = 0
-    local lastRowHeight = 0
+  local currentX = 0
+  local currentY = 0
+  local lastRowHeight = 0
 
-    for _, mediaEntity in ipairs(mediaEntities) do
-      local sprite = love.graphics.newImage(mediaEntity.fileName)
-      local spriteWidth, spriteHeight = sprite:getDimensions()
+  self.mediaEntities = {}
 
-      mediaEntity.atlas = atlasCanvas
+  local currentFileEntryIndex = 1
+  while currentFileEntryIndex <= #fileEntries do
 
+    local fileEntry = fileEntries[currentFileEntryIndex]
+
+    if not currentCanvas then
+      currentCanvas = love.graphics.newCanvas(atlasWidth, atlasHeight)
+      love.graphics.setCanvas(currentCanvas)
+      love.graphics.clear()
+
+      currentX = 0
+      currentY = 0
+      lastRowHeight = 0
+    end
+
+    local framesX = fileEntry.metaData and fileEntry.metaData.framesX or 1
+    local framesY = fileEntry.metaData and fileEntry.metaData.framesY or 1
+
+    local sprite = love.graphics.newImage(fileEntry.fileName)
+    local spriteWidth, spriteHeight = sprite:getDimensions()
+
+    if currentY + spriteHeight > atlasHeight then
+      currentCanvas = nil
+    else
       love.graphics.draw(sprite, currentX, currentY)
 
-      local quad = love.graphics.newQuad(currentX, currentY, spriteWidth, spriteHeight, atlasCanvas:getDimensions())
-      mediaEntity.quad = quad
-
-      -- If no origin, default to bottom center
-      mediaEntity.origin = mediaEntity.metaData.origin or {
-        x = spriteWidth/2,
-        y = spriteHeight
+      local mediaEntity = {
+        atlas = currentCanvas,
+        quads = {}
       }
+      self:setMediaEntity(fileEntry.selector, mediaEntity)
 
-      print("Setting origin at", mediaEntity.origin.x, mediaEntity.origin.y, "for", mediaEntity.fileName)
+      for x=1, framesX do
+        for y=1, framesY do
+          local quadW = spriteWidth / framesX
+          local quadH = spriteHeight / framesY
+          local quadX = currentX + (x - 1) * quadW
+          local quadY = currentY + (y - 1) * quadH
+          local quad = love.graphics.newQuad(quadX, quadY, quadW, quadH, currentCanvas:getDimensions())
+          table.insert(mediaEntity.quads, quad)
+        end
+      end
 
       currentX = currentX + spriteWidth
+
       if spriteHeight > lastRowHeight then
         lastRowHeight = spriteHeight
       end
@@ -78,28 +121,26 @@ local function createAtlas(mediaEntities)
         currentY = currentY + lastRowHeight
         lastRowHeight = 0
       end
+
+      currentFileEntryIndex = currentFileEntryIndex + 1
     end
   end
 
   love.graphics.setCanvas()
-
-  return atlasCanvas
 end
 
 local MediaManager = Class {
   init = function(self)
-    self.tree = {} -- Stores mediaEntity objects indexed by file path hierarchy
-    local mediaEntities = {} -- A flat list of the above for ease of iteration
-    fillTree("media/images", "", self.tree, mediaEntities) -- Fill above 2 tables
-    self.atlasCanvas = createAtlas(mediaEntities)
-  end,
-  getTexture = function(self, path)
-    return self:getMediaEntity(path).quad
+    self.tree = {}
+    local _, fileEntities = fillTree("media/images", "") -- Fill above 2 tables
+    --self.mediaEntities = createMediaEntities(self, fileEntities)
+    createMediaEntities(self, fileEntities)
   end,
   getMediaEntity = function(self, path)
     return self.tree[path]
   end,
   setMediaEntity = function(self, path, mediaEntity)
+    --print("Setting mediaEntity", path)
     self.tree[path] = mediaEntity
   end,
   getAtlas = function(self)

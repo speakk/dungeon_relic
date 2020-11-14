@@ -4,15 +4,17 @@ local SpriteSystem = Concord.system({ pool = { "sprite", "position" } })
 
 local function compareY(a, b)
   if a.sprite.zIndex ~= b.sprite.zIndex then
-    return a.sprite.zIndex > b.sprite.zIndex
+    return a.sprite.zIndex < b.sprite.zIndex
   end
   local spriteA = mediaManager:getMediaEntity(a.sprite.spriteId)
   local spriteB = mediaManager:getMediaEntity(b.sprite.spriteId)
 
-  local posA = a.position.vec.y + spriteA.origin.y
-  local posB = b.position.vec.y + spriteB.origin.y
+  --local posA = a.position.vec.y + spriteA.origin.y
+  --local posB = b.position.vec.y + spriteB.origin.y
 
-  return posA < posB
+  --return posA < posB
+
+  return a.position.vec.y < b.position.vec.y
 end
 
 function SpriteSystem:setCamera(camera)
@@ -41,11 +43,9 @@ local function draw(self)
 
     local position = entity.position.vec
     local orh
-    if mediaEntity.quad then
-      _, _, _, orh = mediaEntity.quad:getViewport()
-    else
-      _, orh = mediaEntity.image:getDimensions()
-    end
+    local currentQuadIndex = entity.sprite.currentQuadIndex or 1
+    local currentQuad = mediaEntity.quads[currentQuadIndex]
+      _, _, _, orh = currentQuad:getViewport()
     --local _, _, quadWidth, quadHeight = mediaEntity.quad:getViewport()
     --local origin = Vector(mediaEntity.origin.x - quadWidth / 2, mediaEntity.origin.y - quadHeight)
     --local origin = Vector(0, orh/2)
@@ -53,17 +53,12 @@ local function draw(self)
 
     --local finalPosition = position - origin
 
-    if mediaEntity.atlas then
-      love.graphics.draw(mediaEntity.atlas, mediaEntity.quad, position.x, position.y, 0, entity.sprite.scale, entity.sprite.scale, origin.x, origin.y)
-    else
-      love.graphics.draw(mediaEntity.image, position.x, position.y, 0, entity.sprite.scale, entity.sprite.scale, origin.x, origin.y)
-
-    end
+    love.graphics.draw(mediaEntity.atlas, currentQuad, position.x, position.y, 0, entity.sprite.scale, entity.sprite.scale, origin.x, origin.y)
   end
 end
 
 function SpriteSystem:init()
-  self.tilesetBatch = love.graphics.newSpriteBatch(mediaManager:getAtlas(), 500)
+  --self.tilesetBatch = love.graphics.newSpriteBatch(mediaManager:getAtlas(), 500)
 end
 
 function SpriteSystem:systemsLoaded()

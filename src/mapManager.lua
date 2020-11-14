@@ -180,15 +180,16 @@ local function drawMap(map, world)
       )
 
       local mediaEntity = {
-        image = canvas,
+        atlas = canvas,
         metaData = {},
-        origin = { x = 0, y = 0 }
+        origin = { x = 0, y = 0 },
+        quads = { love.graphics.newQuad(0, 0, canvasWidth, canvasHeight, canvasWidth, canvasHeight) }
       }
 
       local mediaPath = 'mapLayerCache.floor' .. startX .. "|" .. startY
       mediaManager:setMediaEntity(mediaPath, mediaEntity)
       local entity = Concord.entity()
-      :give('sprite', mediaPath)
+      :give('sprite', mediaPath, -1)
       :give('size', canvasWidth, canvasHeight)
       :give('position', startX * map.tileSize, startY * map.tileSize)
 
