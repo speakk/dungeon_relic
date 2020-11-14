@@ -90,12 +90,13 @@ end
 
 function LightSystem:preDrawLights()
   love.graphics.setCanvas({ self.lightCanvas, stencil = true})
-  love.graphics.clear(0.4, 0.4, 0.4)
+  love.graphics.clear(0.4, 0.4, 0.5)
   self.lighter:drawLights()
   love.graphics.setCanvas()
 end
 
 function LightSystem:drawLights()
+  love.graphics.setColor(1, 1, 1, 1)
   love.graphics.setBlendMode("multiply", "premultiplied")
   love.graphics.draw(self.lightCanvas)
   love.graphics.setBlendMode("alpha")

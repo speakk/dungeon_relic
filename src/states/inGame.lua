@@ -86,13 +86,13 @@ function game:enter(_, level)
 
     local randomEmptyX, randomEmptyY = randomEmptySpot(self.mapManager:getCollisionMap())
     player:give("position", randomEmptyX*map.tileSize, randomEmptyY*map.tileSize)
-    player:give("lightSource", 400, 1, 0.6, 0.6, 1.0)
+    player:give("lightSource", 600, 1, 0.6, 0.6, 1.0)
 
-    for i=1,100 do
+    for i=1,10 do
       randomEmptyX, randomEmptyY = randomEmptySpot(self.mapManager:getCollisionMap())
       local ent = Concord.entity(self.world)
       ent:give("position", randomEmptyX*map.tileSize, randomEmptyY*map.tileSize)
-      ent:give("lightSource", 100, 1, love.math.random(0.5, 1), love.math.random(0.5, 1), love.math.random(0.5, 1))
+      ent:give("lightSource", 400, 1, love.math.random(0.5, 1), love.math.random(0.5, 1), love.math.random(0.5, 1))
     end
 
     if self.currentLevelNumber > 1 then
