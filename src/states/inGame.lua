@@ -81,6 +81,7 @@ function game:enter(_, level)
       end
 
       local spot = table.pick_random(emptySpots)
+      if not spot then return #tiles/2,#tiles/2 end
       return spot.x, spot.y
     end
 

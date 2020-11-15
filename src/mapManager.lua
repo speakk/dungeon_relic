@@ -1,12 +1,15 @@
 local Gamestate = require 'libs.hump.gamestate'
 local positionUtil = require 'utils.position'
 
+local ROT=require 'libs.rotLove.src.rot'
+
 local function isPositionAvailable(self, x, y)
   return self.collisionMap[positionUtil.positionToString(x, y)]
 end
 
 local tilesetImageFloor = love.graphics.newImage('media/tileset/tileset3.png')
 local tilesetImageWall = love.graphics.newImage('media/tileset/tileset5b.png')
+local tilesetVoid = love.graphics.newImage('media/tileset/void.png')
 
 local bitmaskIndices = {
   0, 4, 84, 92, 124, 116, 80,
@@ -44,11 +47,11 @@ local bitmaskValues = {
 }
 
 local function getMapValueSafe(map, x, y)
-  if not map[y] or not map[y][x] then return 'void' end
+  if not map[y] or not map[y][x] then return nil end
   return map[y][x]
 end
 
-local function calculateAutotileBitmask(x, y, map)
+local function calculateAutotileBitmask(x, y, map, tileValue)
   local allDirections = {
     n = { x = x, y = y - 1 },
     nw = { x = x-1, y = y-1, neighbors = { "n", "w" } },
@@ -61,7 +64,7 @@ local function calculateAutotileBitmask(x, y, map)
   }
 
   local isBlocked = function(mapValue)
-    return mapValue == 'void'
+    return mapValue ~= tileValue
   end
 
   local value = 0
@@ -88,10 +91,10 @@ local function calculateAutotileBitmask(x, y, map)
   return value
 end
 
-local function drawTile(x, y, _, tileSet, tileSize, _, tiles, offsetX, offsetY)
+local function drawTile(x, y, tileValue, tileSet, tileSize, _, tiles, offsetX, offsetY)
   local finalX = (x - offsetX) * tileSize
   local finalY = (y - offsetY) * tileSize
-  local autotileBitmask = calculateAutotileBitmask(x, y, tiles)
+  local autotileBitmask = calculateAutotileBitmask(x, y, tiles, tileValue)
 
   local index = bitmaskToTilesetIndex[autotileBitmask]
   if tilesetQuads[index] then
@@ -119,7 +122,7 @@ end
 local handleTile = {
   wall = {drawTile, createEntity},
   floor = {drawTile},
-  void = {createEntity},
+  void = {drawTile, createEntity},
   exit = {createEntity}
 }
 
@@ -322,31 +325,85 @@ end
 
 local function generateSimpleMap(seed, width, height)
   local map = { layers = {} }
-  local scale = 0.1
+  --local scale = 0.1
+  --
+  -- roomWidth table Room width for rectangle one of cross rooms (default {4)
+  -- roomHeight table Room height for rectangle one of cross rooms (default {3)
+  -- crossWidth table Room width for rectangle two of cross rooms (default {3)
+  -- crossHeight table Room height for rectangle two of cross rooms (default {2)
+  -- corridorWidth table Length of east-west corridors (default {3)
+  -- corridorHeight table Length of north-south corridors (default {2)
 
-  table.insert(map.layers, createLayer(width, height, tilesetImageFloor, function(x, y)
-    local bias = 0.2
-    local value = love.math.noise(x * scale + bias + seed, y * scale + bias + seed)
-    if value > 0.8 then
-      return 'void'
-    else
-      return 'floor'
-    end
+  local rotMapGenerator = ROT.Map.Brogue:new(width, height,{
+    roomWidth = {2, 3},
+    roomHeight = {2, 3}
+  })
+  
+  local rotMapLayer = {}
+
+  local rotMap = rotMapGenerator:create(function(x, y, type)
+    if not rotMapLayer[y] then rotMapLayer[y] = {} end
+    if type == 0 then rotMapLayer[y][x] = "floor" end
+    if type == 1 then rotMapLayer[y][x] = "wall" end
+    if type == 2 then rotMapLayer[y][x] = "floor" end -- TODO: add door
+  end)
+
+  local randomRoom = table.pick_random(rotMap._rooms)
+  print("randomRoom", inspect(randomRoom))
+
+  local featuresLayer = createLayer(width, height)
+  local x = math.floor(love.math.random(randomRoom:getLeft() + 1, randomRoom:getRight() - 1))
+  local y = math.floor(love.math.random(randomRoom:getTop() + 1, randomRoom:getBottom() - 1))
+  featuresLayer.tiles[y][x] = "exit"
+  table.insert(map.layers, featuresLayer)
+
+  table.insert(map.layers, createLayer(width, height, tilesetImageFloor, function()
+    return 'floor'
   end))
 
   table.insert(map.layers, createLayer(width, height, tilesetImageWall, function(x, y)
-    local bias = 0.3
-    local value = love.math.noise(x * scale + bias + seed, y * scale + bias + seed)
-    if value > 0.2 then
-      return nil
-    else
-      return 'wall'
-    end
+    local value = rotMapLayer[y][x]
+    if value == "wall" then return value end
   end))
 
-  local featuresLayer = createLayer(width, height)
-  featuresLayer.tiles[math.random(3, height-3)][math.random(3, width-3)] = "exit"
-  table.insert(map.layers, featuresLayer)
+
+  --local alreadyOccupied = function(x, y, padding)
+  --  for _, layer in ipairs(map.layers) do
+  --    if layer[y] and layer[y][x] then
+  --      return true
+  --    end
+  --  end
+
+  --  return false
+  --end
+
+  --table.insert(map.layers, createLayer(width, height, tilesetImageFloor, function()
+  --  return 'floor'
+  --end))
+
+  --table.insert(map.layers, createLayer(width, height, tilesetImageWall, function(x, y)
+  --  local bias = 0.3
+  --  local value = love.math.noise(x * scale + bias + seed, y * scale + bias + seed)
+  --  if value > 0.2 then
+  --    return nil
+  --  else
+  --    return 'wall'
+  --  end
+  --end))
+
+  --table.insert(map.layers, createLayer(width, height, tilesetVoid, function(x, y)
+  --  local bias = 0.4
+  --  local value = love.math.noise(x * scale + bias + seed, y * scale + bias + seed)
+  --  if value > 0.2 then
+  --    return nil
+  --  elseif not alreadyOccupied(x, y) then
+  --    return 'void'
+  --  end
+  --end))
+
+  --local featuresLayer = createLayer(width, height)
+  --featuresLayer.tiles[math.random(3, height-3)][math.random(3, width-3)] = "exit"
+  --table.insert(map.layers, featuresLayer)
 
   return map
 end
