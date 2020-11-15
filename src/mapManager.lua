@@ -6,7 +6,7 @@ local function isPositionAvailable(self, x, y)
 end
 
 local tilesetImageFloor = love.graphics.newImage('media/tileset/tileset3.png')
-local tilesetImageWall = love.graphics.newImage('media/tileset/tileset4.png')
+local tilesetImageWall = love.graphics.newImage('media/tileset/tileset5b.png')
 
 local bitmaskIndices = {
   0, 4, 84, 92, 124, 116, 80,

@@ -30,12 +30,14 @@ local function mergeTilesIntoRectangles(map)
   end
 
   local rectangles = {}
+  local individualRectangles = {}
 
   for y, row in ipairs(map) do
     for x, tileValue in ipairs(row) do
       if tileValue == 1 then
         local tile = getSafe(tiles, x, y)
         if tile.tileExists then
+          table.insert(individualRectangles, { startX = x, endX = x, startY = y, endY = y })
           local leftTile = getSafe(tiles, x - 1, y)
           if leftTile and leftTile.tileExists and leftTile.rectangleId then
             -- Extend rectangle on the left
@@ -77,6 +79,7 @@ local function mergeTilesIntoRectangles(map)
   end
 
   return toBeMerged
+  --return individualRectangles
 end
 
 function GridCollisionSystem:updateCollisionTileMap()
