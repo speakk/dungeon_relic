@@ -7,7 +7,7 @@ local function isPositionAvailable(self, x, y)
   return self.collisionMap[positionUtil.positionToString(x, y)]
 end
 
-local tilesetImageFloor = love.graphics.newImage('media/tileset/tileset3.png')
+local tilesetImageFloor = love.graphics.newImage('media/tileset/floor.png')
 local tilesetImageWall = love.graphics.newImage('media/tileset/tileset5b.png')
 local tilesetVoid = love.graphics.newImage('media/tileset/void.png')
 local tilesetRoomFloor = love.graphics.newImage('media/tileset/room_floor.png')
@@ -99,17 +99,37 @@ local tileValueToTileset = {
   void = tilesetVoid
 }
 
-local function drawTile(x, y, tileValue, tileSize, _, tiles, offsetX, offsetY)
+local function drawAutotile(x, y, tileValue, tileSize, _, tiles, offsetX, offsetY)
   local finalX = (x - offsetX) * tileSize
   local finalY = (y - offsetY) * tileSize
-  local autotileBitmask = calculateAutotileBitmask(x, y, tiles, tileValue)
 
   local tileSet = tileValueToTileset[tileValue]
+
+  local autotileBitmask = calculateAutotileBitmask(x, y, tiles, tileValue)
 
   local index = bitmaskToTilesetIndex[autotileBitmask]
   if tilesetQuads[index] then
     love.graphics.draw(tileSet, tilesetQuads[index], finalX, finalY)
   end
+end
+
+-- Draw a random tile from the tileset associated with the tileValue
+local function drawTile(x, y, tileValue, tileSize, _, _, offsetX, offsetY)
+  local finalX = (x - offsetX) * tileSize
+  local finalY = (y - offsetY) * tileSize
+
+  local tileSet = tileValueToTileset[tileValue]
+
+  local w,h = tileSet:getDimensions()
+  local quadX = love.math.random(0, w/tileSize)
+  local quadY = love.math.random(0, h/tileSize)
+
+
+  -- TODO: Pre-create these quads, this is super wasteful
+  local quad = love.graphics.newQuad(quadX*tileSize, quadY*tileSize,
+    tileSize, tileSize, w, h)
+
+  love.graphics.draw(tileSet, quad, finalX, finalY)
 end
 
 local tileValueToEntity = {
@@ -139,7 +159,7 @@ local function createEntity(x, y, tileValue, tileSize, world, tiles)
 end
 
 local handleTile = {
-  wall = {drawTile, createEntity},
+  wall = {drawAutotile, createEntity},
   floor = {drawTile},
   roomFloor = {drawTile},
   void = {drawTile, createEntity},
@@ -371,7 +391,6 @@ local function generateSimpleMap(seed, descending, width, height)
     if type == 2 then rotMapLayer[y][x] = "floor" end -- TODO: add door
   end, true)
 
-  print("rooms length", #rotMap._rooms)
   local getRandomPositionInRoom = function(room, padding)
     print("Getting random pos in room", room:getLeft(), room:getRight(), room:getTop(), room:getBottom())
     local x = love.math.random(room:getLeft() + padding, room:getRight() - padding)
