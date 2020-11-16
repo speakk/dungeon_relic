@@ -10,6 +10,7 @@ end
 local tilesetImageFloor = love.graphics.newImage('media/tileset/tileset3.png')
 local tilesetImageWall = love.graphics.newImage('media/tileset/tileset5b.png')
 local tilesetVoid = love.graphics.newImage('media/tileset/void.png')
+local tilesetRoomFloor = love.graphics.newImage('media/tileset/room_floor.png')
 
 local bitmaskIndices = {
   0, 4, 84, 92, 124, 116, 80,
@@ -91,10 +92,19 @@ local function calculateAutotileBitmask(x, y, map, tileValue)
   return value
 end
 
-local function drawTile(x, y, tileValue, tileSet, tileSize, _, tiles, offsetX, offsetY)
+local tileValueToTileset = {
+  wall = tilesetImageWall,
+  floor = tilesetImageFloor,
+  roomFloor = tilesetRoomFloor,
+  void = tilesetVoid
+}
+
+local function drawTile(x, y, tileValue, tileSize, _, tiles, offsetX, offsetY)
   local finalX = (x - offsetX) * tileSize
   local finalY = (y - offsetY) * tileSize
   local autotileBitmask = calculateAutotileBitmask(x, y, tiles, tileValue)
+
+  local tileSet = tileValueToTileset[tileValue]
 
   local index = bitmaskToTilesetIndex[autotileBitmask]
   if tilesetQuads[index] then
@@ -103,27 +113,39 @@ local function drawTile(x, y, tileValue, tileSet, tileSize, _, tiles, offsetX, o
 end
 
 local tileValueToEntity = {
-  void = function(x, y, _, _, _, world)
+  void = function(x, y, _, _, world)
     return Concord.entity(world):give("gridCollisionItem", x, y)
   end,
-  exit = function(x, y, _, _, tileSize, world)
+  exit = function(x, y, _, tileSize, world)
     local portal = Concord.entity(world):assemble(ECS.a.getBySelector("dungeon_features.portal_down"))
     portal:give("position", x*tileSize, y*tileSize)
   end,
-  wall = function(x, y, _, _, _, world)
+  entrance = function(x, y, _, tileSize, world)
+    local portal = Concord.entity(world):assemble(ECS.a.getBySelector("dungeon_features.portal_up"))
+    portal:give("position", x*tileSize, y*tileSize)
+
+  end,
+  player = function(x, y, _, tileSize, world)
+    local player = Concord.entity(world):assemble(ECS.a.getBySelector('characters.player'))
+    player:give("position", x*tileSize, y*tileSize)
+  end,
+  wall = function(x, y, _, _, world)
     return Concord.entity(world):give("gridCollisionItem", x, y)
   end
 }
 
-local function createEntity(x, y, tileValue, tileSet, tileSize, world, tiles)
-  tileValueToEntity[tileValue](x, y, tileValue, tileSet, tileSize, world, tiles)
+local function createEntity(x, y, tileValue, tileSize, world, tiles)
+  tileValueToEntity[tileValue](x, y, tileValue, tileSize, world, tiles)
 end
 
 local handleTile = {
   wall = {drawTile, createEntity},
   floor = {drawTile},
+  roomFloor = {drawTile},
   void = {drawTile, createEntity},
-  exit = {createEntity}
+  exit = {createEntity},
+  entrance = {createEntity},
+  player = {createEntity}
 }
 
 local function drawCanvas(tileSize, layers, world, canvasSizeX, canvasSizeY, startX, startY, endX, endY)
@@ -143,8 +165,10 @@ local function drawCanvas(tileSize, layers, world, canvasSizeX, canvasSizeY, sta
           local tileHandlers = handleTile[tileValue]
           if tileHandlers then
             for _, tileHandler in ipairs(tileHandlers) do
-              tileHandler(x, y, tileValue, layer.tilesetImage, tileSize, world, tiles, startX, startY)
+              tileHandler(x, y, tileValue, tileSize, world, tiles, startX, startY)
             end
+          else
+            error ("No tile handler for: " .. tileValue)
           end
         end
       end
@@ -302,9 +326,8 @@ local MapManager = Class {
   end
 }
 
-local function createLayer(width, height, tilesetImage, valueFunction)
+local function createLayer(width, height, valueFunction)
   local layer = {
-    tilesetImage = tilesetImage,
     tiles = {}
   }
   if width and height then
@@ -323,7 +346,7 @@ local function createLayer(width, height, tilesetImage, valueFunction)
   return layer
 end
 
-local function generateSimpleMap(seed, width, height)
+local function generateSimpleMap(seed, descending, width, height)
   local map = { layers = {} }
   --local scale = 0.1
   --
@@ -338,7 +361,7 @@ local function generateSimpleMap(seed, width, height)
     roomWidth = {2, 3},
     roomHeight = {2, 3}
   })
-  
+
   local rotMapLayer = {}
 
   local rotMap = rotMapGenerator:create(function(x, y, type)
@@ -346,75 +369,68 @@ local function generateSimpleMap(seed, width, height)
     if type == 0 then rotMapLayer[y][x] = "floor" end
     if type == 1 then rotMapLayer[y][x] = "wall" end
     if type == 2 then rotMapLayer[y][x] = "floor" end -- TODO: add door
-  end)
+  end, true)
 
-  local randomRoom = table.pick_random(rotMap._rooms)
-  print("randomRoom", inspect(randomRoom))
+  print("rooms length", #rotMap._rooms)
+  local getRandomPositionInRoom = function(room, padding)
+    print("Getting random pos in room", room:getLeft(), room:getRight(), room:getTop(), room:getBottom())
+    local x = love.math.random(room:getLeft() + padding, room:getRight() - padding)
+    local y = love.math.random(room:getTop() + padding, room:getBottom() - padding)
+    return x, y
+  end
 
+  local getPositionInRandomRoom = function(rooms, padding)
+    padding = padding or 1
+    local randomRoom = table.pick_random(rooms)
+    local x, y = getRandomPositionInRoom(randomRoom, padding)
+    return x, y, randomRoom
+  end
+
+  -- Create exit
   local featuresLayer = createLayer(width, height)
-  local x = math.floor(love.math.random(randomRoom:getLeft() + 1, randomRoom:getRight() - 1))
-  local y = math.floor(love.math.random(randomRoom:getTop() + 1, randomRoom:getBottom() - 1))
-  featuresLayer.tiles[y][x] = "exit"
+  local exitX, exitY, exitRoom = getPositionInRandomRoom(rotMap._rooms)
+  featuresLayer.tiles[exitY][exitX] = "exit"
+
+  -- Create entrance room. Make sure we find one that is not the same as the exit room
+  local nonExitRooms = functional.filter(table.copy(rotMap._rooms), function(room)
+    return room ~= exitRoom
+  end)
+  local entranceX, entranceY, entranceRoom = getPositionInRandomRoom(nonExitRooms, 3)
+  if not entranceRoom then error("No eligible entrance room found, exiting") end
+
+  featuresLayer.tiles[entranceY][entranceX] = "entrance"
+  if descending then
+    featuresLayer.tiles[entranceY+2][entranceX] = "player"
+  else
+    featuresLayer.tiles[exitY+2][exitX] = "player"
+  end
   table.insert(map.layers, featuresLayer)
 
-  table.insert(map.layers, createLayer(width, height, tilesetImageFloor, function()
+  -- Fill the whole thing up with floor
+  table.insert(map.layers, createLayer(width, height, function(x, y)
+    for _, room in ipairs(rotMap._rooms) do
+      local l,t,r,b = room:getLeft(), room:getTop(), room:getRight(), room:getBottom()
+      if x >= l and x <= r and y >= t and y <= b then
+        return 'roomFloor'
+      end
+    end
     return 'floor'
   end))
 
-  table.insert(map.layers, createLayer(width, height, tilesetImageWall, function(x, y)
+  table.insert(map.layers, createLayer(width, height, function(x, y)
     local value = rotMapLayer[y][x]
     if value == "wall" then return value end
   end))
-
-
-  --local alreadyOccupied = function(x, y, padding)
-  --  for _, layer in ipairs(map.layers) do
-  --    if layer[y] and layer[y][x] then
-  --      return true
-  --    end
-  --  end
-
-  --  return false
-  --end
-
-  --table.insert(map.layers, createLayer(width, height, tilesetImageFloor, function()
-  --  return 'floor'
-  --end))
-
-  --table.insert(map.layers, createLayer(width, height, tilesetImageWall, function(x, y)
-  --  local bias = 0.3
-  --  local value = love.math.noise(x * scale + bias + seed, y * scale + bias + seed)
-  --  if value > 0.2 then
-  --    return nil
-  --  else
-  --    return 'wall'
-  --  end
-  --end))
-
-  --table.insert(map.layers, createLayer(width, height, tilesetVoid, function(x, y)
-  --  local bias = 0.4
-  --  local value = love.math.noise(x * scale + bias + seed, y * scale + bias + seed)
-  --  if value > 0.2 then
-  --    return nil
-  --  elseif not alreadyOccupied(x, y) then
-  --    return 'void'
-  --  end
-  --end))
-
-  --local featuresLayer = createLayer(width, height)
-  --featuresLayer.tiles[math.random(3, height-3)][math.random(3, width-3)] = "exit"
-  --table.insert(map.layers, featuresLayer)
-
   return map
 end
 
-MapManager.generateMap = function(levelNumber)
+MapManager.generateMap = function(levelNumber, descending)
   local tileSize = 32
 
-  local width = 24
-  local height = 24
+  local width = 25
+  local height = 25
 
-  local map = generateSimpleMap(levelNumber, width, height)
+  local map = generateSimpleMap(levelNumber, descending, width, height)
 
   return {
     tileSize = tileSize,

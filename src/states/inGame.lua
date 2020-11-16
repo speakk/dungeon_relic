@@ -14,6 +14,7 @@ local TESTING = true
 
 function game:enter(_, level)
   self.originalSeed, _ = love.math.getRandomSeed()
+  local previousLevel = self.currentLevelNumber or 1
   self.currentLevelNumber = level or 1
   love.math.setRandomSeed(self.currentLevelNumber + self.originalSeed)
 
@@ -57,7 +58,7 @@ function game:enter(_, level)
 
   self.mapManager = MapManager()
 
-  self.mapManager:setMap(MapManager.generateMap(self.currentLevelNumber), self.world)
+  self.mapManager:setMap(MapManager.generateMap(self.currentLevelNumber, self.currentLevelNumber >= previousLevel), self.world)
 
   self.world:emit('mapChange', self.mapManager:getMap())
 
@@ -67,7 +68,7 @@ function game:enter(_, level)
     local map = self.mapManager.map
 
     -- Make a couple test entities.
-    local player = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.player'))
+    --local player = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.player'))
 
     local function randomEmptySpot(tiles)
       local emptySpots = {}
@@ -85,11 +86,11 @@ function game:enter(_, level)
       return spot.x, spot.y
     end
 
-    local randomEmptyX, randomEmptyY = randomEmptySpot(self.mapManager:getCollisionMap())
-    player:give("position", randomEmptyX*map.tileSize, randomEmptyY*map.tileSize)
+    --local randomEmptyX, randomEmptyY = randomEmptySpot(self.mapManager:getCollisionMap())
+    --player:give("position", randomEmptyX*map.tileSize, randomEmptyY*map.tileSize)
 
     for i=1,10 do
-      randomEmptyX, randomEmptyY = randomEmptySpot(self.mapManager:getCollisionMap())
+      local randomEmptyX, randomEmptyY = randomEmptySpot(self.mapManager:getCollisionMap())
       local ent = Concord.entity(self.world)
       ent:give("sprite", "lamps.lamp1")
       ent:give("position", randomEmptyX*map.tileSize, randomEmptyY*map.tileSize)
@@ -97,22 +98,22 @@ function game:enter(_, level)
       ent:give("lightSource", 100, 1, 0.6, 0.8)
     end
 
-    if self.currentLevelNumber > 1 then
-      local ascendEntity = Concord.entity(self.world):assemble(ECS.a.getBySelector('dungeon_features.portal_up'))
-      ascendEntity:give("position", Vector.split(player.position.vec + Vector(64, 0)))
-    end
+    -- if self.currentLevelNumber > 1 then
+    --   local ascendEntity = Concord.entity(self.world):assemble(ECS.a.getBySelector('dungeon_features.portal_up'))
+    --   ascendEntity:give("position", Vector.split(player.position.vec + Vector(64, 0)))
+    -- end
 
-    Concord.entity(self.world)
-    :give("position", 100, 450)
-    --:give("lightSource", 200, 0.6, 1.0, 0.6, 1.0)
+    --Concord.entity(self.world)
+    --:give("position", 100, 450)
+    ----:give("lightSource", 200, 0.6, 1.0, 0.6, 1.0)
 
-    Concord.entity(self.world)
-    :give("position", 600, 700)
-    --:give("lightSource", 200, 1.0, 1.0, 0.6, 1.0)
+    --Concord.entity(self.world)
+    --:give("position", 600, 700)
+    ----:give("lightSource", 200, 1.0, 1.0, 0.6, 1.0)
 
-    randomEmptyX, randomEmptyY = randomEmptySpot(self.mapManager:getCollisionMap())
-    local spawnerEntity = Concord.entity(self.world):assemble(ECS.a.getBySelector('dungeon_features.spawner'))
-    spawnerEntity:give("position", randomEmptyX*map.tileSize, randomEmptyY*map.tileSize)
+    --randomEmptyX, randomEmptyY = randomEmptySpot(self.mapManager:getCollisionMap())
+    --local spawnerEntity = Concord.entity(self.world):assemble(ECS.a.getBySelector('dungeon_features.spawner'))
+    --spawnerEntity:give("position", randomEmptyX*map.tileSize, randomEmptyY*map.tileSize)
   end
 end
 
