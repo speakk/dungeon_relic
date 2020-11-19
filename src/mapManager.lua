@@ -121,8 +121,8 @@ local function drawTile(x, y, tileValue, tileSize, _, _, offsetX, offsetY)
   local tileSet = tileValueToTileset[tileValue]
 
   local w,h = tileSet:getDimensions()
-  local quadX = love.math.random(0, w/tileSize)
-  local quadY = love.math.random(0, h/tileSize)
+  local quadX = love.math.random(0, (w/tileSize)-1)
+  local quadY = love.math.random(0, (h/tileSize)-1)
 
 
   -- TODO: Pre-create these quads, this is super wasteful

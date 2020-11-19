@@ -95,7 +95,7 @@ function game:enter(_, level)
       ent:give("sprite", "lamps.lamp1")
       ent:give("position", randomEmptyX*map.tileSize, randomEmptyY*map.tileSize)
       --ent:give("lightSource", 400, 1, love.math.random(0.5, 1), love.math.random(0.5, 1), love.math.random(0.5, 1))
-      ent:give("lightSource", 100, 1, 0.6, 0.8)
+      --ent:give("lightSource", 100, 1, 0.6, 0.8)
     end
 
     -- if self.currentLevelNumber > 1 then

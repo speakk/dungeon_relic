@@ -30,6 +30,9 @@ local MEDIAPATH = PATH:gsub("%.", "/")
 
 local defaultGradientImage = love.graphics.newImage(MEDIAPATH .. '/media/default_light.png')
 
+-- This is a local array that will be used in calculateVisibilityPolygon
+local _angles = {}
+
 -- PRIVATE FUNCTIONS START
 
 local function angleSortFunc(a, b)
@@ -54,27 +57,61 @@ local function getLineIntersectionPoint(Ax1, Ay1, Ax2, Ay2, Bx1, By1, Bx2, By2)
   return intersectX, intersectY
 end
 
--- Warning: Mutates "polygons" (for optimization), adding the required
--- "surround polygon" at the end of it
+-- Get bounding box of all polygons passed in. This is used by the algorithm
+-- to have a non-intersecting polygon that surrounds all geometry, which is
+-- used to ensure light rays always have something to intersect
+local function getMinMaxFromPolygons(originX, originY, radius, polygons)
+  local halfRadius = radius / 2
+  local minX, minY, maxX, maxY = math.huge, math.huge, -math.huge, -math.huge
+
+  for _, polygon in ipairs(polygons) do
+    for i=1,#polygon,2 do
+      local x = polygon[i]
+      local y = polygon[i+1]
+      if x > maxX then maxX = x end
+      if y > maxY then maxY = y end
+      if x < minX then minX = x end
+      if y < minY then minY = y end
+    end
+  end
+
+  minX = math.min(originX - halfRadius, minX)
+  minY = math.min(originY - halfRadius, minY)
+  maxX = math.max(originX + halfRadius, maxX)
+  maxY = math.max(originY + halfRadius, maxY)
+
+  return minX, minY, maxX, maxY
+end
+
 local function calculateVisibilityPolygon(originX, originY, radius, polygons)
   local visibilityPolygon = {}
 
+  local minX, minY, maxX, maxY = getMinMaxFromPolygons(originX, originY, radius, polygons)
+
+  -- Required for the lines to always have something to intersect
+  local surroundPolygon = {
+    minX, minY,
+    maxX, minY,
+    maxX, maxY,
+    minX, maxY,
+    minX, minY
+  }
+
   local allPolygons = {}
+
   for _, polygon in ipairs(polygons) do
     table.insert(allPolygons, polygon)
   end
 
-  -- Required for the lines to always have something to intersect
-  local halfRadius = radius / 2
-  local surroundPolygon = {
-    originX - halfRadius, originY - halfRadius,
-    originX + halfRadius, originY - halfRadius,
-    originX + halfRadius, originY + halfRadius,
-    originX - halfRadius, originY + halfRadius,
-    originX - halfRadius, originY - halfRadius
-  }
-
   table.insert(allPolygons, surroundPolygon)
+
+  local len1 = vector.len(vector.sub(minX, minY, originX, originY))
+  local len2 = vector.len(vector.sub(maxX, maxY, originX, originY))
+
+  -- Change actual raycasting radius here to ensure it reaches the bounding polygon limits
+  -- TODO: The 100 is a magic number to ensure to ray is long enough. Figure out a good way
+  -- to calculate this without it.
+  radius = math.max(len1, len2) + 100
 
   for _, polygon in ipairs(allPolygons) do
     -- Go through all points (x,y)
@@ -82,17 +119,16 @@ local function calculateVisibilityPolygon(originX, originY, radius, polygons)
       local x = polygon[i]
       local y = polygon[i+1]
       local a1, a2 = vector.sub(x, y, originX, originY)
+
       local angleA = math.atan2(a2, a1)
-      local angleB = angleA + 0.0001
-      local angleC = angleA - 0.0001
+
+      _angles[1] = angleA
+      _angles[2] = angleA + 0.0001
+      _angles[3] = angleA - 0.0001
 
       -- Go through all 3 angles as rays cast from originX, originY
       for j=1,3 do
-        local angle
-        if j == 1 then angle = angleA end
-        if j == 2 then angle = angleB end
-        if j == 3 then angle = angleC end
-
+        local angle = _angles[j]
 
         -- The ray we cast is originX, originY, rayX2, rayY2
         -- rayX2, rayY2 are origin + angle*radius
