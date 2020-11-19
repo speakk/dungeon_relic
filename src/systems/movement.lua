@@ -38,7 +38,6 @@ end
 
 function MovementSystem:update(dt)
   for _, entity in ipairs(self.pool) do
-    local oldPosition = entity.position.vec.copy
     -- Right now just copy directionIntent -> acceleration. here. TODO: Move directionIntent -> acceleration relationship into its own system
     local acceleration = entity.directionIntent.vec.copy
     entity.velocity.vec = entity.velocity.vec + acceleration
@@ -52,10 +51,6 @@ function MovementSystem:update(dt)
     if position.y < self.mapBounds.min.y then position.y = self.mapBounds.min.y velocity.y = 0 end
     if position.x > self.mapBounds.max.x - sizeVec.x then position.x = self.mapBounds.max.x - sizeVec.x velocity.x = 0 end
     if position.y > self.mapBounds.max.y - sizeVec.y then position.y = self.mapBounds.max.y - sizeVec.y velocity.y = 0 end
-
-    if oldPosition ~= entity.position.vec then
-      self:getWorld():emit("entityMoved", entity, oldPosition)
-    end
   end
 end
 

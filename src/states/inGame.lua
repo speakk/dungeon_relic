@@ -29,6 +29,7 @@ function game:enter(_, level)
     ECS.s.movement,
     ECS.s.physicsBody,
     ECS.s.levelChange,
+    ECS.s.checkEntityMoved,
     -- Dungeon features ->
     ECS.s.portal,
     ECS.s.spawner,
@@ -125,6 +126,7 @@ end
 function game:update(dt)
   Timer.update(dt)
   self.world:emit("clearDirectionIntent", dt)
+  self.world:emit("preUpdate", dt)
   self.world:emit("update", dt)
 end
 
