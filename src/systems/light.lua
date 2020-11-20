@@ -89,9 +89,9 @@ function LightSystem:windowResize(width, height)
 end
 
 function LightSystem:drawDebugWithCamera()
-  for _, light in ipairs(self.lighter.lights) do
-    self.lighter:drawVisibilityPolygon(light)
-  end
+  --for _, light in ipairs(self.lighter.lights) do
+  --  self.lighter:drawVisibilityPolygon(light)
+  --end
 end
 
 function LightSystem:preDrawLights()

@@ -95,6 +95,7 @@ local function createMediaEntities(self, fileEntries)
 
       local mediaEntity = {
         atlas = currentCanvas,
+        origin = { x = 0.5, y = 1 },
         quads = {}
       }
       self:setMediaEntity(fileEntry.selector, mediaEntity)

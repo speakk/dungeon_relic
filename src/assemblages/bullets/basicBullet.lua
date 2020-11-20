@@ -7,7 +7,13 @@ return function(entity, x, y)
   entity:give("selfDestroy", 500)
   entity:give("directionIntent")
   entity:give("lightSource", 300, 0.8, 0.8, 1.0, 1.0)
-  entity:give("physicsBody", 3, 3, { "bullet" }, { "bullet" })
+  entity:give("physicsBody", {
+    centered = true,
+    width = 3,
+    height = 3,
+    tags = { "bullet" },
+    targetIgnoreTags = { "bullet" }
+  })
   entity:give("sprite", "bullets.basicBullet")
 end
 

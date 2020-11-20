@@ -1,11 +1,12 @@
 return Concord.component("physicsBody",
-  function(self, width, height, tags, targetIgnoreTags, static, collisionEvent, targetTags)
-    self.width = width
-    self.height = height
-    self.tags = tags or {}
-    self.targetIgnoreTags = targetIgnoreTags or {}
-    self.static = static
-    self.collisionEvent = collisionEvent
-    self.targetTags = targetTags
+  function(self, conf)
+    self.width = conf.width
+    self.height = conf.height
+    self.tags = conf.tags or {}
+    self.targetIgnoreTags = conf.targetIgnoreTags or {}
+    self.static = conf.static
+    self.collisionEvent = conf.collisionEvent
+    self.targetTags = conf.targetTags
+    self.centered = conf.centered
   end)
 

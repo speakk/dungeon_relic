@@ -7,5 +7,5 @@ return function(entity, x, y)
   entity:give("lightSource", 400, 1, 0.8, 0.8, 1.0)
   entity:give("cameraTarget")
   entity:give("mana", 100)
-  entity:give("physicsBody", 13, 13, { "player" })
+  entity:give("physicsBody", { width = 13, height = 13, centered = true, tags = { "player" } })
 end

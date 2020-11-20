@@ -101,7 +101,12 @@ function GridCollisionSystem:updateCollisionTileMap()
       entity:give("position", rect.startX * tileSize, rect.startY * tileSize)
       local width = (rect.endX + 1 - rect.startX) * tileSize
       local height = (rect.endY + 1 - rect.startY) * tileSize
-      entity:give("physicsBody", width, height, { "wall" }, nil, true)
+      entity:give("physicsBody", {
+        width = width,
+        height = height,
+        tags = { "wall" },
+        static = true
+      })
       entity:give("lightBlocker", width, height)
       entity:give("lightBlockerActive")
       table.insert(self.tileRectangleEntities, entity)

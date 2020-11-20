@@ -2,9 +2,15 @@ local Gamestate = require 'libs.hump.gamestate'
 
 local PhysicsBodySystem = Concord.system({ pool = {"physicsBody", "position", "physicsBodyActive"}, potential = {"physicsBody", "position"} })
 
+local function getCenteredLocation(entity)
+  local w,h = entity.physicsBody.width, entity.physicsBody.height
+  return entity.position.vec.x - w/2, entity.position.vec.y - h/2
+end
+
 function PhysicsBodySystem:init()
   self.pool.onEntityAdded = function(_, entity)
-    Gamestate.current().bumpWorld:add(entity, entity.position.vec.x, entity.position.vec.y, entity.physicsBody.width, entity.physicsBody.height)
+    local x, y = entity.physicsBody.centered and getCenteredLocation(entity) or entity.position.vec.x, entity.position.vec.y
+    Gamestate.current().bumpWorld:add(entity, x, y, entity.physicsBody.width, entity.physicsBody.height)
   end
 
   self.pool.onEntityRemoved = function(_, entity)
@@ -88,7 +94,8 @@ function PhysicsBodySystem:update(dt)
   local bumpWorld = Gamestate.current().bumpWorld
   for _, entity in ipairs(self.pool) do
     if entity.position and not entity.physicsBody.static then
-      local actualX, actualY, collisions, _ = bumpWorld:move(entity, entity.position.vec.x, entity.position.vec.y,
+      local targetX, targetY = getCenteredLocation(entity)
+      local actualX, actualY, collisions, _ = bumpWorld:move(entity, targetX, targetY,
       function(item, other)
         local containsIgnore = containsAnyInTable(other.physicsBody.tags, item.physicsBody.targetIgnoreTags)
         or containsAnyInTable(item.physicsBody.tags, other.physicsBody.targetIgnoreTags)
@@ -109,8 +116,10 @@ function PhysicsBodySystem:update(dt)
       end)
 
       if not entity.physicsBody.static then
-        entity.position.vec.x = actualX
-        entity.position.vec.y = actualY
+        local w,h = entity.physicsBody.width, entity.physicsBody.height
+        --entity.position.vec.x - w/2, entity.position.vec.y - h/2
+        entity.position.vec.x = actualX + w/2
+        entity.position.vec.y = actualY + h/2
       end
 
       for _, collision in ipairs(collisions) do
