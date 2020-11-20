@@ -71,6 +71,7 @@ local function createMediaEntities(self, fileEntries)
   while currentFileEntryIndex <= #fileEntries do
 
     local fileEntry = fileEntries[currentFileEntryIndex]
+    local metaData = fileEntry.metaData
 
     if not currentCanvas then
       currentCanvas = love.graphics.newCanvas(atlasWidth, atlasHeight)
@@ -82,8 +83,8 @@ local function createMediaEntities(self, fileEntries)
       lastRowHeight = 0
     end
 
-    local framesX = fileEntry.metaData and fileEntry.metaData.framesX or 1
-    local framesY = fileEntry.metaData and fileEntry.metaData.framesY or 1
+    local framesX = metaData and metaData.framesX or 1
+    local framesY = metaData and metaData.framesY or 1
 
     local sprite = love.graphics.newImage(fileEntry.fileName)
     local spriteWidth, spriteHeight = sprite:getDimensions()
@@ -95,9 +96,14 @@ local function createMediaEntities(self, fileEntries)
 
       local mediaEntity = {
         atlas = currentCanvas,
-        origin = { x = 0.5, y = 1 },
+        origin = { x = 0.5, y = 0.5 },
         quads = {}
       }
+
+      if metaData and metaData.origin then
+        mediaEntity.origin = metaData.origin
+      end
+
       self:setMediaEntity(fileEntry.selector, mediaEntity)
 
       for x=1, framesX do

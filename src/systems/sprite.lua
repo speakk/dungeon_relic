@@ -6,15 +6,18 @@ local function compareY(a, b)
   if a.sprite.zIndex ~= b.sprite.zIndex then
     return a.sprite.zIndex < b.sprite.zIndex
   end
-  local spriteA = mediaManager:getMediaEntity(a.sprite.spriteId)
-  local spriteB = mediaManager:getMediaEntity(b.sprite.spriteId)
+  local mediaEntityA = mediaManager:getMediaEntity(a.sprite.spriteId)
+  local mediaEntityB = mediaManager:getMediaEntity(b.sprite.spriteId)
 
-  --local posA = a.position.vec.y + spriteA.origin.y
-  --local posB = b.position.vec.y + spriteB.origin.y
+  local _, h1 = mediaEntityA.quads[a.sprite.currentQuadIndex or 1]:getTextureDimensions()
+  local _, h2 = mediaEntityB.quads[b.sprite.currentQuadIndex or 1]:getTextureDimensions()
+  --local posA = a.position.vec.y - mediaEntityA.origin.y * h1 / 2 + h1
+  --local posB = b.position.vec.y - mediaEntityB.origin.y * h2 / 2 + h2
+  local posA = a.position.vec.y + h1
+  local posB = b.position.vec.y + h2
+  return posA < posB
 
-  --return posA < posB
-
-  return a.position.vec.y < b.position.vec.y
+  --return a.position.vec.y < b.position.vec.y
 end
 
 function SpriteSystem:setCamera(camera)
