@@ -36,6 +36,7 @@ function game:enter(_, level)
     -- Dungeon features END
     ECS.s.spatialHash,
     ECS.s.gridCollision,
+    ECS.s.animation,
     ECS.s.light,
     ECS.s.health,
     ECS.s.death,
@@ -96,7 +97,11 @@ function game:enter(_, level)
       ent:give("sprite", "lamps.lamp1")
       ent:give("position", randomEmptyX*map.tileSize, randomEmptyY*map.tileSize)
       --ent:give("lightSource", 400, 1, love.math.random(0.5, 1), love.math.random(0.5, 1), love.math.random(0.5, 1))
-      --ent:give("lightSource", 100, 1, 0.6, 0.8)
+      if love.math.random() > 0.5 then
+        ent:give("lightSource", 400, 1, 0.6, 0.8)
+      else
+        ent:give("lightSource", 400, 0.7, 1, 0.8)
+      end
     end
 
     -- if self.currentLevelNumber > 1 then

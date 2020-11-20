@@ -7,4 +7,30 @@ return function(entity, x, y)
   entity:give("cameraTarget")
   entity:give("mana", 100)
   entity:give("physicsBody", { width = 12, height = 8, centered = true, tags = { "player" } })
+
+  entity:give("animation", {
+    currentAnimations = { "run" },
+    animations = {
+      idle = {
+        properties = {
+          {
+            componentName = "sprite",
+            propertyName = "currentQuadIndex",
+            values = { 1 },
+          }
+        }
+      },
+      run = {
+        properties = {
+          {
+            componentName = "sprite",
+            propertyName = "currentQuadIndex",
+            durations = { 0.5, 0.5 },
+            values = { 2, 3 },
+          }
+        }
+      }
+    }
+  })
 end
+
