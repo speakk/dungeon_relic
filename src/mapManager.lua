@@ -132,22 +132,26 @@ local function drawTile(x, y, tileValue, tileSize, _, _, offsetX, offsetY)
   love.graphics.draw(tileSet, quad, finalX, finalY)
 end
 
+local function getTileCenter(x, y, tileSize)
+  return x*tileSize - tileSize/2, y*tileSize - tileSize/2
+end
+
 local tileValueToEntity = {
   void = function(x, y, _, _, world)
     return Concord.entity(world):give("gridCollisionItem", x, y)
   end,
   exit = function(x, y, _, tileSize, world)
     local portal = Concord.entity(world):assemble(ECS.a.getBySelector("dungeon_features.portal_down"))
-    portal:give("position", x*tileSize, y*tileSize)
+    portal:give("position", getTileCenter(x, y, tileSize))
   end,
   entrance = function(x, y, _, tileSize, world)
     local portal = Concord.entity(world):assemble(ECS.a.getBySelector("dungeon_features.portal_up"))
-    portal:give("position", x*tileSize, y*tileSize)
+    portal:give("position", getTileCenter(x, y, tileSize))
 
   end,
   player = function(x, y, _, tileSize, world)
     local player = Concord.entity(world):assemble(ECS.a.getBySelector('characters.player'))
-    player:give("position", x*tileSize, y*tileSize)
+    player:give("position", getTileCenter(x, y, tileSize))
   end,
   wall = function(x, y, _, _, world)
     return Concord.entity(world):give("gridCollisionItem", x, y)

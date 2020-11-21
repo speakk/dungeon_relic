@@ -1,7 +1,7 @@
 return function(entity, x, y)
   entity:assemble(ECS.a.characters.character, 700, 700)
   entity:give("playerControlled")
-  entity:give("speed", 30)
+  entity:give("speed", 35)
   entity:give("sprite", 'characters.player3')
   entity:give("lightSource", 400, 1, 0.8, 0.8, 1.0)
   entity:give("cameraTarget")

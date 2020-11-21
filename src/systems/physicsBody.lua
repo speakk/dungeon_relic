@@ -2,9 +2,19 @@ local Gamestate = require 'libs.hump.gamestate'
 
 local PhysicsBodySystem = Concord.system({ pool = {"physicsBody", "position", "physicsBodyActive"}, potential = {"physicsBody", "position"} })
 
-local function getCenteredLocation(entity)
+local function getOriginOffset(entity)
   local w,h = entity.physicsBody.width, entity.physicsBody.height
-  return entity.position.vec.x - w/2, entity.position.vec.y - h/2
+  if entity.sprite then
+    local mediaEntity = mediaManager:getMediaEntity(entity.sprite.spriteId)
+    return mediaEntity.origin.x * w, mediaEntity.origin.y * h
+  end
+  return w/2, h/2
+end
+
+local function getCenteredLocation(entity)
+  local pos = entity.position.vec
+  local offX, offY = getOriginOffset(entity)
+  return pos.x - offX, pos.y - offY
 end
 
 function PhysicsBodySystem:init()
@@ -55,7 +65,7 @@ function PhysicsBodySystem:drawDebugWithCamera() --luacheck: ignore
   end
 
   local bumpWorld = Gamestate.current().bumpWorld
-  local items, len = bumpWorld:getItems()
+  local items, _ = bumpWorld:getItems()
   love.graphics.setColor(0,1,0)
   for _, item in ipairs(items) do
     local x,y,w,h = bumpWorld:getRect(item)
@@ -116,10 +126,10 @@ function PhysicsBodySystem:update(dt)
       end)
 
       if not entity.physicsBody.static then
-        local w,h = entity.physicsBody.width, entity.physicsBody.height
+        local offsetX, offsetY = getOriginOffset(entity)
         --entity.position.vec.x - w/2, entity.position.vec.y - h/2
-        entity.position.vec.x = actualX + w/2
-        entity.position.vec.y = actualY + h/2
+        entity.position.vec.x = actualX + offsetX
+        entity.position.vec.y = actualY + offsetY
       end
 
       for _, collision in ipairs(collisions) do
