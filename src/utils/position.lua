@@ -17,10 +17,21 @@ return {
       local w = quadW * body.width
       local h = quadH * body.height
       local originX, originY = mediaEntity.origin.x, mediaEntity.origin.y
-      print("origin: ", originX, originY)
-      print(w, h, quadW, quadH, body.offsetX, body.offsetY, body.width, body.height)
-      local x = (quadW * body.offsetX - quadW) * originX
-      local y = (quadH * body.offsetY - quadH) * originY
+
+      print("originX, originY, quadW, quadH", originX, originY, quadW, quadH)
+      local originXpx = -originX * quadW
+      local centerX = originXpx + body.offsetX * quadW
+      local x = centerX - w/2
+      local originYpx = -originY * quadW
+      local centerY = originYpx + body.offsetY * quadW
+      local y = centerY - w/2
+
+
+
+      --local x = -(w * body.offsetX - w) * body.offsetX
+      --x = x - originX * quadW
+      --local y = -(h * body.offsetY - h) * body.offsetY
+      --y = y - originY * quadH
       return x, y, w, h
     end
 

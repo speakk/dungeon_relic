@@ -27,8 +27,6 @@ end
 local function draw(self)
   if not self.camera then return end
 
-  --self.tilesetBatch:clear()
-
   local l, t, w, h = self.camera:getVisible()
 
   local screenSpatialGroup = {}
@@ -48,24 +46,16 @@ local function draw(self)
     local currentQuadIndex = entity.sprite.currentQuadIndex or 1
     local currentQuad = mediaEntity.quads[currentQuadIndex]
       _, _, w, h = currentQuad:getViewport()
-    --local _, _, quadWidth, quadHeight = mediaEntity.quad:getViewport()
-    --local origin = Vector(mediaEntity.origin.x - quadWidth / 2, mediaEntity.origin.y - quadHeight)
-    --local origin = Vector(0, orh/2)
-    --local origin = mediaEntity.origin or { x = 0, y = h*0.6 }
     local origin = { x = 0, y = 0 }
     if mediaEntity.origin then
       origin.x = w * mediaEntity.origin.x
       origin.y = h * mediaEntity.origin.y
     end
 
-    --local finalPosition = position - origin
-
+    love.graphics.setColor(1,1,1)
     love.graphics.draw(mediaEntity.atlas, currentQuad, position.x, position.y, 0, entity.sprite.scale, entity.sprite.scale, origin.x, origin.y)
+    love.graphics.circle('fill', position.x, position.y, 2)
   end
-end
-
-function SpriteSystem:init()
-  --self.tilesetBatch = love.graphics.newSpriteBatch(mediaManager:getAtlas(), 500)
 end
 
 function SpriteSystem:systemsLoaded()

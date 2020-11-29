@@ -6,7 +6,7 @@ return function(entity)
   entity:give("lightSource", 400, 1, 0.8, 0.8, 1.0)
   entity:give("cameraTarget")
   entity:give("mana", 100)
-  entity:give("physicsBody", { width = 0.7, height = 0.2, offsetX=0.5, offsetY=0.8, tags = { "player" } })
+  entity:give("physicsBody", { width = 0.6, height = 0.2, offsetX=0.5, offsetY=0.9, tags = { "player" } })
 
   entity:give("animation", {
     currentAnimations = { "run" },

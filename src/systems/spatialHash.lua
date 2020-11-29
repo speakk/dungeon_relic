@@ -4,9 +4,7 @@ local positionUtil = require 'utils.position'
 local SpatialHashSystem = Concord.system({ pool = { "position" } })
 
 function SpatialHashSystem:init()
-  --print("init called in SpatialHashSystem")
   self.pool.onEntityAdded = function(_, entity)
-    --print("onEntityAdded called in SpatialHashSystem", entity)
     local w, h
     if entity.sprite then
       local sprite = entity.sprite
