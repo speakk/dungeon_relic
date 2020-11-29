@@ -7,8 +7,8 @@ return function(entity, x, y)
   entity:give("sprite", 'characters.monster_B')
 
   entity:give("physicsBody", {
-    width = 16,
-    height = 16,
+    width = 1,
+    height = 1,
     centered = true,
     tags = { "monster" },
     collisionEvent = { name = "monsterCollision", targetTags = { "player" } }

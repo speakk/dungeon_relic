@@ -1,19 +1,19 @@
 local Gamestate = require 'libs.hump.gamestate'
+local positionUtil = require 'utils.position'
 
 local SpatialHashSystem = Concord.system({ pool = { "position" } })
 
 function SpatialHashSystem:init()
+  --print("init called in SpatialHashSystem")
   self.pool.onEntityAdded = function(_, entity)
-    -- TODO: Re-think "size" component and physicsBody size and how it relates to the spatial hash.
-    -- Perhaps just picking the largest bounds would be good. Also, a "size" component doesn't really make
-    -- sense, should probably have various kinds of size components for different purposes
-
+    --print("onEntityAdded called in SpatialHashSystem", entity)
     local w, h
     if entity.sprite then
       local sprite = entity.sprite
       w,h = mediaManager:getMediaEntity(sprite.spriteId).quads[sprite.currentQuadIndex or 1]:getTextureDimensions()
     elseif entity.physicsBody then
-      w, h = entity.physicsBody.width, entity.physicsBody.height
+      local _, _, physicsWidth, physicsHeight = positionUtil.getPhysicsBodyTransform(entity)
+      w, h = physicsWidth, physicsHeight
     else
       local tileSize = Gamestate.current().mapManager.map.tileSize
       w, h = tileSize, tileSize
@@ -42,5 +42,3 @@ function SpatialHashSystem:entityMoved(entity) -- luacheck: ignore
 end
 
 return SpatialHashSystem
-
-

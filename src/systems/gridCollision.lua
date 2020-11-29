@@ -102,8 +102,8 @@ function GridCollisionSystem:updateCollisionTileMap()
       local width = (rect.endX + 1 - rect.startX) * tileSize
       local height = (rect.endY + 1 - rect.startY) * tileSize
       entity:give("physicsBody", {
-        width = width,
-        height = height,
+        pixelWidth = width,
+        pixelHeight = height,
         tags = { "wall" },
         static = true
       })

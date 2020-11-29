@@ -149,6 +149,10 @@ local tileValueToEntity = {
     portal:give("position", getTileCenter(x, y, tileSize))
 
   end,
+  spawner = function(x, y, _, tileSize, world)
+    local entity = Concord.entity(world):assemble(ECS.a.getBySelector("dungeon_features.spawner"))
+    entity:give("position", getTileCenter(x, y, tileSize))
+  end,
   player = function(x, y, _, tileSize, world)
     local player = Concord.entity(world):assemble(ECS.a.getBySelector('characters.player'))
     player:give("position", getTileCenter(x, y, tileSize))
@@ -169,6 +173,7 @@ local handleTile = {
   void = {drawTile, createEntity},
   exit = {createEntity},
   entrance = {createEntity},
+  spawner = {createEntity},
   player = {createEntity}
 }
 
@@ -409,8 +414,15 @@ local function generateSimpleMap(seed, descending, width, height)
     return x, y, randomRoom
   end
 
-  -- Create exit
   local featuresLayer = createLayer(width, height)
+
+  for _=1,5 do
+    local spawnerX, spawnerY = getPositionInRandomRoom(rotMap._rooms)
+    featuresLayer.tiles[spawnerY][spawnerX] = "spawner"
+  end
+
+  -- ENTRANCE / EXIT START
+  -- Create exit
   local exitX, exitY, exitRoom = getPositionInRandomRoom(rotMap._rooms)
   featuresLayer.tiles[exitY][exitX] = "exit"
 
@@ -427,6 +439,8 @@ local function generateSimpleMap(seed, descending, width, height)
   else
     featuresLayer.tiles[exitY+2][exitX] = "player"
   end
+  -- ENTRANCE / EXIT END
+
   table.insert(map.layers, featuresLayer)
 
   -- Fill the whole thing up with floor

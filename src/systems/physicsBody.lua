@@ -1,8 +1,13 @@
 local Gamestate = require 'libs.hump.gamestate'
+local positionUtil = require 'utils.position'
 
 local PhysicsBodySystem = Concord.system({ pool = {"physicsBody", "position", "physicsBodyActive"}, potential = {"physicsBody", "position"} })
 
 local function getOriginOffset(entity)
+  if entity.physicsBody.cornerOrigin then
+    return 0, 0
+  end
+
   local w,h = entity.physicsBody.width, entity.physicsBody.height
   if entity.sprite then
     local mediaEntity = mediaManager:getMediaEntity(entity.sprite.spriteId)
@@ -19,8 +24,11 @@ end
 
 function PhysicsBodySystem:init()
   self.pool.onEntityAdded = function(_, entity)
-    local x, y = entity.physicsBody.centered and getCenteredLocation(entity) or entity.position.vec.x, entity.position.vec.y
-    Gamestate.current().bumpWorld:add(entity, x, y, entity.physicsBody.width, entity.physicsBody.height)
+    --local x, y = entity.physicsBody.centered and getCenteredLocation(entity) or entity.position.vec.x, entity.position.vec.y
+    local transformX, transformY, w, h = positionUtil.getPhysicsBodyTransform(entity)
+    local targetX, targetY = Vector.split(entity.position.vec - Vector(transformX, transformY))
+
+    Gamestate.current().bumpWorld:add(entity, targetX, targetY, w, h)
   end
 
   self.pool.onEntityRemoved = function(_, entity)
@@ -57,10 +65,11 @@ end
 function PhysicsBodySystem:drawDebugWithCamera() --luacheck: ignore
   for _, entity in ipairs(self.pool) do
     love.graphics.setColor(1,1,0)
+    local offsetX, offsetY, w, h = positionUtil.getPhysicsBodyTransform(entity)
     local pos = entity.position.vec
-    local w = entity.physicsBody.width
-    local h = entity.physicsBody.height
-    love.graphics.rectangle("line", pos.x, pos.y, w, h)
+    -- local w = entity.physicsBody.width
+    -- local h = entity.physicsBody.height
+    love.graphics.rectangle("line", pos.x - offsetX, pos.y - offsetY, w, h)
     love.graphics.setColor(1,1,1)
   end
 
@@ -100,44 +109,61 @@ end
 
 function PhysicsBodySystem:update(dt)
   self:markOutOfScreenInactive()
+end
 
+function PhysicsBodySystem:entityMoved(entity)
+  if not entity.physicsBody then return end
   local bumpWorld = Gamestate.current().bumpWorld
-  for _, entity in ipairs(self.pool) do
-    if entity.position and not entity.physicsBody.static then
-      local targetX, targetY = getCenteredLocation(entity)
-      local actualX, actualY, collisions, _ = bumpWorld:move(entity, targetX, targetY,
-      function(item, other)
-        local containsIgnore = containsAnyInTable(other.physicsBody.tags, item.physicsBody.targetIgnoreTags)
-        or containsAnyInTable(item.physicsBody.tags, other.physicsBody.targetIgnoreTags)
-        if containsIgnore then
-          return false
-        end
-
-        local hasRequired = true
-        if item.physicsBody.targetTags then
-          hasRequired = containsAnyInTable(item.physicsBody.targetTags, other.physicsBody.tags)
-        end
-
-        if hasRequired then
-          return "slide"
-        else
-          return false
-        end
-      end)
-
-      if not entity.physicsBody.static then
-        local offsetX, offsetY = getOriginOffset(entity)
-        --entity.position.vec.x - w/2, entity.position.vec.y - h/2
-        entity.position.vec.x = actualX + offsetX
-        entity.position.vec.y = actualY + offsetY
+  if not bumpWorld:hasItem(entity) then return end
+  if entity.position and not entity.physicsBody.static then
+    --local targetX, targetY = getCenteredLocation(entity)
+    local transformX, transformY = positionUtil.getPhysicsBodyTransform(entity)
+    local targetX, targetY = Vector.split(entity.position.vec + Vector(transformX, transformY))
+    local physicsX, physicsY, collisions, _ = bumpWorld:move(entity, targetX, targetY,
+    function(item, other)
+      local containsIgnore = containsAnyInTable(other.physicsBody.tags, item.physicsBody.targetIgnoreTags)
+      or containsAnyInTable(item.physicsBody.tags, other.physicsBody.targetIgnoreTags)
+      if containsIgnore then
+        return false
       end
 
-      for _, collision in ipairs(collisions) do
-        handleCollisionEvent(self:getWorld(), collision.item, collision.other)
-        handleCollisionEvent(self:getWorld(), collision.other, collision.item)
+      local hasRequired = true
+      if item.physicsBody.targetTags then
+        hasRequired = containsAnyInTable(item.physicsBody.targetTags, other.physicsBody.tags)
       end
+
+      if hasRequired then
+        return "slide"
+      else
+        return false
+      end
+    end)
+
+    if not entity.physicsBody.static then
+      self:getWorld():emit("entityMovedByPhysics", entity, physicsX, physicsY)
+      --local offsetX, offsetY = getOriginOffset(entity)
+      --entity.position.vec.x - w/2, entity.position.vec.y - h/2
+      --entity.position.vec.x = actualX + offsetX
+      --entity.position.vec.y = actualY + offsetY
+    end
+
+    for _, collision in ipairs(collisions) do
+      handleCollisionEvent(self:getWorld(), collision.item, collision.other)
+      handleCollisionEvent(self:getWorld(), collision.other, collision.item)
     end
   end
+end
+
+--self:getWorld():emit("entityMovedByPhysics", entity, physicsX, physicsY)
+function PhysicsBodySystem:entityMovedByPhysics(entity, physicsX, physicsY)
+  --local actualX, actualY = -physicsToActual
+  --local offsetX, offsetY = getOriginOffset(entity)
+  --entity.position.vec.x - w/2, entity.position.vec.y - h/2
+  --entity.position.vec.x = actualX + offsetX
+  local transformX, transformY = positionUtil.getPhysicsBodyTransform(entity)
+  print("transformX, transformY", transformX, transformY)
+  local targetX, targetY = Vector.split(Vector(physicsX, physicsY) - Vector(transformX, transformY))
+  entity.position.vec = Vector(targetX, targetY)
 end
 
 return PhysicsBodySystem

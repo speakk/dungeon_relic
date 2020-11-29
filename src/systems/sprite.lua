@@ -52,7 +52,7 @@ local function draw(self)
     --local origin = Vector(mediaEntity.origin.x - quadWidth / 2, mediaEntity.origin.y - quadHeight)
     --local origin = Vector(0, orh/2)
     --local origin = mediaEntity.origin or { x = 0, y = h*0.6 }
-    local origin = { x = w/2, y = h/2 }
+    local origin = { x = 0, y = 0 }
     if mediaEntity.origin then
       origin.x = w * mediaEntity.origin.x
       origin.y = h * mediaEntity.origin.y

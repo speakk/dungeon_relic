@@ -19,6 +19,7 @@ function game:enter(_, level)
   love.math.setRandomSeed(self.currentLevelNumber + self.originalSeed)
 
   self.world = Concord.world()
+  print("Adding systems")
   self.world:addSystems(
     ECS.s.input,
     ECS.s.debug,
@@ -29,13 +30,13 @@ function game:enter(_, level)
     ECS.s.movement,
     ECS.s.physicsBody,
     ECS.s.levelChange,
-    ECS.s.checkEntityMoved,
     -- Dungeon features ->
     ECS.s.portal,
     ECS.s.spawner,
     -- Dungeon features END
     ECS.s.spatialHash,
     ECS.s.gridCollision,
+    ECS.s.checkEntityMoved,
     ECS.s.animation,
     ECS.s.light,
     ECS.s.health,
@@ -47,6 +48,7 @@ function game:enter(_, level)
     ECS.s.draw,
     ECS.s.ui
   )
+  print("Systems added")
 
   local hashCellSize = 256
   self.spatialHash = shash.new(hashCellSize)

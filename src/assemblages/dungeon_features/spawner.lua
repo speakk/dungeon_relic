@@ -3,8 +3,9 @@ return function(entity)
   entity:give("spawner", 5, { "characters.monsterA" }, true)
   entity:give("health", 100)
   entity:give("physicsBody", {
-    width = 32,
-    height = 32,
+    width = 1,
+    height = 1,
+    cornerOrigin = true,
     targetIgnoreTags = { "monster" },
     static = true
   })

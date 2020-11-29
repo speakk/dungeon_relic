@@ -33,15 +33,25 @@ local function applyFriction2d(vector, mu, dt)
   vector.y = applyFriction1d(vector.y, mu, dt)
 end
 
-
 function MovementSystem:update(dt)
+  --print("update called in MovementSystem")
   for _, entity in ipairs(self.pool) do
     -- Right now just copy directionIntent -> acceleration. here. TODO: Move directionIntent -> acceleration relationship into its own system
     local acceleration = entity.directionIntent.vec.copy
     entity.velocity.vec = entity.velocity.vec + acceleration
-    entity.position.vec = entity.position.vec + entity.velocity.vec * dt * entity.speed.value
+    self:moveEntity(entity, Vector.split(entity.position.vec + entity.velocity.vec * dt * entity.speed.value))
     applyFriction2d(entity.velocity.vec, 15, dt)
   end
+end
+
+function MovementSystem:moveEntity(entity, x, y)
+  --print("moveEntity", entity)
+  local newPosition = Vector(x, y)
+  local oldPosition = entity.position.vec.copy
+  entity.position.vec = newPosition
+  --if oldPosition ~= newPosition then
+  --  self:getWorld():emit("entityMoved", entity)
+  --end
 end
 
 return MovementSystem

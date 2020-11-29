@@ -9,8 +9,8 @@ return function(entity, x, y)
   entity:give("lightSource", 300, 0.8, 0.8, 1.0, 1.0)
   entity:give("physicsBody", {
     centered = true,
-    width = 3,
-    height = 3,
+    width = 1,
+    height = 1,
     tags = { "bullet" },
     targetIgnoreTags = { "bullet" }
   })
