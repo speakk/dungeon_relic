@@ -54,7 +54,9 @@ local function draw(self)
 
     love.graphics.setColor(1,1,1)
     love.graphics.draw(mediaEntity.atlas, currentQuad, position.x, position.y, 0, entity.sprite.scale, entity.sprite.scale, origin.x, origin.y)
-    love.graphics.circle('fill', position.x, position.y, 2)
+    if Gamestate.current().debug then
+      love.graphics.circle('fill', position.x, position.y, 2)
+    end
   end
 end
 

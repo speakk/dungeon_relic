@@ -1,4 +1,3 @@
-local Gamestate = require 'libs.hump.gamestate'
 local positionUtil = require 'utils.position'
 
 local ROT=require 'libs.rotLove.src.rot'
@@ -263,31 +262,6 @@ local function clearMediaEntries(entities)
   end
 end
 
-local function initializeMapEntities(map)
-  local entities = {}
-  if not map.entities then return end
-  for _, entityData in ipairs(map.entities) do
-    local entity = Concord.entity()
-    if entityData.assemblageSelector then
-      entity:assemble(ECS.a.getBySelector(entityData.assemblageSelector))
-    elseif entityData.components then
-      for _, component in ipairs(entityData.components) do
-        if component.properties then
-          entity:give(component.name, unpack(component.properties))
-        else
-          entity:give(component.name)
-        end
-      end
-    else
-      error("Map entity had no component data")
-    end
-
-    table.insert(entities, entity)
-  end
-
-  return entities
-end
-
 local function clearEntities(entities)
   if not entities then return end
   for _, entity in ipairs(entities) do
@@ -297,12 +271,6 @@ local function clearEntities(entities)
   entities.length = 0
 end
 
-
-local function initializeEntities(world, entities)
-  for _, entity in ipairs(entities) do
-    world:addEntity(entity)
-  end
-end
 
 local MapManager = Class {
   init = function(self)
