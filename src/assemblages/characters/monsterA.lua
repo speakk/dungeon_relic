@@ -31,8 +31,8 @@ return function(entity, x, y)
           {
             componentName = "sprite",
             propertyName = "currentQuadIndex",
-            durations = { 0.2, 0.3, 0.2 },
-            values = { 1, 2, 3 },
+            durations = { 0.2, 0.2, 0.3, 0.2 },
+            values = { 1, 2, 3, 4 },
           }
         }
       }
