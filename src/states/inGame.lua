@@ -25,6 +25,7 @@ function game:enter(_, level)
     ECS.s.debug,
     ECS.s.playerControlled,
     ECS.s.aiControlled,
+    ECS.s.stateMachine,
     ECS.s.bullet,
     ECS.s.monster,
     ECS.s.movement,

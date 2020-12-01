@@ -3,8 +3,8 @@ local AnimationSystem = Concord.system({ pool = { "animation" }})
 function AnimationSystem:init()
   self.pool.onEntityAdded = function(_, entity)
     local animationC = entity.animation
-    for _, currentAnimationKey in ipairs(animationC.currentAnimations) do
-      local animation = animationC.animations[currentAnimationKey]
+    --for _, currentAnimationKey in ipairs(animationC.currentAnimations) do
+    for _, animation in pairs(animationC.animations) do
       for _, property in ipairs(animation.properties) do
         property.currentValueIndex = 1
         if property.durations then
@@ -21,6 +21,7 @@ function AnimationSystem:update(dt)
     for _, currentAnimationKey in ipairs(animationC.currentAnimations) do
       local animation = animationC.animations[currentAnimationKey]
       for _, property in ipairs(animation.properties) do
+        --print("property", inspect(property))
         if property.durations then
           if property.countDown <= 0 and not property.done then
             property.currentValueIndex = property.currentValueIndex + 1

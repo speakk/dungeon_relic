@@ -8,24 +8,28 @@ end
 function PlayerControlledSystem:moveLeft()
   for _, entity in ipairs(self.pool) do
     entity.directionIntent.vec.x = -1
+    self:getWorld():emit('enactAction', entity, 'run')
   end
 end
 
 function PlayerControlledSystem:moveRight()
   for _, entity in ipairs(self.pool) do
     entity.directionIntent.vec.x = 1
+    self:getWorld():emit('enactAction', entity, 'run')
   end
 end
 
 function PlayerControlledSystem:moveUp()
   for _, entity in ipairs(self.pool) do
     entity.directionIntent.vec.y = -1
+    self:getWorld():emit('enactAction', entity, 'run')
   end
 end
 
 function PlayerControlledSystem:moveDown()
   for _, entity in ipairs(self.pool) do
     entity.directionIntent.vec.y = 1
+    self:getWorld():emit('enactAction', entity, 'run')
   end
 end
 
