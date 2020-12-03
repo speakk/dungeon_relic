@@ -28,10 +28,13 @@ local stateTypes = {
         },
         run = {
           enter = function()
+            if entity.directionIntent.vec.length < 0.1 then
+              return "idle"
+            end
             entity.animation.currentAnimations = { "run" }
           end,
           update = function()
-            if entity.directionIntent.vec.length == 0 then
+            if entity.directionIntent.vec.length < 0.1 then
               return "idle"
             end
           end
@@ -39,11 +42,20 @@ local stateTypes = {
       }
     }
   end
-
 }
 
-function StateMachineSystem:enactAction(entity, targetState, ...)
-  entity.stateMachine.machine:set_state(targetState, ...)
+local eventsToStates = {
+  { stateType = "player", from = { "entityMoved" }, to = "run" }
+}
+
+for _, eventToState in ipairs(eventsToStates) do
+  for _, from in ipairs(eventToState.from) do
+    StateMachineSystem[from] = function(_, entity, ...)
+      if entity.stateMachine and entity.stateMachine.stateType == eventToState.stateType then
+        entity.stateMachine.machine:set_state(eventToState.to, ...)
+      end
+    end
+  end
 end
 
 function StateMachineSystem:init()
