@@ -1,0 +1,86 @@
+7
+
+:project
+bgColor 0 0 0.15
+bgChecker 0
+bgSize 8
+bgPath 0 !
+bgScale 1
+bgRepeat false false
+pixelateWorld false
+pixelateTextures false
+exportBaseDirectory 50 /home/speak/git/thisgame/src/utils/particleSystems!
+exportParticles true
+exportParticlesOverwrite true
+exportParticlesTemplate 16 defaultLuaModule!
+exportParticlesTemplatePath 0 !
+exportParticlesPath 0 !
+exportTextures true
+exportTexturesOverwrite true
+exportTexturesDirectory 0 !
+exportClipboardTemplate 19 defaultLuaClipboard!
+exportClipboardTemplatePath 0 !
+scaleGlobalTimeEnabled true
+scaleGlobalTime 1
+scaleGlobalSpaceEnabled true
+scaleGlobalSpace 1
+scaleGlobalSizeEnabled true
+scaleGlobalSize 1
+zoom 0
+customData 0 !
+movementScaleEnabled true true
+movement 0 1 1 1
+region true 0 0
+emitterPosition 0 0
+
+:system
+blendMode 5 alpha!
+colors 0 1 0.48484848484848 1 0 1 0.22348484848485 1
+customData 22 {name = "blood_spurt"}!
+directionEnabled true
+direction 0
+emissionRate 61.221766093109
+emitterContinuous true
+emitterLifetime 0.041019067457138
+insertMode 3 top!
+kickStartEmitEnabled true
+kickStartEmit 245
+kickStartStepsEnabled true
+kickStartSteps 7
+linearDampingEnabled true
+linearDamping 0 0
+offset 0.5 0.5
+particleLifetime 1 1
+radialAccelerationEnabled true
+radialAcceleration 0 0
+relativeRotation false
+rotationEnabled true
+rotation 0 0
+scaleSizeEnabled true
+scaleSize 1
+scaleSpaceEnabled true
+scaleSpace 1
+scaleTimeEnabled true
+scaleTime 1
+shaderPath 0 !
+sizes 0.13771943061214
+sizeVariationEnabled true
+sizeVariation 0.77570093457944
+speedEnabled true
+speed 0 58.714492289477
+spinEnabled true true
+spin 0 0
+spinVariationEnabled true
+spinVariation 0
+spreadEnabled true
+spread 6.2831853071796
+tangentialAccelerationEnabled true
+tangentialAcceleration 0 0
+texture 6 circle!
+texturePath 0 !
+title 11 blood_spurt!
+emissionAreaAngleEnabled true
+emissionAreaDeltaEnabled true true
+emissionArea 4 none! 100 100 0 false
+linearAccelerationEnabled true true
+linearAcceleration 0 0 0 0
