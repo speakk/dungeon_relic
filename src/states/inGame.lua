@@ -72,9 +72,6 @@ function game:enter(_, level)
 
     local map = self.mapManager.map
 
-    -- Make a couple test entities.
-    --local player = Concord.entity(self.world):assemble(ECS.a.getBySelector('characters.player'))
-
     local function randomEmptySpot(tiles)
       local emptySpots = {}
 
@@ -91,39 +88,11 @@ function game:enter(_, level)
       return spot.x, spot.y
     end
 
-    --local randomEmptyX, randomEmptyY = randomEmptySpot(self.mapManager:getCollisionMap())
-    --player:give("position", randomEmptyX*map.tileSize, randomEmptyY*map.tileSize)
-
-    for i=1,10 do
+    for _=1,10 do
       local randomEmptyX, randomEmptyY = randomEmptySpot(self.mapManager:getCollisionMap())
-      local ent = Concord.entity(self.world)
-      ent:give("sprite", "lamps.lamp1")
+      local ent = Concord.entity(self.world):assemble(ECS.a.getBySelector('dungeon_features.torch_plant'))
       ent:give("position", randomEmptyX*map.tileSize, randomEmptyY*map.tileSize)
-      ent:give("particle", { "magic_torch" }, 10, 10)
-      --ent:give("lightSource", 400, 1, love.math.random(0.5, 1), love.math.random(0.5, 1), love.math.random(0.5, 1))
-      if love.math.random() > 0.5 then
-        ent:give("lightSource", 400, 1, 0.6, 0.8)
-      else
-        ent:give("lightSource", 400, 0.7, 1, 0.8)
-      end
     end
-
-    -- if self.currentLevelNumber > 1 then
-    --   local ascendEntity = Concord.entity(self.world):assemble(ECS.a.getBySelector('dungeon_features.portal_up'))
-    --   ascendEntity:give("position", Vector.split(player.position.vec + Vector(64, 0)))
-    -- end
-
-    --Concord.entity(self.world)
-    --:give("position", 100, 450)
-    ----:give("lightSource", 200, 0.6, 1.0, 0.6, 1.0)
-
-    --Concord.entity(self.world)
-    --:give("position", 600, 700)
-    ----:give("lightSource", 200, 1.0, 1.0, 0.6, 1.0)
-
-    --randomEmptyX, randomEmptyY = randomEmptySpot(self.mapManager:getCollisionMap())
-    --local spawnerEntity = Concord.entity(self.world):assemble(ECS.a.getBySelector('dungeon_features.spawner'))
-    --spawnerEntity:give("position", randomEmptyX*map.tileSize, randomEmptyY*map.tileSize)
   end
 end
 

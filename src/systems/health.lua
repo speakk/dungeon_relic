@@ -26,6 +26,9 @@ function HealthSystem:takeDamage(target, damage)
       :give('position', Vector.split(target.position.vec))
       :give('selfDestroy', 200)
 
+      Concord.entity(self:getWorld()):assemble(ECS.a.getBySelector('particle_emitters.smallDamageHit'))
+      :give('position', Vector.split(target.position.vec))
+
       if target.health.value < 0 then
         self:getWorld():emit("healthReachedZero", target)
       end

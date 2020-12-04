@@ -2,6 +2,7 @@ local systemTypes = {
   torch = love.filesystem.load('src/utils/particleSystems/torch_light.lua'),
   magic_torch = love.filesystem.load('src/utils/particleSystems/magic_torch.lua'),
   bloodspurt = love.filesystem.load('src/utils/particleSystems/bloodspurt.lua'),
+  small_damage_hit = love.filesystem.load('src/utils/particleSystems/small_damage_hit.lua'),
 }
 
 local function createPool(systemType, size)
@@ -35,7 +36,8 @@ end
 function ParticleSystem:init(_)
   self.pools = {
     torch = createPool("torch", 30),
-    magic_torch = createPool("magic_torch", 30)
+    magic_torch = createPool("magic_torch", 30),
+    small_damage_hit = createPool("small_damage_hit", 30)
   }
 
   self.pool.onEntityAdded = function(_, entity)
