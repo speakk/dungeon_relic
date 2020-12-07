@@ -1,4 +1,5 @@
 local lfs = love.filesystem
+local json = require 'libs.json'
 
 local function simplifyFileName(path)
   -- Remove extension
@@ -17,18 +18,7 @@ local function fillTree(folder, fileTree, root, result)
       local extension = file:match("[^.]+$")
       if extension == "png" or extension == "jpg" then
         fileTree = fileTree .. "\n" ..file
-
-        -- local mediaEntity = {
-        --   fileName = file
-        -- }
-
         local name = simplifyFileName(file:gsub(root, ""):sub(2, #file))
-
-        -- if lfs.getInfo(file .. '_metadata.lua') then
-        --   mediaEntity.metaData = require((file .. '_metadata'):gsub('/', '.'))
-        -- else
-        --   mediaEntity.metaData = {}
-        -- end
 
         local resultEntity = {
           fileName = file,
@@ -40,21 +30,23 @@ local function fillTree(folder, fileTree, root, result)
           resultEntity.metaData = require(metaDataName:gsub(".lua", ""))
         end
 
+        local asepriteMetaDataName = (file:gsub(extension, "") .. 'json'):gsub("#.", "/")
+        if lfs.getInfo(asepriteMetaDataName) then
+          local fileData = love.filesystem.read("string", asepriteMetaDataName)
+          resultEntity.asepriteMetaData = json.decode(fileData)
+          print("Got asepriteMetaData", inspect(resultEntity.asepriteMetaData))
+        end
+
         table.insert(result, resultEntity)
       end
-      --mediaEntity.name = name
-      --tree[name] = mediaEntity
-      --table.push(mediaEntities,mediaEntity)
     elseif info.type == "directory" then
       fileTree = fileTree.."\n"..file.." (DIR)"
       fileTree, result = fillTree(file, fileTree, root, result)
     end
-    --end
   end
 
   return fileTree, result
 end
-
 
 local function createMediaEntities(self, fileEntries)
   local atlasWidth = 1280
