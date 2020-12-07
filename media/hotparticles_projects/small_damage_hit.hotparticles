@@ -1,0 +1,86 @@
+7
+
+:project
+bgColor 0 0 0.15
+bgChecker 0
+bgSize 8
+bgPath 0 !
+bgScale 1
+bgRepeat false false
+pixelateWorld false
+pixelateTextures false
+exportBaseDirectory 50 /home/speak/git/thisgame/src/utils/particleSystems!
+exportParticles true
+exportParticlesOverwrite false
+exportParticlesTemplate 16 defaultLuaModule!
+exportParticlesTemplatePath 0 !
+exportParticlesPath 0 !
+exportTextures true
+exportTexturesOverwrite false
+exportTexturesDirectory 0 !
+exportClipboardTemplate 19 defaultLuaClipboard!
+exportClipboardTemplatePath 0 !
+scaleGlobalTimeEnabled true
+scaleGlobalTime 1
+scaleGlobalSpaceEnabled true
+scaleGlobalSpace 1
+scaleGlobalSizeEnabled true
+scaleGlobalSize 1
+zoom 0
+customData 0 !
+movementScaleEnabled true true
+movement 0 1 1 1
+region true 0 0
+emitterPosition -78 -106.5
+
+:system
+blendMode 3 add!
+colors 0 0 1 0 0 0 1 1 0 0 1 0.5 0 0 1 0
+customData 0 !
+directionEnabled true
+direction -1.5707963267949
+emissionRate 20
+emitterContinuous false
+emitterLifetime 0.072922786590468
+insertMode 3 top!
+kickStartEmitEnabled true
+kickStartEmit 0
+kickStartStepsEnabled true
+kickStartSteps 0
+linearDampingEnabled true
+linearDamping 0 0
+offset 0.5 0.5
+particleLifetime 0.012577517687134 0.13975019652371
+radialAccelerationEnabled true
+radialAcceleration 0 0
+relativeRotation false
+rotationEnabled true
+rotation 0 0
+scaleSizeEnabled true
+scaleSize 0.99377917527974
+scaleSpaceEnabled true
+scaleSpace 1
+scaleTimeEnabled true
+scaleTime 1
+shaderPath 0 !
+sizes 0.13037573562698 0.010059856144057
+sizeVariationEnabled true
+sizeVariation 0.41121495327103
+speedEnabled true
+speed 90 100
+spinEnabled true true
+spin 0 0
+spinVariationEnabled true
+spinVariation 0
+spreadEnabled true
+spread 6.2831853071796
+tangentialAccelerationEnabled true
+tangentialAcceleration 0 0
+texture 6 circle!
+texturePath 0 !
+title 0 !
+emissionAreaAngleEnabled true
+emissionAreaDeltaEnabled true true
+emissionArea 7 ellipse! 8.5445943083116 9.3390297295389 0 false
+linearAccelerationEnabled true true
+linearAcceleration 0 0 0 0

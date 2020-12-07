@@ -7,7 +7,7 @@ local function isPositionAvailable(self, x, y)
 end
 
 local tilesetImageFloor = love.graphics.newImage('media/tileset/floor.png')
-local tilesetImageWall = love.graphics.newImage('media/tileset/wall.png')
+local tilesetImageWall = love.graphics.newImage('media/tileset/wall_bumpy.png')
 local tilesetVoid = love.graphics.newImage('media/tileset/void.png')
 local tilesetRoomFloor = love.graphics.newImage('media/tileset/room_floor.png')
 
