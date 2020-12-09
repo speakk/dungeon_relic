@@ -3,7 +3,7 @@ return function(entity)
   entity:give("playerControlled")
   entity:give("speed", 35)
   entity:give("stateMachine", "player")
-  entity:give("sprite", 'characters.player')
+  entity:give("sprite", 'characters.player4')
   entity:give("lightSource", 300, 1, 0.8, 0.4, 1.0)
   entity:give("cameraTarget")
   entity:give("mana", 100)
@@ -18,7 +18,7 @@ return function(entity)
             componentName = "sprite",
             propertyName = "currentQuadIndex",
             durations = {0.5, 0.2},
-            values = { 4, 5 },
+            values = { 1, 1 },
           }
         }
       },
@@ -28,7 +28,7 @@ return function(entity)
             componentName = "sprite",
             propertyName = "currentQuadIndex",
             durations = { 0.5, 0.5 },
-            values = { 2, 3 },
+            values = { 1, 1 },
           }
         }
       }

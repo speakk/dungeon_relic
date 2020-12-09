@@ -6,7 +6,7 @@ local function isPositionAvailable(self, x, y)
   return self.collisionMap[positionUtil.positionToString(x, y)]
 end
 
-local tilesetImageFloor = love.graphics.newImage('media/tileset/floor.png')
+local tilesetImageFloor = love.graphics.newImage('media/tileset/floor_bricks.png')
 local tilesetImageWall = love.graphics.newImage('media/tileset/wall_bumpy.png')
 local tilesetVoid = love.graphics.newImage('media/tileset/void.png')
 local tilesetRoomFloor = love.graphics.newImage('media/tileset/room_floor.png')
@@ -384,10 +384,10 @@ local function generateSimpleMap(seed, descending, width, height)
 
   local featuresLayer = createLayer(width, height)
 
-  for _=1,5 do
-    local spawnerX, spawnerY = getPositionInRandomRoom(rotMap._rooms)
-    featuresLayer.tiles[spawnerY][spawnerX] = "spawner"
-  end
+  --for _=1,5 do
+  --  local spawnerX, spawnerY = getPositionInRandomRoom(rotMap._rooms)
+  --  featuresLayer.tiles[spawnerY][spawnerX] = "spawner"
+  --end
 
   -- ENTRANCE / EXIT START
   -- Create exit

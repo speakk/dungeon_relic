@@ -27,7 +27,7 @@ local testPolygon2 = {
 
 function LightSystem:init(world)
   self.lightCanvas = love.graphics.newCanvas(love.graphics.getDimensions())
-  self.lighter = Lighter()
+  self.lighter = Lighter({ litPolygons = true })
 
   self.lightSources.onEntityAdded = function(pool, entity)
     entity.lightSource.light = self.lighter:addLight(
@@ -96,7 +96,7 @@ end
 
 function LightSystem:preDrawLights()
   love.graphics.setCanvas({ self.lightCanvas, stencil = true})
-  love.graphics.clear(0.4, 0.4, 0.4)
+  love.graphics.clear(0.3, 0.3, 0.3)
   --love.graphics.setBlendMode("add")
   self.lighter:drawLights()
   love.graphics.setBlendMode("alpha")
