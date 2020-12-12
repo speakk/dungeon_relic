@@ -37,4 +37,8 @@ function DebugSystem:drawDebug()
   end
 end
 
+function DebugSystem:systemsLoaded()
+  self:getWorld():emit("registerLayer", "debugNoCamera", DebugSystem.drawDebug, self, true)
+end
+
 return DebugSystem

@@ -11,31 +11,40 @@ local function compareY(a, b)
 
   local _, _, _, h1 = mediaEntityA.quads[a.sprite.currentQuadIndex or 1]:getViewport()
   local _, _, _, h2 = mediaEntityB.quads[b.sprite.currentQuadIndex or 1]:getViewport()
-  --local posA = a.position.vec.y - mediaEntityA.origin.y * h1 / 2 + h1
-  --local posB = b.position.vec.y - mediaEntityB.origin.y * h2 / 2 + h2
+
   local posA = a.position.vec.y + h1 - mediaEntityA.origin.y * h1
   local posB = b.position.vec.y + h2 - mediaEntityB.origin.y * h2
   return posA < posB
+end
 
-  --return a.position.vec.y < b.position.vec.y
+function SpriteSystem:init()
+  self.layers = {}
+  self.pool.onEntityAdded = function(_, entity)
+    local layerId = entity.sprite.layerId
+    self.layers[layerId] = self.layers[layerId] or {}
+    table.insert(self.layers[layerId], entity)
+  end
+
+  self.pool.onEntityRemoved = function(_, entity)
+    local layerId = entity.sprite.layerId
+    table.remove_value(self.layers[layerId], entity)
+  end
 end
 
 function SpriteSystem:setCamera(camera)
   self.camera = camera
 end
 
-local function draw(self)
+function SpriteSystem:screenEntitiesUpdated(entities)
+  self.screenSpatialGroup = entities
+end
+
+local function drawLayer(self, layerId)
   if not self.camera then return end
 
-  local l, t, w, h = self.camera:getVisible()
-
-  local screenSpatialGroup = {}
-  Gamestate.current().spatialHash:each(l, t, w, h, function(entity)
-    table.insert(screenSpatialGroup, entity)
-  end)
-
-  local inHash = functional.filter(self.pool, function(entity)
-    return functional.contains(screenSpatialGroup, entity)
+  if not self.layers[layerId] then error("Trying to draw into non existing layer: " .. layerId) end
+  local inHash = functional.filter(self.layers[layerId], function(entity)
+    return functional.contains(self.screenSpatialGroup, entity)
   end)
   local zSorted = table.insertion_sort(inHash, function(a, b) return compareY(a, b) end)
   for _, entity in ipairs(zSorted) do
@@ -60,12 +69,16 @@ local function draw(self)
   end
 end
 
-function SpriteSystem:systemsLoaded()
-  self:getWorld():emit("registerDrawCallback", "sprite", draw, self, 1)
+local function createDrawFunction(self, layerName)
+  self.layers[layerName] = {}
+  return function() drawLayer(self, layerName) end
 end
 
-function SpriteSystem:mapChange(map)
-  self.tileSize = map.tileSize
+function SpriteSystem:systemsLoaded()
+  self:getWorld():emit("registerLayer", "ground", createDrawFunction(self, "ground"), self, true)
+  self:getWorld():emit("registerLayer", "groundLevel", createDrawFunction(self, "groundDecals"), self, true)
+  self:getWorld():emit("registerLayer", "onGround", createDrawFunction(self, "onGround"), self, true)
+  self:getWorld():emit("registerLayer", "aboveGround", createDrawFunction(self, "aboveGround"), self, true)
 end
 
 return SpriteSystem

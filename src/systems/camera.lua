@@ -8,6 +8,7 @@ local minZoomFactor = 1.6
 local maxZoomFactor = 2
 
 function CameraSystem:init()
+  self.attached = false
 end
 
 function CameraSystem:setCamera(camera)
@@ -20,11 +21,17 @@ function CameraSystem:setCamera(camera)
 end
 
 function CameraSystem:attachCamera()
-  self.camera:setUpCamera()
+  if not self.attached then
+    self.attached = true
+    self.camera:setUpCamera()
+  end
 end
 
 function CameraSystem:detachCamera()
-  self.camera:takeDownCamera()
+  if self.attached then
+    self.attached = false
+    self.camera:takeDownCamera()
+  end
 end
 
 function CameraSystem:mapChange(map)

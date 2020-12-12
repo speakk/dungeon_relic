@@ -1,31 +1,71 @@
 local DrawSystem = Concord.system({})
 
-local callBacks = {}
+
+-- Helper array
+local _layerZIndexArray = {
+  "preDrawLights",
+  "void",
+  "ground",
+  "groundLevel", -- Level with ground
+  "lights",
+  "onGround", -- Characters, walls etc go here
+  "aboveGround",
+  "particles",
+  "debugWithCamera",
+  "ui",
+  "debugNoCamera",
+}
+
+local layerZIndexMap = {}
+for i, layerName in ipairs(_layerZIndexArray) do
+  layerZIndexMap[layerName] = i
+end
 
 local function sortFunction(a, b)
-  return a.zIndex < b.zIndex
+  local zIndex1 = layerZIndexMap[a.name]
+  local zIndex2 = layerZIndexMap[b.name]
+  if not zIndex1 then error("No zIndex1 for: " .. a.name) end
+  if not zIndex2 then error("No zIndex2 for: " .. b.name) end
+  return zIndex1 < zIndex2
+end
+
+function DrawSystem:init()
+  self.layers = {}
 end
 
 function DrawSystem:draw() --luacheck: ignore
-  for _, callBack in ipairs(callBacks) do
-    callBack.callBack(callBack.self)
+  love.graphics.setColor(1,1,1,1)
+
+  for _, layer in ipairs(self.layers) do
+
+    -- TODO: Add layer shader here
+
+    if layer.followCameraTransform then
+      self:getWorld():emit("attachCamera")
+    end
+
+    layer.callBack(layer.self)
+
+    if layer.followCameraTransform then
+      self:getWorld():emit("detachCamera")
+    end
   end
 end
 
-function DrawSystem:registerDrawCallback(name, callBack, callBackSelf, zIndex) --luacheck: ignore
-  table.insert(callBacks, {
+function DrawSystem:registerLayer(name, callBack, callBackSelf, followCameraTransform) --luacheck: ignore
+  table.insert(self.layers, {
     name = name,
     callBack = callBack,
     self = callBackSelf,
-    zIndex = zIndex
+    followCameraTransform = followCameraTransform
   })
-  table.stable_sort(callBacks, sortFunction)
+  table.stable_sort(self.layers, sortFunction)
 end
 
-function DrawSystem:unRegisterDrawCallback(name) --luacheck: ignore
-  local callBackMatches = table.filter(callBacks, function(callBack) return callBack.name == name end)
-  for callBack in ipairs(callBackMatches) do
-    table.remove(callBacks, callBack)
+function DrawSystem:unRegisterLayer(name) --luacheck: ignore
+  local layerMatches = table.filter(self.layers, function(layer) return layer.name == name end)
+  for layer in ipairs(layerMatches) do
+    table.remove(self.layers, layer)
   end
 end
 

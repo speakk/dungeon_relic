@@ -14,6 +14,6 @@ return function(entity, x, y)
     tags = { "bullet" },
     targetIgnoreTags = { "bullet" }
   })
-  entity:give("sprite", "bullets.basicBullet")
+  entity:give("sprite", "bullets.basicBullet", "aboveGround")
 end
 

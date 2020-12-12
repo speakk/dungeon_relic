@@ -1,5 +1,3 @@
-local Gamestate = require 'libs.hump.gamestate'
---local light = require 'utils.light'
 local Lighter = require 'libs.lighter'
 
 local LightSystem = Concord.system({
@@ -9,27 +7,11 @@ local LightSystem = Concord.system({
   lightBlockers = { "lightBlocker", "position"},
 })
 
-local testPolygon = {
-  100, 100,
-  300, 100,
-  300, 300,
-  100, 300,
-  100, 100
-}
-
-local testPolygon2 = {
-  500, 500,
-  850, 500,
-  850, 850,
-  500, 850,
-  500, 500
-}
-
-function LightSystem:init(world)
+function LightSystem:init(_)
   self.lightCanvas = love.graphics.newCanvas(love.graphics.getDimensions())
   self.lighter = Lighter({ litPolygons = true })
 
-  self.lightSources.onEntityAdded = function(pool, entity)
+  self.lightSources.onEntityAdded = function(_, entity)
     entity.lightSource.light = self.lighter:addLight(
      entity.position.vec.x,
      entity.position.vec.y,
@@ -39,24 +21,10 @@ function LightSystem:init(world)
      entity.lightSource.b,
      entity.lightSource.a
    )
-    --entity.lightSource.light = lighting.CreateCircleLight(
-    --  entity.position.vec.x,
-    --  entity.position.vec.y,
-    --  entity.lightSource.radius
-    --)
-
-    --entity.lightSource.light:SetColor(
-    --  entity.lightSource.r,
-    --  entity.lightSource.g,
-    --  entity.lightSource.b,
-    --  entity.lightSource.a
-    --)
-
   end
 
   self.lightSources.onEntityRemoved = function(_, entity)
     self.lighter:removeLight(entity.lightSource.light)
-    --lighting.Remove(entity.lightSource.light.id, true)
   end
 
   self.lightBlockers.onEntityAdded = function(_, entity)
@@ -69,18 +37,10 @@ function LightSystem:init(world)
       pos.x, pos.y + h,
       pos.x, pos.y
     })
-
-    --entity.lightBlocker.blocker = lighting.CreateRectangonalBlocker(
-    --  entity.position.vec.x,
-    --  entity.position.vec.y,
-    --  entity.lightBlocker.width,
-    --  entity.lightBlocker.height
-    --)
   end
 
   self.lightBlockers.onEntityRemoved = function(_, entity)
     self.lighter:removePolygon(entity.lightBlocker.blocker)
-    --entity.lightBlocker.blocker:Remove()
   end
 end
 
@@ -96,8 +56,8 @@ end
 
 function LightSystem:preDrawLights()
   love.graphics.setCanvas({ self.lightCanvas, stencil = true})
-  love.graphics.clear(0.3, 0.3, 0.3)
-  --love.graphics.setBlendMode("add")
+  love.graphics.clear(0.2, 0.2, 0.2)
+  love.graphics.setBlendMode("add")
   self.lighter:drawLights()
   love.graphics.setBlendMode("alpha")
   --love.graphics.setColor(0.9, 0.9, 0.9, 0.1)
@@ -109,6 +69,11 @@ function LightSystem:drawLights()
   love.graphics.setBlendMode("multiply", "premultiplied")
   love.graphics.draw(self.lightCanvas)
   love.graphics.setBlendMode("alpha")
+end
+
+function LightSystem:systemsLoaded()
+  self:getWorld():emit("registerLayer", "preDrawLights", LightSystem.preDrawLights, self, false)
+  self:getWorld():emit("registerLayer", "lights", LightSystem.drawLights, self, true)
 end
 
 function LightSystem:update(dt)
@@ -157,11 +122,9 @@ end
 function LightSystem:entityMoved(entity)
   if entity.lightSource and entity.lightSource.light then
     self.lighter:updateLight(entity.lightSource.light, Vector.split(entity.position.vec))
-    --entity.lightSource.light:SetPos(Vector.split(entity.position.vec))
   end
 
   if entity.lightBlocker and entity.lightBlocker.blocker then
-    --entity.lightBlocker.blocker:SetPos(Vector.split(entity.position.vec))
   end
 end
 

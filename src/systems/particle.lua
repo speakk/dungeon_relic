@@ -86,5 +86,9 @@ function ParticleSystem:drawParticles()
   end
 end
 
+function ParticleSystem:systemsLoaded()
+  self:getWorld():emit("registerLayer", "particles", ParticleSystem.drawParticles, self, true)
+end
+
 return ParticleSystem
 

@@ -174,5 +174,9 @@ function UISystem:drawUI()
   end
 end
 
+function UISystem:systemsLoaded()
+  self:getWorld():emit("registerLayer", "ui", UISystem.drawUI, self, false)
+end
+
 return UISystem
 

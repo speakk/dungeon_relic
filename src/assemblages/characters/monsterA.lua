@@ -4,7 +4,7 @@ return function(entity, x, y)
   entity:give("speed", 20)
   entity:give("damager", 20)
   entity:give("health", 30)
-  entity:give("sprite", 'characters.monster_B-sheet')
+  entity:give("sprite", 'characters.monster_B-sheet', "onGround")
 
   entity:give("physicsBody", {
     width = 1,

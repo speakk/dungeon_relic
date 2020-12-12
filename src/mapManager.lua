@@ -141,15 +141,19 @@ local tileValueToEntity = {
   end,
   exit = function(x, y, _, tileSize, world)
     local portal = Concord.entity(world):assemble(ECS.a.getBySelector("dungeon_features.portal_down"))
-    portal:give("position", getTileCenter(x, y, tileSize))
+    portal:give("position", x*tileSize, y*tileSize)
   end,
   entrance = function(x, y, _, tileSize, world)
     local portal = Concord.entity(world):assemble(ECS.a.getBySelector("dungeon_features.portal_up"))
-    portal:give("position", getTileCenter(x, y, tileSize))
+    portal:give("position", x*tileSize, y*tileSize)
 
   end,
   spawner = function(x, y, _, tileSize, world)
     local entity = Concord.entity(world):assemble(ECS.a.getBySelector("dungeon_features.spawner"))
+    entity:give("position", x*tileSize, y*tileSize)
+  end,
+  pillar = function(x, y, _, tileSize, world)
+    local entity = Concord.entity(world):assemble(ECS.a.getBySelector("dungeon_features.pillar"))
     entity:give("position", getTileCenter(x, y, tileSize))
   end,
   player = function(x, y, _, tileSize, world)
@@ -173,6 +177,7 @@ local handleTile = {
   exit = {createEntity},
   entrance = {createEntity},
   spawner = {createEntity},
+  pillar = {createEntity},
   player = {createEntity}
 }
 
@@ -244,7 +249,7 @@ local function drawMap(map, world)
       local mediaPath = 'mapLayerCache.floor' .. startX .. "|" .. startY
       mediaManager:setMediaEntity(mediaPath, mediaEntity)
       local entity = Concord.entity()
-      :give('sprite', mediaPath, -1)
+      :give('sprite', mediaPath, "ground")
       :give('size', canvasWidth, canvasHeight)
       :give('position', startX * map.tileSize, startY * map.tileSize)
 
@@ -391,14 +396,14 @@ local function generateSimpleMap(seed, descending, width, height)
 
   -- ENTRANCE / EXIT START
   -- Create exit
-  local exitX, exitY, exitRoom = getPositionInRandomRoom(rotMap._rooms)
+  local exitX, exitY, exitRoom = getPositionInRandomRoom(rotMap._rooms, 2)
   featuresLayer.tiles[exitY][exitX] = "exit"
 
   -- Create entrance room. Make sure we find one that is not the same as the exit room
   local nonExitRooms = functional.filter(table.copy(rotMap._rooms), function(room)
     return room ~= exitRoom
   end)
-  local entranceX, entranceY, entranceRoom = getPositionInRandomRoom(nonExitRooms, 3)
+  local entranceX, entranceY, entranceRoom = getPositionInRandomRoom(nonExitRooms, 2)
   if not entranceRoom then error("No eligible entrance room found, exiting") end
 
   featuresLayer.tiles[entranceY][entranceX] = "entrance"
@@ -408,6 +413,13 @@ local function generateSimpleMap(seed, descending, width, height)
     featuresLayer.tiles[exitY+2][exitX] = "player"
   end
   -- ENTRANCE / EXIT END
+
+  for _=1,10 do
+    local x, y, _ = getPositionInRandomRoom(rotMap._rooms, 1)
+    --if not featuresLayer.tiles[y][x] then
+      featuresLayer.tiles[exitY][exitX] = "pillar"
+    --end
+  end
 
   table.insert(map.layers, featuresLayer)
 

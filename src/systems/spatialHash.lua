@@ -3,6 +3,23 @@ local positionUtil = require 'utils.position'
 
 local SpatialHashSystem = Concord.system({ pool = { "position" } })
 
+function SpatialHashSystem:setCamera(camera)
+  self.camera = camera
+end
+
+function SpatialHashSystem:update()
+  if not self.camera then return end
+
+  local l, t, w, h = self.camera:getVisible()
+
+  local screenSpatialGroup = {}
+  Gamestate.current().spatialHash:each(l, t, w, h, function(entity)
+    table.insert(screenSpatialGroup, entity)
+  end)
+
+  self:getWorld():emit("screenEntitiesUpdated", screenSpatialGroup)
+end
+
 function SpatialHashSystem:init()
   self.pool.onEntityAdded = function(_, entity)
     local w, h

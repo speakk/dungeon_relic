@@ -43,24 +43,29 @@ function PhysicsBodySystem:setCamera(camera)
 end
 
 function PhysicsBodySystem:drawDebugWithCamera() --luacheck: ignore
-  for _, entity in ipairs(self.pool) do
-    love.graphics.setColor(1,1,0)
-    local offsetX, offsetY, w, h = positionUtil.getPhysicsBodyTransform(entity)
-    local pos = entity.position.vec
-    love.graphics.rectangle("line", pos.x + offsetX, pos.y + offsetY, w, h)
+  if Gamestate.current().debug then
+    for _, entity in ipairs(self.pool) do
+      love.graphics.setColor(1,1,0)
+      local offsetX, offsetY, w, h = positionUtil.getPhysicsBodyTransform(entity)
+      local pos = entity.position.vec
+      love.graphics.rectangle("line", pos.x + offsetX, pos.y + offsetY, w, h)
+      love.graphics.setColor(1,1,1)
+    end
+
+    local bumpWorld = Gamestate.current().bumpWorld
+    local items, _ = bumpWorld:getItems()
+    love.graphics.setColor(0,1,0)
+    for _, item in ipairs(items) do
+      local x,y,w,h = bumpWorld:getRect(item)
+      love.graphics.rectangle('line', x, y, w, h)
+    end
     love.graphics.setColor(1,1,1)
   end
-
-  local bumpWorld = Gamestate.current().bumpWorld
-  local items, _ = bumpWorld:getItems()
-  love.graphics.setColor(0,1,0)
-  for _, item in ipairs(items) do
-    local x,y,w,h = bumpWorld:getRect(item)
-    love.graphics.rectangle('line', x, y, w, h)
-  end
-  love.graphics.setColor(1,1,1)
 end
 
+function PhysicsBodySystem:systemsLoaded()
+  self:getWorld():emit("registerLayer", "debugWithCamera", PhysicsBodySystem.drawDebugWithCamera, self, true)
+end
 
 function PhysicsBodySystem:markOutOfScreenInactive()
   if self.camera then
