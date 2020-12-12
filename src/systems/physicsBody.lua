@@ -6,7 +6,7 @@ local PhysicsBodySystem = Concord.system({ pool = {"physicsBody", "position", "p
 function PhysicsBodySystem:init()
   self.pool.onEntityAdded = function(_, entity)
     local transformX, transformY, w, h = positionUtil.getPhysicsBodyTransform(entity)
-    local targetX, targetY = Vector.split(entity.position.vec - Vector(transformX, transformY))
+    local targetX, targetY = Vector.split(entity.position.vec + Vector(transformX, transformY))
 
     Gamestate.current().bumpWorld:add(entity, targetX, targetY, w, h)
   end

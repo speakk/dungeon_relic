@@ -35,11 +35,11 @@ emitterPosition 0 0
 
 :system
 blendMode 3 add!
-colors 0.51893939393939 0.19318181818182 1 0.84848484848485 0.53787878787879 0.15151515151515 1 1 0 0 1 0.5 0 0 1 0
+colors 0.0037878787878788 0.19318181818182 1 0.84848484848485 0.0037878787878788 0.15151515151515 1 1 0 0 1 0.5 0 0 1 0
 customData 22 {name = "torch_flame"}!
 directionEnabled true
 direction -1.5707963267949
-emissionRate 2.8620840248057
+emissionRate 0.49688958763987
 emitterContinuous true
 emitterLifetime 0
 insertMode 6 random!
@@ -50,12 +50,12 @@ kickStartSteps 0
 linearDampingEnabled true
 linearDamping 0 0
 offset 0.5 0.5
-particleLifetime 0.1492221542881 0.5405227045545
+particleLifetime 0.1492221542881 0.48695179588707
 radialAccelerationEnabled true
 radialAcceleration 0 0
 relativeRotation false
 rotationEnabled true
-rotation 0 0
+rotation 0 6.2831853071796
 scaleSizeEnabled true
 scaleSize 1
 scaleSpaceEnabled true
@@ -63,17 +63,17 @@ scaleSpace 1
 scaleTimeEnabled true
 scaleTime 1
 shaderPath 0 !
-sizes 0.16095769830491
+sizes 0.084603390171521 0
 sizeVariationEnabled true
-sizeVariation 0
+sizeVariation 0.80996884735202
 speedEnabled true
 speed 90 100
 spinEnabled true true
-spin 0 0
+spin -0.76093982007162 1.8652769286012
 spinVariationEnabled true
-spinVariation 0
+spinVariation 0.26791277258567
 spreadEnabled true
-spread 0.31415926535898
+spread 0
 tangentialAccelerationEnabled true
 tangentialAcceleration 0 0
 texture 5 light!
@@ -81,13 +81,13 @@ texturePath 60 /home/speak/git/thisgame/src/utils/particleSystems/light.png!
 title 11 torch_flame!
 emissionAreaAngleEnabled true
 emissionAreaDeltaEnabled true true
-emissionArea 4 none! 100 100 0 false
+emissionArea 7 ellipse! 5.1020408163265 2.9835463597204 0 false
 linearAccelerationEnabled true true
 linearAcceleration 0 0 0 0
 
 :system
 blendMode 3 add!
-colors 0.48106060606061 0.51136363636364 1 0.21212121212121
+colors 0.079545454545455 0.51136363636364 1 0.049242424242424
 customData 0 !
 directionEnabled true
 direction -1.5707963267949
@@ -102,7 +102,7 @@ kickStartSteps 5
 linearDampingEnabled true
 linearDamping 0 0
 offset 0.50847457627119 0.5
-particleLifetime 1 1
+particleLifetime 1 1.1218835220931
 radialAccelerationEnabled true
 radialAcceleration 0 0
 relativeRotation false
@@ -115,7 +115,7 @@ scaleSpace 1
 scaleTimeEnabled true
 scaleTime 1
 shaderPath 0 !
-sizes 0.50711734822192
+sizes 0.33841356068608
 sizeVariationEnabled true
 sizeVariation 0.30529595015576
 speedEnabled true
