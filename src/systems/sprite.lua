@@ -17,6 +17,40 @@ local function compareY(a, b)
   return posA < posB
 end
 
+    --return texturecolor * color;
+local shaders = {
+  uniformLightShader = love.graphics.newShader [[
+  uniform Image lightCanvas;
+  uniform vec2 lightCanvasRatio;
+  uniform vec2 canvasSize;
+  uniform vec2 cameraPos;
+
+  vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
+  {
+    vec4 texturecolor = Texel(lightCanvas, screen_coords / canvasSize / 6 + cameraPos);
+    // vec4 lightTextureColor = Texel(lightCanvas, screen_coords*6);
+    return texturecolor * color;
+  }
+  ]]
+}
+
+function SpriteSystem:cameraUpdated(camera) -- luacheck: ignore
+  local x, y = camera:getVisible()
+  if shaders.uniformLightShader:hasUniform("cameraPos") then
+    shaders.uniformLightShader:send("cameraPos", { x, y })
+  end
+end
+
+function SpriteSystem:lightsPreDrawn(canvas) --luacheck: ignore
+  shaders.uniformLightShader:send("lightCanvas", canvas)
+  if shaders.uniformLightShader:hasUniform("lightCanvasRatio") then
+    shaders.uniformLightShader:send("lightCanvasRatio", {love.graphics.getWidth() / canvas:getWidth(), love.graphics.getHeight() / canvas:getHeight()})
+  end
+  if shaders.uniformLightShader:hasUniform("canvasSize") then
+    shaders.uniformLightShader:send("canvasSize", {canvas:getWidth(), canvas:getHeight()})
+  end
+end
+
 function SpriteSystem:init()
   self.layers = {}
   self.pool.onEntityAdded = function(_, entity)
@@ -39,45 +73,93 @@ function SpriteSystem:screenEntitiesUpdated(entities)
   self.screenSpatialGroup = entities
 end
 
-local function drawLayer(self, layerId)
+local function drawLayer(self, layerId, shaderId)
   if not self.camera then return end
+
+  if shaderId then
+    love.graphics.setShader(shaders[shaderId])
+  end
 
   if not self.layers[layerId] then error("Trying to draw into non existing layer: " .. layerId) end
   local inHash = functional.filter(self.layers[layerId], function(entity)
     return functional.contains(self.screenSpatialGroup, entity)
   end)
   local zSorted = table.insertion_sort(inHash, function(a, b) return compareY(a, b) end)
-  for _, entity in ipairs(zSorted) do
+  local currentSpriteBatch = nil
+  local oldSpriteBatch = nil
+  --local spriteBatch = mediaManager:getSpriteBatch()
+  --spriteBatch:clear()
+  for i, entity in ipairs(zSorted) do
     local spriteId = entity.sprite.spriteId
     local mediaEntity = mediaManager:getMediaEntity(spriteId)
+    local spriteBatch = mediaEntity.spriteBatch
+
+    if not currentSpriteBatch or currentSpriteBatch ~= spriteBatch then
+      spriteBatch:clear()
+      currentSpriteBatch = spriteBatch
+    end
+
 
     local position = entity.position.vec
     local currentQuadIndex = entity.sprite.currentQuadIndex or 1
     local currentQuad = mediaEntity.quads[currentQuadIndex]
-      _, _, w, h = currentQuad:getViewport()
+    local _, _, w, h = currentQuad:getViewport()
     local origin = { x = 0, y = 0 }
     if mediaEntity.origin then
       origin.x = w * mediaEntity.origin.x
       origin.y = h * mediaEntity.origin.y
     end
 
-    love.graphics.setColor(1,1,1)
-    love.graphics.draw(mediaEntity.atlas, currentQuad, position.x, position.y, 0, entity.sprite.scale, entity.sprite.scale, origin.x, origin.y)
+    currentSpriteBatch:setColor(1,1,1)
+    currentSpriteBatch:add(currentQuad, position.x, position.y, 0, entity.sprite.scale, entity.sprite.scale, origin.x, origin.y)
+    --love.graphics.draw(mediaEntity.atlas, currentQuad, position.x, position.y, 0, entity.sprite.scale, entity.sprite.scale, origin.x, origin.y)
     if Gamestate.current().debug then
       love.graphics.circle('fill', position.x, position.y, 2)
     end
+
+    if i == #zSorted or mediaManager:getMediaEntity(zSorted[i+1].sprite.spriteId).spriteBatch ~= currentSpriteBatch then
+      love.graphics.draw(currentSpriteBatch)
+    end
+  end
+
+
+  if shaderId then
+    love.graphics.setShader()
   end
 end
 
-local function createDrawFunction(self, layerName)
+-- local limits = love.graphics.getSystemLimits()
+-- local maxTextureSize = limits.texturesize
+-- 
+-- local function createBatch()
+--   local atlas = love.graphics.newCanvas(maxTextureSize, maxTextureSize)
+--   return {
+--     atlas = atlas,
+--     spriteBatch = love.graphics.newSpriteBatch(atlas)
+--   }
+-- end
+-- 
+-- local function addSpriteToLayer(layer, spriteId)
+--   local mediaEntity = mediaManager.getMediaEntity(spriteId)
+--   local batchesSize = #(layer.batches)
+--   if batchesSize == 0 then 
+--   layer.batches[lastIndex] = layer.batches[lastIndex] or {
+--   local lastBatch = layer.batches[#(layer.batches)]
+-- 
+-- end
+
+local function createDrawFunction(self, layerName, shader)
+  --self.layers[layerName] = {
+  --  batches = {}
+  --}
   self.layers[layerName] = {}
-  return function() drawLayer(self, layerName) end
+  return function() drawLayer(self, layerName, shader) end
 end
 
 function SpriteSystem:systemsLoaded()
   self:getWorld():emit("registerLayer", "ground", createDrawFunction(self, "ground"), self, true)
   self:getWorld():emit("registerLayer", "groundLevel", createDrawFunction(self, "groundDecals"), self, true)
-  self:getWorld():emit("registerLayer", "onGround", createDrawFunction(self, "onGround"), self, true)
+  self:getWorld():emit("registerLayer", "onGround", createDrawFunction(self, "onGround", "uniformLightShader"), self, true)
   self:getWorld():emit("registerLayer", "aboveGround", createDrawFunction(self, "aboveGround"), self, true)
 end
 

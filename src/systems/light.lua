@@ -63,6 +63,7 @@ function LightSystem:preDrawLights()
   --love.graphics.setColor(0.9, 0.9, 0.9, 0.1)
   --love.graphics.rectangle('fill', 0, 0, love.graphics.getDimensions())
   love.graphics.setCanvas()
+  self:getWorld():emit("lightsPreDrawn", self.lightCanvas)
 end
 
 function LightSystem:drawLights()

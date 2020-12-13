@@ -241,6 +241,7 @@ local function drawMap(map, world)
 
       local mediaEntity = {
         atlas = canvas,
+        spriteBatch = love.graphics.newSpriteBatch(canvas),
         metaData = {},
         origin = { x = 0, y = 0 },
         quads = { love.graphics.newQuad(0, 0, canvasWidth, canvasHeight, canvasWidth, canvasHeight) }

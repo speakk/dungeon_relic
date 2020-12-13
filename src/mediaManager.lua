@@ -51,7 +51,10 @@ end
 local function createMediaEntities(self, fileEntries)
   local atlasWidth = 1280
   local atlasHeight = 1280
-  local currentCanvas
+  local canvas = love.graphics.newCanvas(atlasWidth, atlasHeight)
+  self.atlas = canvas
+  local spriteBatch = love.graphics.newSpriteBatch(canvas, 3000, "stream")
+  self.spriteBatch = spriteBatch
 
   local currentX = 0
   local currentY = 0
@@ -59,21 +62,8 @@ local function createMediaEntities(self, fileEntries)
 
   self.mediaEntities = {}
 
-  local currentFileEntryIndex = 1
-  while currentFileEntryIndex <= #fileEntries do
-
-    local fileEntry = fileEntries[currentFileEntryIndex]
+  for _, fileEntry in ipairs(fileEntries) do
     local metaData = fileEntry.metaData
-
-    if not currentCanvas then
-      currentCanvas = love.graphics.newCanvas(atlasWidth, atlasHeight)
-      love.graphics.setCanvas(currentCanvas)
-      love.graphics.clear()
-
-      currentX = 0
-      currentY = 0
-      lastRowHeight = 0
-    end
 
     local framesX = metaData and metaData.framesX or 1
     local framesY = metaData and metaData.framesY or 1
@@ -82,12 +72,13 @@ local function createMediaEntities(self, fileEntries)
     local spriteWidth, spriteHeight = sprite:getDimensions()
 
     if currentY + spriteHeight > atlasHeight then
-      currentCanvas = nil
+      error("Ran out of texture space! Tell the dev, wtf!")
     else
       love.graphics.draw(sprite, currentX, currentY)
 
       local mediaEntity = {
-        atlas = currentCanvas,
+        atlas = canvas,
+        spriteBatch = spriteBatch,
         origin = { x = 0, y = 0 },
         quads = {}
       }
@@ -104,7 +95,7 @@ local function createMediaEntities(self, fileEntries)
           local quadH = spriteHeight / framesY
           local quadX = currentX + (x - 1) * quadW
           local quadY = currentY + (y - 1) * quadH
-          local quad = love.graphics.newQuad(quadX, quadY, quadW, quadH, currentCanvas:getDimensions())
+          local quad = love.graphics.newQuad(quadX, quadY, quadW, quadH, canvas:getDimensions())
           table.insert(mediaEntity.quads, quad)
         end
       end
@@ -120,8 +111,6 @@ local function createMediaEntities(self, fileEntries)
         currentY = currentY + lastRowHeight
         lastRowHeight = 0
       end
-
-      currentFileEntryIndex = currentFileEntryIndex + 1
     end
   end
 
@@ -143,7 +132,13 @@ local MediaManager = Class {
     self.tree[path] = mediaEntity
   end,
   getAtlas = function(self)
-    return self.atlasCanvas
+    return self.atlas
+  end,
+  getSpriteBatch = function(self)
+    return self.spriteBatch
+  end,
+  createMediaEntity = function(self)
+
   end
 }
 
