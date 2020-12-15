@@ -24,10 +24,16 @@ local shaders = {
   uniform vec2 lightCanvasRatio;
   uniform vec2 canvasSize;
   uniform vec2 cameraPos;
+  uniform vec2 screenSize;
+  uniform float cameraScale;
 
   vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
   {
-    vec4 texturecolor = Texel(lightCanvas, screen_coords / canvasSize / 6 + cameraPos);
+    vec2 screen_norm = screen_coords / screenSize;
+    //vec4 texturecolor = Texel(lightCanvas, screen_coords / canvasSize / 6 * TransformMatrix);
+    //vec4 texturecolor = Texel(lightCanvas, ((screen_coords - cameraPos) / cameraScale) / canvasSize * lightCanvasRatio);
+    //vec4 texturecolor = Texel(lightCanvas, (screen_coords - cameraPos) /screenSize);
+    vec4 texturecolor = Texel(lightCanvas, ((screen_norm - (cameraPos/canvasSize))));
     // vec4 lightTextureColor = Texel(lightCanvas, screen_coords*6);
     return texturecolor * color;
   }
@@ -38,6 +44,15 @@ function SpriteSystem:cameraUpdated(camera) -- luacheck: ignore
   local x, y = camera:getVisible()
   if shaders.uniformLightShader:hasUniform("cameraPos") then
     shaders.uniformLightShader:send("cameraPos", { x, y })
+  end
+  if shaders.uniformLightShader:hasUniform("cameraScale") then
+    shaders.uniformLightShader:send("cameraScale", camera:getScale())
+  end
+end
+
+function SpriteSystem:windowResize(w, h) -- luacheck: ignore
+  if shaders.uniformLightShader:hasUniform("screenSize") then
+    shaders.uniformLightShader:send("screenSize", { w, h })
   end
 end
 
