@@ -32,7 +32,7 @@ love ./
 
 If you have any questions or comments, feel free to pop by at the [official Love Discord server](https://discord.gg/rhUets9) and say hi.
 
-#### A screenshot (that lil fella moves with w-a-s-d)
+#### A screenshot (that lil fella moves with arrow keys and shoots with w-a-s-d)
 ![Screenshot](screenshot.jpg)
 
 ## Notes on how to think in terms of an ECS
