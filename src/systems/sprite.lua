@@ -33,10 +33,11 @@ local shaders = {
     //vec4 texturecolor = Texel(lightCanvas, screen_coords / canvasSize / 6 * TransformMatrix);
     //vec4 texturecolor = Texel(lightCanvas, ((screen_coords - cameraPos) / cameraScale) / canvasSize * lightCanvasRatio);
     //vec4 texturecolor = Texel(lightCanvas, (screen_coords - cameraPos) /screenSize);
-    vec4 texturecolor = Texel(lightCanvas, ((screen_coords - cameraPos) /canvasSize))/cameraScale;
     //vec4 texturecolor = Texel(lightCanvas, ((screen_norm - (vec2(TransformMatrix)) / cameraScale)));
     // vec4 lightTextureColor = Texel(lightCanvas, screen_coords*6);
-    return texturecolor * color;
+    vec4 lightCanvasColor = Texel(lightCanvas, ((screen_coords - cameraPos) /canvasSize))/cameraScale;
+    vec4 texturecolor = Texel(tex, texture_coords);
+    return texturecolor;
   }
   ]]
 }
@@ -59,7 +60,9 @@ function SpriteSystem:windowResize(w, h) -- luacheck: ignore
 end
 
 function SpriteSystem:lightsPreDrawn(canvas) --luacheck: ignore
-  shaders.uniformLightShader:send("lightCanvas", canvas)
+  if shaders.uniformLightShader:hasUniform("lightCanvas") then
+    shaders.uniformLightShader:send("lightCanvas", canvas)
+  end
   if shaders.uniformLightShader:hasUniform("lightCanvasRatio") then
     shaders.uniformLightShader:send("lightCanvasRatio", {love.graphics.getWidth() / canvas:getWidth(), love.graphics.getHeight() / canvas:getHeight()})
   end
@@ -94,7 +97,7 @@ local function drawLayer(self, layerId, shaderId)
   if not self.camera then return end
 
   if shaderId then
-    love.graphics.setShader(shaders[shaderId])
+    --love.graphics.setShader(shaders[shaderId])
   end
 
   if not self.layers[layerId] then error("Trying to draw into non existing layer: " .. layerId) end
@@ -127,7 +130,8 @@ local function drawLayer(self, layerId, shaderId)
       origin.y = h * mediaEntity.origin.y
     end
 
-    currentSpriteBatch:setColor(1,1,1)
+    currentSpriteBatch:setColor(1,1,1,1)
+    print("Adding quad in", layerId, entity.sprite.spriteId)
     currentSpriteBatch:add(currentQuad, position.x, position.y, 0, entity.sprite.scale, entity.sprite.scale, origin.x, origin.y)
     --love.graphics.draw(mediaEntity.atlas, currentQuad, position.x, position.y, 0, entity.sprite.scale, entity.sprite.scale, origin.x, origin.y)
     if Gamestate.current().debug then
@@ -135,13 +139,14 @@ local function drawLayer(self, layerId, shaderId)
     end
 
     if i == #zSorted or mediaManager:getMediaEntity(zSorted[i+1].sprite.spriteId).spriteBatch ~= currentSpriteBatch then
+      print("Drawing", layerId)
       love.graphics.draw(currentSpriteBatch)
     end
   end
 
 
   if shaderId then
-    love.graphics.setShader()
+    --love.graphics.setShader()
   end
 end
 
