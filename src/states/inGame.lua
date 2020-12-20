@@ -40,6 +40,7 @@ function game:enter(_, level)
     ECS.s.checkEntityMoved,
     ECS.s.animation,
     ECS.s.light,
+    ECS.s.dropShadow,
     ECS.s.health,
     ECS.s.death,
     ECS.s.particle,
@@ -92,6 +93,15 @@ function game:enter(_, level)
       local randomEmptyX, randomEmptyY = randomEmptySpot(self.mapManager:getCollisionMap())
       local ent = Concord.entity(self.world):assemble(ECS.a.getBySelector('dungeon_features.torch_plant'))
       ent:give("position", randomEmptyX*map.tileSize, randomEmptyY*map.tileSize)
+    end
+
+    for _=1,10 do
+      local randomEmptyX, randomEmptyY = randomEmptySpot(self.mapManager:getCollisionMap())
+      local ent = Concord.entity(self.world)
+      ent:give("position", randomEmptyX*map.tileSize, randomEmptyY*map.tileSize)
+      ent:give("sprite", 'plants.bush1', 'onGround')
+      ent:give("dropShadow")
+      ent:give("origin", 0.5, 0.95)
     end
   end
 end

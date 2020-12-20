@@ -7,5 +7,7 @@ return function(entity)
     offsetY = 0.9,
     static = true
   })
+  entity:give("dropShadow")
+  entity:give("origin", 0.5, 0.95)
 end
 

@@ -54,7 +54,8 @@ function LightSystem:drawDebugWithCamera()
   --end
 end
 
-function LightSystem:preDrawLights()
+function LightSystem:preDrawLights(canvas)
+  if not canvas then print("NO CANVS") end
   love.graphics.setCanvas({ self.lightCanvas, stencil = true})
   love.graphics.clear(0.2, 0.2, 0.2)
   love.graphics.setBlendMode("add")
@@ -62,7 +63,7 @@ function LightSystem:preDrawLights()
   love.graphics.setBlendMode("alpha")
   --love.graphics.setColor(0.9, 0.9, 0.9, 0.1)
   --love.graphics.rectangle('fill', 0, 0, love.graphics.getDimensions())
-  love.graphics.setCanvas()
+  love.graphics.setCanvas(canvas)
   self:getWorld():emit("lightsPreDrawn", self.lightCanvas)
 end
 

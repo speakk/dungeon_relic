@@ -37,7 +37,7 @@ local shaders = {
     // vec4 lightTextureColor = Texel(lightCanvas, screen_coords*6);
     vec4 lightCanvasColor = Texel(lightCanvas, ((screen_coords - cameraPos) /canvasSize))/cameraScale;
     vec4 texturecolor = Texel(tex, texture_coords);
-    return texturecolor;
+    return texturecolor * vec4(lightCanvasColor.rgb, 1);
   }
   ]]
 }
@@ -125,9 +125,11 @@ local function drawLayer(self, layerId, shaderId)
     local currentQuad = mediaEntity.quads[currentQuadIndex]
     local _, _, w, h = currentQuad:getViewport()
     local origin = { x = 0, y = 0 }
-    if mediaEntity.origin then
-      origin.x = w * mediaEntity.origin.x
-      origin.y = h * mediaEntity.origin.y
+
+
+    if entity.origin then
+      origin.x = w * entity.origin.x
+      origin.y = h * entity.origin.y
     end
 
     currentSpriteBatch:setColor(1,1,1,1)
@@ -146,7 +148,7 @@ local function drawLayer(self, layerId, shaderId)
 
 
   if shaderId then
-    --love.graphics.setShader()
+    love.graphics.setShader()
   end
 end
 

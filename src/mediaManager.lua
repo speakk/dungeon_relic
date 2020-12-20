@@ -55,6 +55,7 @@ local function createMediaEntities(self, fileEntries)
   self.atlas = canvas
   local spriteBatch = love.graphics.newSpriteBatch(canvas, 3000, "stream")
   self.spriteBatch = spriteBatch
+  love.graphics.setCanvas(canvas)
 
   local currentX = 0
   local currentY = 0

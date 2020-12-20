@@ -7,6 +7,7 @@ return function(entity, x, y)
   entity:give("selfDestroy", 500)
   entity:give("directionIntent")
   entity:give("lightSource", 300, 0.8, 0.8, 1.0, 1.0)
+  entity:give("origin", 0.5, 0.5)
   entity:give("physicsBody", {
     centered = true,
     width = 1,
