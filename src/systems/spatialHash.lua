@@ -34,10 +34,13 @@ function SpatialHashSystem:init()
       w, h = tileSize, tileSize
     end
 
+    local origX = entity.origin and entity.origin.x or 0
+    local origY = entity.origin and entity.origin.y or 0
+
     Gamestate.current().spatialHash:add(
       entity,
-      entity.position.vec.x,
-      entity.position.vec.y,
+      entity.position.vec.x - origX * w,
+      entity.position.vec.y - origY * h,
       w,
       h
     )
