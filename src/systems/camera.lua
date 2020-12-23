@@ -13,7 +13,7 @@ end
 
 function CameraSystem:setCamera(camera)
   self.camera = camera
-  self.camera:setScale(6.0)
+  self.camera:setScale(2.0)
   if self.map then
     local tileSize = self.map.tileSize
     self.camera:setWorld(tileSize, tileSize, self.map.size.x * tileSize, self.map.size.y * tileSize)

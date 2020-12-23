@@ -70,6 +70,8 @@ function DrawSystem:draw() --luacheck: ignore
   love.graphics.setCanvas()
 
   love.graphics.setColor(1,1,1,1)
+  -- TODO: Change back to "shader" and remove global shaders
+  --love.graphics.setShader(shaders.uniformLightShader)
   love.graphics.setShader(shader)
   love.graphics.draw(self.bufferCanvas)
   love.graphics.setShader()

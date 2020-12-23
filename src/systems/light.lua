@@ -45,7 +45,7 @@ function LightSystem:init(_)
 end
 
 function LightSystem:windowResize(width, height)
-  self.lightCanvas = love.graphics.newCanvas(width, height)
+  self.lightCanvas = love.graphics.newCanvas(love.graphics.getDimensions())
 end
 
 function LightSystem:drawDebugWithCamera()

@@ -18,7 +18,7 @@ local function compareY(a, b)
 end
 
     --return texturecolor * color;
-local shaders = {
+shaders = {
   uniformLightShader = love.graphics.newShader [[
   uniform Image lightCanvas;
   uniform vec2 lightCanvasRatio;
@@ -30,20 +30,21 @@ local shaders = {
   vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
   {
     vec2 screen_norm = screen_coords / screenSize;
-    //vec4 texturecolor = Texel(lightCanvas, screen_coords / canvasSize / 6 * TransformMatrix);
-    //vec4 texturecolor = Texel(lightCanvas, ((screen_coords - cameraPos) / cameraScale) / canvasSize * lightCanvasRatio);
-    //vec4 texturecolor = Texel(lightCanvas, (screen_coords - cameraPos) /screenSize);
-    //vec4 texturecolor = Texel(lightCanvas, ((screen_norm - (vec2(TransformMatrix)) / cameraScale)));
-    // vec4 lightTextureColor = Texel(lightCanvas, screen_coords*6);
-    vec4 lightCanvasColor = Texel(lightCanvas, ((screen_coords - cameraPos) /canvasSize))/cameraScale;
+    float screenRatio = screenSize.y / screenSize.x;
+    vec2 camPosNorm = cameraPos / screenSize;
+
+    //vec4 lightCanvasColor = Texel(lightCanvas, (screen_coords + cameraPos) / canvasSize); // WORKS WITH CAMERA SCALE 1
+    vec4 lightCanvasColor = Texel(lightCanvas, (screen_coords + cameraPos * cameraScale) / canvasSize / cameraScale);
     vec4 texturecolor = Texel(tex, texture_coords);
-    return texturecolor * vec4(lightCanvasColor.rgb, 1);
+    //return texturecolor * vec4(lightCanvasColor.rgb, 1);
+    return lightCanvasColor;
   }
   ]]
 }
 
 function SpriteSystem:cameraUpdated(camera) -- luacheck: ignore
-  local x, y = camera:getVisible()
+  local x, y = camera:getVisibleCorners() -- works with camera scale 1
+  --local x, y = camera:getPosition()
   if shaders.uniformLightShader:hasUniform("cameraPos") then
     print("cameraPos", x, y)
     shaders.uniformLightShader:send("cameraPos", { x, y })
@@ -97,7 +98,7 @@ local function drawLayer(self, layerId, shaderId)
   if not self.camera then return end
 
   if shaderId then
-    --love.graphics.setShader(shaders[shaderId])
+    love.graphics.setShader(shaders[shaderId])
   end
 
   if not self.layers[layerId] then error("Trying to draw into non existing layer: " .. layerId) end
@@ -133,7 +134,7 @@ local function drawLayer(self, layerId, shaderId)
     end
 
     currentSpriteBatch:setColor(1,1,1,1)
-    print("Adding quad in", layerId, entity.sprite.spriteId)
+    --print("Adding quad in", layerId, entity.sprite.spriteId)
     currentSpriteBatch:add(currentQuad, position.x, position.y, 0, entity.sprite.scale, entity.sprite.scale, origin.x, origin.y)
     --love.graphics.draw(mediaEntity.atlas, currentQuad, position.x, position.y, 0, entity.sprite.scale, entity.sprite.scale, origin.x, origin.y)
     if Gamestate.current().debug then
@@ -141,7 +142,7 @@ local function drawLayer(self, layerId, shaderId)
     end
 
     if i == #zSorted or mediaManager:getMediaEntity(zSorted[i+1].sprite.spriteId).spriteBatch ~= currentSpriteBatch then
-      print("Drawing", layerId)
+      --print("Drawing", layerId)
       love.graphics.draw(currentSpriteBatch)
     end
   end
