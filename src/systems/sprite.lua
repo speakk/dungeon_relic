@@ -12,8 +12,10 @@ local function compareY(a, b)
   local _, _, _, h1 = mediaEntityA.quads[a.sprite.currentQuadIndex or 1]:getViewport()
   local _, _, _, h2 = mediaEntityB.quads[b.sprite.currentQuadIndex or 1]:getViewport()
 
-  local posA = a.position.vec.y + h1 - mediaEntityA.origin.y * h1
-  local posB = b.position.vec.y + h2 - mediaEntityB.origin.y * h2
+  local aOriginY = a.origin and a.origin.x or 0
+  local bOriginY = b.origin and b.origin.x or 0
+  local posA = a.position.vec.y + h1 - aOriginY * h1
+  local posB = b.position.vec.y + h2 - bOriginY * h2
   return posA < posB
 end
 
@@ -156,12 +158,13 @@ local function drawLayer(self, layerId, shaderId)
 
     --print("Adding quad in", layerId, entity.sprite.spriteId)
     --local function createRectangle(x, y, w, h, quad, originX, originY)
-    local rect = createRectangle(position.x, position.y, w, h, {
+    local finalX, finalY = position.x - origin.x, position.y - origin.y
+    local rect = createRectangle(finalX, finalY, w, h, {
       x = quadX / imageW,
       y = quadY / imageH,
       w = w / imageW,
       h = h / imageH
-    }, position.x + origin.x, position.y + origin.y)
+    }, finalX, finalY)
     table.insert(rects, rect)
     --currentSpriteBatch:add(currentQuad, position.x, position.y, 0, entity.sprite.scale, entity.sprite.scale, origin.x, origin.y)
     --love.graphics.draw(mediaEntity.atlas, currentQuad, position.x, position.y, 0, entity.sprite.scale, entity.sprite.scale, origin.x, origin.y)

@@ -1,7 +1,8 @@
 local Gamestate = require 'libs.hump.gamestate'
 local memoize = require 'libs.memoize'
 
-local getTransform = memoize(function(body, sprite)
+local getTransform = memoize(function(body, entity)
+  local sprite = entity.sprite
   if sprite then
     local mediaEntity = mediaManager:getMediaEntity(sprite.spriteId)
     local quad = mediaEntity.quads[sprite.currentQuadIndex or 1]
@@ -9,7 +10,8 @@ local getTransform = memoize(function(body, sprite)
     local w = quadW * body.width
     local h = quadH * body.height
 
-    local originX, originY = mediaEntity.origin.x, mediaEntity.origin.y
+    local originX = entity.origin and entity.origin.x or 0
+    local originY = entity.origin and entity.origin.y or 0
 
     local originXpx = -originX * quadW
     local centerX = originXpx + body.offsetX * quadW
@@ -33,6 +35,6 @@ return {
     return x*tileSize, y*tileSize
   end,
   getPhysicsBodyTransform = function(entity)
-    return getTransform(entity.physicsBody, entity.sprite)
+    return getTransform(entity.physicsBody, entity)
   end
 }
