@@ -27,6 +27,9 @@ shaders = {
   uniform vec2 screenSize;
   uniform float cameraScale;
 
+  uniform vec2 spritePosition;
+  uniform vec2 spriteOrigin;
+
   vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
   {
     vec2 screen_norm = screen_coords / screenSize;
@@ -36,17 +39,40 @@ shaders = {
     //vec4 lightCanvasColor = Texel(lightCanvas, (screen_coords + cameraPos) / canvasSize); // WORKS WITH CAMERA SCALE 1
     vec4 lightCanvasColor = Texel(lightCanvas, (screen_coords + cameraPos * cameraScale) / canvasSize / cameraScale);
     vec4 texturecolor = Texel(tex, texture_coords);
-    //return texturecolor * vec4(lightCanvasColor.rgb, 1);
-    return lightCanvasColor;
+    return texturecolor * vec4(lightCanvasColor.rgb, 1);
+    //return lightCanvasColor;
   }
   ]]
 }
+
+local function createRectangle(x, y, w, h, quad, originX, originY)
+  return {
+    { x, y, quad.x, quad.y, originX, originY },
+    { x+w, y, quad.x + quad.w, quad.y, originX, originY },
+    { x+w, y+h, quad.x + quad.w, quad.y + quad.h, originX, originY },
+    { x, y+h, quad.x, quad.y + quad.h, originX, originY }
+  }
+end
+
+local function createVertexMap(quadCount)
+  local vertexIndices = {}
+  for i=1,quadCount do
+    local currInd = (i-1)*4 + 1
+    table.insert(vertexIndices, currInd)
+    table.insert(vertexIndices, currInd+1)
+    table.insert(vertexIndices, currInd+2)
+    table.insert(vertexIndices, currInd)
+    table.insert(vertexIndices, currInd+2)
+    table.insert(vertexIndices, currInd+3)
+  end
+
+  return vertexIndices
+end
 
 function SpriteSystem:cameraUpdated(camera) -- luacheck: ignore
   local x, y = camera:getVisibleCorners() -- works with camera scale 1
   --local x, y = camera:getPosition()
   if shaders.uniformLightShader:hasUniform("cameraPos") then
-    print("cameraPos", x, y)
     shaders.uniformLightShader:send("cameraPos", { x, y })
   end
   if shaders.uniformLightShader:hasUniform("cameraScale") then
@@ -77,12 +103,12 @@ function SpriteSystem:init()
   self.pool.onEntityAdded = function(_, entity)
     local layerId = entity.sprite.layerId
     self.layers[layerId] = self.layers[layerId] or {}
-    table.insert(self.layers[layerId], entity)
+    table.insert(self.layers[layerId].entities, entity)
   end
 
   self.pool.onEntityRemoved = function(_, entity)
     local layerId = entity.sprite.layerId
-    table.remove_value(self.layers[layerId], entity)
+    table.remove_value(self.layers[layerId].entities, entity)
   end
 end
 
@@ -102,29 +128,24 @@ local function drawLayer(self, layerId, shaderId)
   end
 
   if not self.layers[layerId] then error("Trying to draw into non existing layer: " .. layerId) end
-  local inHash = functional.filter(self.layers[layerId], function(entity)
+  local inHash = functional.filter(self.layers[layerId].entities, function(entity)
     return functional.contains(self.screenSpatialGroup, entity)
   end)
+  local mesh = self.layers[layerId].mesh
+  local image = mesh:getTexture()
+  local imageW, imageH = image:getDimensions()
+  local rects = {}
   local zSorted = table.insertion_sort(inHash, function(a, b) return compareY(a, b) end)
-  local currentSpriteBatch = nil
-  local oldSpriteBatch = nil
   --local spriteBatch = mediaManager:getSpriteBatch()
   --spriteBatch:clear()
-  for i, entity in ipairs(zSorted) do
+  for _, entity in ipairs(zSorted) do
     local spriteId = entity.sprite.spriteId
     local mediaEntity = mediaManager:getMediaEntity(spriteId)
-    local spriteBatch = mediaEntity.spriteBatch
-
-    if not currentSpriteBatch or currentSpriteBatch ~= spriteBatch then
-      spriteBatch:clear()
-      currentSpriteBatch = spriteBatch
-    end
-
 
     local position = entity.position.vec
     local currentQuadIndex = entity.sprite.currentQuadIndex or 1
     local currentQuad = mediaEntity.quads[currentQuadIndex]
-    local _, _, w, h = currentQuad:getViewport()
+    local quadX, quadY, w, h = currentQuad:getViewport()
     local origin = { x = 0, y = 0 }
 
 
@@ -133,20 +154,39 @@ local function drawLayer(self, layerId, shaderId)
       origin.y = h * entity.origin.y
     end
 
-    currentSpriteBatch:setColor(1,1,1,1)
     --print("Adding quad in", layerId, entity.sprite.spriteId)
-    currentSpriteBatch:add(currentQuad, position.x, position.y, 0, entity.sprite.scale, entity.sprite.scale, origin.x, origin.y)
+    --local function createRectangle(x, y, w, h, quad, originX, originY)
+    local rect = createRectangle(position.x, position.y, w, h, {
+      x = quadX / imageW,
+      y = quadY / imageH,
+      w = w / imageW,
+      h = h / imageH
+    }, position.x + origin.x, position.y + origin.y)
+    table.insert(rects, rect)
+    --currentSpriteBatch:add(currentQuad, position.x, position.y, 0, entity.sprite.scale, entity.sprite.scale, origin.x, origin.y)
     --love.graphics.draw(mediaEntity.atlas, currentQuad, position.x, position.y, 0, entity.sprite.scale, entity.sprite.scale, origin.x, origin.y)
     if Gamestate.current().debug then
       love.graphics.circle('fill', position.x, position.y, 2)
     end
 
-    if i == #zSorted or mediaManager:getMediaEntity(zSorted[i+1].sprite.spriteId).spriteBatch ~= currentSpriteBatch then
-      --print("Drawing", layerId)
-      love.graphics.draw(currentSpriteBatch)
+    -- if i == #zSorted or mediaManager:getMediaEntity(zSorted[i+1].sprite.spriteId).spriteBatch ~= currentSpriteBatch then
+    --   --print("Drawing", layerId)
+    --   love.graphics.draw(currentSpriteBatch)
+    -- end
+  end
+
+  local vertices = {}
+  for _, rect in ipairs(rects) do
+    for _, vertex in ipairs(rect) do
+      table.insert(vertices, vertex)
     end
   end
 
+  local vertexMap = createVertexMap(#rects)
+  mesh:setVertices(vertices)
+  mesh:setVertexMap(vertexMap)
+
+  love.graphics.draw(mesh)
 
   if shaderId then
     love.graphics.setShader()
@@ -173,19 +213,27 @@ end
 -- 
 -- end
 
-local function createDrawFunction(self, layerName, shader)
-  --self.layers[layerName] = {
-  --  batches = {}
-  --}
-  self.layers[layerName] = {}
+local function createDrawFunction(self, layerName, atlasId, shader)
+  local atlasImage = mediaManager:getAtlas(atlasId):getImage()
+  local mesh = love.graphics.newMesh({
+      { "VertexPosition", "float", 2 },
+      { "VertexTexCoord", "float", 2 },
+      { "origin", "float", 2 },
+    }, 200000, "triangles", "dynamic")
+  mesh:setTexture(atlasImage)
+
+  self.layers[layerName] = {
+    entities = {},
+    mesh = mesh
+  }
   return function() drawLayer(self, layerName, shader) end
 end
 
 function SpriteSystem:systemsLoaded()
-  self:getWorld():emit("registerLayer", "ground", createDrawFunction(self, "ground"), self, true)
-  self:getWorld():emit("registerLayer", "groundLevel", createDrawFunction(self, "groundDecals"), self, true)
-  self:getWorld():emit("registerLayer", "onGround", createDrawFunction(self, "onGround", "uniformLightShader"), self, true)
-  self:getWorld():emit("registerLayer", "aboveGround", createDrawFunction(self, "aboveGround"), self, true)
+  self:getWorld():emit("registerLayer", "ground", createDrawFunction(self, "ground", "dynamic"), self, true)
+  self:getWorld():emit("registerLayer", "groundLevel", createDrawFunction(self, "groundDecals", "autoLoaded"), self, true)
+  self:getWorld():emit("registerLayer", "onGround", createDrawFunction(self, "onGround", "autoLoaded", "uniformLightShader"), self, true)
+  self:getWorld():emit("registerLayer", "aboveGround", createDrawFunction(self, "aboveGround", "autoLoaded"), self, true)
 end
 
 return SpriteSystem

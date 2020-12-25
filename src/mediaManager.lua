@@ -1,5 +1,6 @@
 local lfs = love.filesystem
 local json = require 'libs.json'
+local Atlas = require 'utils/atlas'
 
 local function simplifyFileName(path)
   -- Remove extension
@@ -49,18 +50,7 @@ local function fillTree(folder, fileTree, root, result)
 end
 
 local function createMediaEntities(self, fileEntries)
-  local atlasWidth = 1280
-  local atlasHeight = 1280
-  local canvas = love.graphics.newCanvas(atlasWidth, atlasHeight)
-  self.atlas = canvas
-  local spriteBatch = love.graphics.newSpriteBatch(canvas, 3000, "stream")
-  self.spriteBatch = spriteBatch
-  love.graphics.setCanvas(canvas)
-
-  local currentX = 0
-  local currentY = 0
-  local lastRowHeight = 0
-
+  local preloadAtlas = Atlas(1280, 1280)
   self.mediaEntities = {}
 
   for _, fileEntry in ipairs(fileEntries) do
@@ -69,77 +59,33 @@ local function createMediaEntities(self, fileEntries)
     local framesX = metaData and metaData.framesX or 1
     local framesY = metaData and metaData.framesY or 1
 
-    local sprite = love.graphics.newImage(fileEntry.fileName)
-    local spriteWidth, spriteHeight = sprite:getDimensions()
-
-    if currentY + spriteHeight > atlasHeight then
-      error("Ran out of texture space! Tell the dev, wtf!")
-    else
-      love.graphics.draw(sprite, currentX, currentY)
-
-      local mediaEntity = {
-        atlas = canvas,
-        spriteBatch = spriteBatch,
-        origin = { x = 0, y = 0 },
-        quads = {}
-      }
-
-      if metaData and metaData.origin then
-        mediaEntity.origin = metaData.origin
-      end
-
-      self:setMediaEntity(fileEntry.selector, mediaEntity)
-
-      for x=1, framesX do
-        for y=1, framesY do
-          local quadW = spriteWidth / framesX
-          local quadH = spriteHeight / framesY
-          local quadX = currentX + (x - 1) * quadW
-          local quadY = currentY + (y - 1) * quadH
-          local quad = love.graphics.newQuad(quadX, quadY, quadW, quadH, canvas:getDimensions())
-          table.insert(mediaEntity.quads, quad)
-        end
-      end
-
-      currentX = currentX + spriteWidth
-
-      if spriteHeight > lastRowHeight then
-        lastRowHeight = spriteHeight
-      end
-
-      if currentX + spriteWidth > atlasWidth then
-        currentX = 0
-        currentY = currentY + lastRowHeight
-        lastRowHeight = 0
-      end
-    end
+    local imageData = love.image.newImageData(fileEntry.fileName)
+    local mediaEntity = preloadAtlas:addImage(imageData, framesX, framesY)
+    self:setMediaEntity(fileEntry.selector, mediaEntity)
   end
 
-  love.graphics.setCanvas()
+  return preloadAtlas
 end
 
 local MediaManager = Class {
   init = function(self)
+    self.atlases = {}
     self.tree = {}
     local _, fileEntities = fillTree("media/images", "") -- Fill above 2 tables
-    --self.mediaEntities = createMediaEntities(self, fileEntities)
-    createMediaEntities(self, fileEntities)
+    self.atlases["autoLoaded"] = createMediaEntities(self, fileEntities)
+    self.atlases["dynamic"] = Atlas(3000, 3000)
   end,
   getMediaEntity = function(self, path)
     return self.tree[path]
   end,
   setMediaEntity = function(self, path, mediaEntity)
-    --print("Setting mediaEntity", path)
     self.tree[path] = mediaEntity
   end,
-  getAtlas = function(self)
-    return self.atlas
+  getAtlas = function(self, id)
+    return self.atlases[id]
   end,
-  getSpriteBatch = function(self)
-    return self.spriteBatch
-  end,
-  createMediaEntity = function(self)
-
+  addAtlas = function(self, id, atlas)
+    self.atlases[id] = atlas
   end
 }
 

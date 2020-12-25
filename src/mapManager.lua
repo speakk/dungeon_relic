@@ -239,16 +239,12 @@ local function drawMap(map, world)
       startX, startY, endX, endY
       )
 
-      local mediaEntity = {
-        atlas = canvas,
-        spriteBatch = love.graphics.newSpriteBatch(canvas),
-        metaData = {},
-        origin = { x = 0, y = 0 },
-        quads = { love.graphics.newQuad(0, 0, canvasWidth, canvasHeight, canvasWidth, canvasHeight) }
-      }
+      local atlas = mediaManager:getAtlas("dynamic")
+      local mediaEntity = atlas:addImage(canvas:newImageData())
 
       local mediaPath = 'mapLayerCache.floor' .. startX .. "|" .. startY
       mediaManager:setMediaEntity(mediaPath, mediaEntity)
+
       local entity = Concord.entity()
       :give('sprite', mediaPath, "ground")
       :give('size', canvasWidth, canvasHeight)
