@@ -22,15 +22,27 @@ end
     --return texturecolor * color;
 shaders = {
   uniformLightShader = love.graphics.newShader [[
+  #ifdef VERTEX
+  attribute vec2 origin;
+  varying vec2 vertexOrigin;
+  vec4 position(mat4 transform_projection, vec4 vertex_position)
+  {
+    vertexOrigin = origin;
+    // The order of operations matters when doing matrix multiplication.
+    return transform_projection * vertex_position;
+  }
+  #endif
+
+
+  #ifdef PIXEL
+  varying vec2 vertexOrigin;
+
   uniform Image lightCanvas;
   uniform vec2 lightCanvasRatio;
   uniform vec2 canvasSize;
   uniform vec2 cameraPos;
   uniform vec2 screenSize;
   uniform float cameraScale;
-
-  uniform vec2 spritePosition;
-  uniform vec2 spriteOrigin;
 
   vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
   {
@@ -39,11 +51,14 @@ shaders = {
     vec2 camPosNorm = cameraPos / screenSize;
 
     //vec4 lightCanvasColor = Texel(lightCanvas, (screen_coords + cameraPos) / canvasSize); // WORKS WITH CAMERA SCALE 1
-    vec4 lightCanvasColor = Texel(lightCanvas, (screen_coords + cameraPos * cameraScale) / canvasSize / cameraScale);
+    //vec4 lightCanvasColor = Texel(lightCanvas, (screen_coords + cameraPos * cameraScale) / canvasSize / cameraScale);
+    vec4 lightCanvasColor = Texel(lightCanvas, (vertexOrigin * cameraScale + cameraPos * cameraScale) / canvasSize / cameraScale);
     vec4 texturecolor = Texel(tex, texture_coords);
     return texturecolor * vec4(lightCanvasColor.rgb, 1);
     //return lightCanvasColor;
   }
+
+  #endif
   ]]
 }
 
@@ -72,10 +87,11 @@ local function createVertexMap(quadCount)
 end
 
 function SpriteSystem:cameraUpdated(camera) -- luacheck: ignore
-  local x, y = camera:getVisibleCorners() -- works with camera scale 1
+  --local x, y = camera:getVisibleCorners() -- works with camera scale 1
+  local x, y = camera:getWindow() -- works with camera scale 1
   --local x, y = camera:getPosition()
   if shaders.uniformLightShader:hasUniform("cameraPos") then
-    shaders.uniformLightShader:send("cameraPos", { x, y })
+    shaders.uniformLightShader:send("cameraPos", { -x, -y })
   end
   if shaders.uniformLightShader:hasUniform("cameraScale") then
     shaders.uniformLightShader:send("cameraScale", camera:getScale())
@@ -136,10 +152,11 @@ local function drawLayer(self, layerId, shaderId)
   local mesh = self.layers[layerId].mesh
   local image = mesh:getTexture()
   local imageW, imageH = image:getDimensions()
+
   local rects = {}
+
   local zSorted = table.insertion_sort(inHash, function(a, b) return compareY(a, b) end)
-  --local spriteBatch = mediaManager:getSpriteBatch()
-  --spriteBatch:clear()
+
   for _, entity in ipairs(zSorted) do
     local spriteId = entity.sprite.spriteId
     local mediaEntity = mediaManager:getMediaEntity(spriteId)
@@ -150,14 +167,11 @@ local function drawLayer(self, layerId, shaderId)
     local quadX, quadY, w, h = currentQuad:getViewport()
     local origin = { x = 0, y = 0 }
 
-
     if entity.origin then
       origin.x = w * entity.origin.x
       origin.y = h * entity.origin.y
     end
 
-    --print("Adding quad in", layerId, entity.sprite.spriteId)
-    --local function createRectangle(x, y, w, h, quad, originX, originY)
     local finalX, finalY = position.x - origin.x, position.y - origin.y
     local rect = createRectangle(finalX, finalY, w, h, {
       x = quadX / imageW,
@@ -165,17 +179,12 @@ local function drawLayer(self, layerId, shaderId)
       w = w / imageW,
       h = h / imageH
     }, finalX, finalY)
+
     table.insert(rects, rect)
-    --currentSpriteBatch:add(currentQuad, position.x, position.y, 0, entity.sprite.scale, entity.sprite.scale, origin.x, origin.y)
-    --love.graphics.draw(mediaEntity.atlas, currentQuad, position.x, position.y, 0, entity.sprite.scale, entity.sprite.scale, origin.x, origin.y)
+
     if Gamestate.current().debug then
       love.graphics.circle('fill', position.x, position.y, 2)
     end
-
-    -- if i == #zSorted or mediaManager:getMediaEntity(zSorted[i+1].sprite.spriteId).spriteBatch ~= currentSpriteBatch then
-    --   --print("Drawing", layerId)
-    --   love.graphics.draw(currentSpriteBatch)
-    -- end
   end
 
   local vertices = {}
@@ -196,33 +205,13 @@ local function drawLayer(self, layerId, shaderId)
   end
 end
 
--- local limits = love.graphics.getSystemLimits()
--- local maxTextureSize = limits.texturesize
--- 
--- local function createBatch()
---   local atlas = love.graphics.newCanvas(maxTextureSize, maxTextureSize)
---   return {
---     atlas = atlas,
---     spriteBatch = love.graphics.newSpriteBatch(atlas)
---   }
--- end
--- 
--- local function addSpriteToLayer(layer, spriteId)
---   local mediaEntity = mediaManager.getMediaEntity(spriteId)
---   local batchesSize = #(layer.batches)
---   if batchesSize == 0 then 
---   layer.batches[lastIndex] = layer.batches[lastIndex] or {
---   local lastBatch = layer.batches[#(layer.batches)]
--- 
--- end
-
 local function createDrawFunction(self, layerName, atlasId, shader)
   local atlasImage = mediaManager:getAtlas(atlasId):getImage()
   local mesh = love.graphics.newMesh({
-      { "VertexPosition", "float", 2 },
-      { "VertexTexCoord", "float", 2 },
-      { "origin", "float", 2 },
-    }, 200000, "triangles", "dynamic")
+    { "VertexPosition", "float", 2 },
+    { "VertexTexCoord", "float", 2 },
+    { "origin", "float", 2 },
+  }, 200000, "triangles", "dynamic")
   mesh:setTexture(atlasImage)
 
   self.layers[layerName] = {
