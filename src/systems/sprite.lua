@@ -194,11 +194,15 @@ local function drawLayer(self, layerId, shaderId)
     end
   end
 
-  local vertexMap = createVertexMap(#rects)
-  mesh:setVertices(vertices)
-  mesh:setVertexMap(vertexMap)
+  if #vertices > 0 then
 
-  love.graphics.draw(mesh)
+    local vertexMap = createVertexMap(#rects)
+    mesh:setVertices(vertices)
+    mesh:setVertexMap(vertexMap)
+
+    love.graphics.draw(mesh)
+
+  end
 
   if shaderId then
     love.graphics.setShader()
