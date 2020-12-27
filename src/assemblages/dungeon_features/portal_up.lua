@@ -1,5 +1,6 @@
 return function(entity)
   entity:give("sprite", 'dungeon_features.portal_up', "onGround")
+  entity:give("origin", 0.5, 0.5)
   entity:give("physicsBody", {
     width = 0.4,
     height = 0.4,

@@ -2,12 +2,13 @@ return function(entity)
   entity:assemble(ECS.a.characters.character, 700, 700)
   entity:give("playerControlled")
   entity:give("speed", 35)
+  entity:give("origin", 0.5, 1)
   entity:give("stateMachine", "player")
-  entity:give("sprite", 'characters.player5', "onGround")
-  --entity:give("lightSource", 250, 1, 0.8, 0.4, 1.0)
+  entity:give("sprite", 'characters.player7', "onGround")
+  entity:give("lightSource", 300, 1, 0.8, 0.5, 1.0)
   entity:give("cameraTarget")
   entity:give("mana", 100)
-  entity:give("physicsBody", { width = 0.6, height = 0.2, offsetX=0.5, offsetY=0.9, tags = { "player" } })
+  entity:give("physicsBody", { width = 0.6, height = 0.2, offsetX=0.5, offsetY=1.2, tags = { "player" } })
 
   entity:give("animation", {
     currentAnimations = { "idle" },
@@ -17,8 +18,8 @@ return function(entity)
           {
             componentName = "sprite",
             propertyName = "currentQuadIndex",
-            durations = {0.5, 0.2},
-            values = { 1, 1 },
+            durations = {0.5},
+            values = { 1 },
           }
         }
       },
@@ -27,8 +28,8 @@ return function(entity)
           {
             componentName = "sprite",
             propertyName = "currentQuadIndex",
-            durations = { 0.1, 0.1, 0.1 },
-            values = { 1, 2, 3 },
+            durations = { 0.1, 0.1 },
+            values = { 1, 2 },
           }
         }
       }

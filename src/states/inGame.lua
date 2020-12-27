@@ -70,39 +70,6 @@ function game:enter(_, level)
 
   if TESTING then
     self.world:emit('initTest')
-
-    local map = self.mapManager.map
-
-    local function randomEmptySpot(tiles)
-      local emptySpots = {}
-
-      for y=1,#tiles do
-        for x=1, #tiles[y] do
-          if tiles[y][x] == 0 then
-            table.insert(emptySpots, { x = x, y =y })
-          end
-        end
-      end
-
-      local spot = table.pick_random(emptySpots)
-      if not spot then return #tiles/2,#tiles/2 end
-      return spot.x, spot.y
-    end
-
-    for _=1,10 do
-      local randomEmptyX, randomEmptyY = randomEmptySpot(self.mapManager:getCollisionMap())
-      local ent = Concord.entity(self.world):assemble(ECS.a.getBySelector('dungeon_features.torch_plant'))
-      ent:give("position", randomEmptyX*map.tileSize, randomEmptyY*map.tileSize)
-    end
-
-    for _=1,10 do
-      local randomEmptyX, randomEmptyY = randomEmptySpot(self.mapManager:getCollisionMap())
-      local ent = Concord.entity(self.world)
-      ent:give("position", randomEmptyX*map.tileSize, randomEmptyY*map.tileSize)
-      ent:give("sprite", 'plants.bush1', 'onGround')
-      ent:give("dropShadow")
-      ent:give("origin", 0.5, 0.95)
-    end
   end
 end
 

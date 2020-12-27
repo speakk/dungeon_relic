@@ -135,34 +135,22 @@ local function getTileCenter(x, y, tileSize)
   return x*tileSize - tileSize/2, y*tileSize - tileSize/2
 end
 
+local function placeEntity(assemblageId, tileSize, gridX, gridY, world)
+  local entity = Concord.entity(world):assemble(ECS.a.getBySelector(assemblageId))
+  entity:give("position", gridX*tileSize, gridY*tileSize)
+end
+
 local tileValueToEntity = {
   void = function(x, y, _, _, world)
     return Concord.entity(world):give("gridCollisionItem", x, y)
   end,
-  exit = function(x, y, _, tileSize, world)
-    local portal = Concord.entity(world):assemble(ECS.a.getBySelector("dungeon_features.portal_down"))
-    portal:give("position", x*tileSize, y*tileSize)
-  end,
-  entrance = function(x, y, _, tileSize, world)
-    local portal = Concord.entity(world):assemble(ECS.a.getBySelector("dungeon_features.portal_up"))
-    portal:give("position", x*tileSize, y*tileSize)
-
-  end,
-  spawner = function(x, y, _, tileSize, world)
-    local entity = Concord.entity(world):assemble(ECS.a.getBySelector("dungeon_features.spawner"))
-    entity:give("position", x*tileSize, y*tileSize)
-  end,
-  pillar = function(x, y, _, tileSize, world)
-    local entity = Concord.entity(world):assemble(ECS.a.getBySelector("dungeon_features.pillar"))
-    entity:give("position", getTileCenter(x, y, tileSize))
-  end,
-  player = function(x, y, _, tileSize, world)
-    local player = Concord.entity(world):assemble(ECS.a.getBySelector('characters.player'))
-    player:give("position", getTileCenter(x, y, tileSize))
-  end,
-  wall = function(x, y, _, _, world)
-    return Concord.entity(world):give("gridCollisionItem", x, y)
-  end
+  exit = function(x, y, _, tileSize, world) placeEntity("dungeon_features.portal_down", tileSize, x, y, world) end,
+  entrance = function(x, y, _, tileSize, world) placeEntity("dungeon_features.portal_up", tileSize, x, y, world) end,
+  spawner = function(x, y, _, tileSize, world) placeEntity("dungeon_features.spawner", tileSize, x, y, world) end,
+  pillar = function(x, y, _, tileSize, world) placeEntity("dungeon_features.pillar", tileSize, x, y, world) end,
+  bush = function(x, y, _, tileSize, world) placeEntity("dungeon_features.bush", tileSize, x, y, world) end,
+  player = function(x, y, _, tileSize, world) placeEntity("characters.player", tileSize, x, y, world) end,
+  wall = function(x, y, _, _, world) return Concord.entity(world):give("gridCollisionItem", x, y) end
 }
 
 local function createEntity(x, y, tileValue, tileSize, world, tiles)
@@ -178,6 +166,7 @@ local handleTile = {
   entrance = {createEntity},
   spawner = {createEntity},
   pillar = {createEntity},
+  bush = {createEntity},
   player = {createEntity}
 }
 
@@ -374,6 +363,7 @@ local function generateSimpleMap(seed, descending, width, height)
     print("Getting random pos in room", room:getLeft(), room:getRight(), room:getTop(), room:getBottom())
     local x = love.math.random(room:getLeft() + padding, room:getRight() - padding)
     local y = love.math.random(room:getTop() + padding, room:getBottom() - padding)
+    print("Final x, y", x, y)
     return x, y
   end
 
@@ -413,9 +403,16 @@ local function generateSimpleMap(seed, descending, width, height)
 
   for _=1,10 do
     local x, y, _ = getPositionInRandomRoom(rotMap._rooms, 1)
-    --if not featuresLayer.tiles[y][x] then
-      featuresLayer.tiles[exitY][exitX] = "pillar"
-    --end
+    if not featuresLayer.tiles[y][x] then
+      featuresLayer.tiles[y][x] = "pillar"
+    end
+  end
+
+  for _=1,10 do
+    local x, y, _ = getPositionInRandomRoom(rotMap._rooms, 1)
+    if not featuresLayer.tiles[y][x] then
+      featuresLayer.tiles[y][x] = "bush"
+    end
   end
 
   table.insert(map.layers, featuresLayer)

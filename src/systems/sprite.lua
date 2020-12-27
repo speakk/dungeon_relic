@@ -12,8 +12,8 @@ local function compareY(a, b)
   local _, _, _, h1 = mediaEntityA.quads[a.sprite.currentQuadIndex or 1]:getViewport()
   local _, _, _, h2 = mediaEntityB.quads[b.sprite.currentQuadIndex or 1]:getViewport()
 
-  local aOriginY = a.origin and a.origin.x or 0
-  local bOriginY = b.origin and b.origin.x or 0
+  local aOriginY = a.origin and a.origin.y or 0
+  local bOriginY = b.origin and b.origin.y or 0
   local posA = a.position.vec.y + h1 - aOriginY * h1
   local posB = b.position.vec.y + h2 - bOriginY * h2
   return posA < posB
@@ -62,13 +62,22 @@ shaders = {
   ]]
 }
 
-local function createRectangle(x, y, w, h, quad, originX, originY)
-  return {
-    { x, y, quad.x, quad.y, originX, originY },
-    { x+w, y, quad.x + quad.w, quad.y, originX, originY },
-    { x+w, y+h, quad.x + quad.w, quad.y + quad.h, originX, originY },
-    { x, y+h, quad.x, quad.y + quad.h, originX, originY }
-  }
+local function createRectangle(x, y, w, h, quad, originX, originY, flipped)
+  if flipped then
+    return {
+      { x+w, y, quad.x, quad.y, originX, originY },
+      { x, y, quad.x + quad.w, quad.y, originX, originY },
+      { x, y+h, quad.x + quad.w, quad.y + quad.h, originX, originY },
+      { x+w, y+h, quad.x, quad.y + quad.h, originX, originY }
+    }
+  else
+    return {
+      { x, y, quad.x, quad.y, originX, originY },
+      { x+w, y, quad.x + quad.w, quad.y, originX, originY },
+      { x+w, y+h, quad.x + quad.w, quad.y + quad.h, originX, originY },
+      { x, y+h, quad.x, quad.y + quad.h, originX, originY }
+    }
+  end
 end
 
 local function createVertexMap(quadCount)
@@ -172,13 +181,18 @@ local function drawLayer(self, layerId, shaderId)
       origin.y = h * entity.origin.y
     end
 
+    local flipped = false
+    if entity.velocity then
+      if entity.velocity.vec.x < 0 then flipped = true end
+    end
+
     local finalX, finalY = position.x - origin.x, position.y - origin.y
     local rect = createRectangle(finalX, finalY, w, h, {
       x = quadX / imageW,
       y = quadY / imageH,
       w = w / imageW,
       h = h / imageH
-    }, finalX, finalY)
+    }, position.x, position.y, flipped)
 
     table.insert(rects, rect)
 
@@ -227,7 +241,7 @@ end
 
 function SpriteSystem:systemsLoaded()
   self:getWorld():emit("registerLayer", "ground", createDrawFunction(self, "ground", "dynamic"), self, true)
-  self:getWorld():emit("registerLayer", "groundLevel", createDrawFunction(self, "groundDecals", "autoLoaded"), self, true)
+  self:getWorld():emit("registerLayer", "groundLevel", createDrawFunction(self, "groundLevel", "autoLoaded"), self, true)
   self:getWorld():emit("registerLayer", "onGround", createDrawFunction(self, "onGround", "autoLoaded", "uniformLightShader"), self, true)
   self:getWorld():emit("registerLayer", "aboveGround", createDrawFunction(self, "aboveGround", "autoLoaded"), self, true)
 end

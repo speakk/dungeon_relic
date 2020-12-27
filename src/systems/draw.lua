@@ -37,7 +37,7 @@ end
 local shader = love.graphics.newShader [[
 vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
 {
-  float Brightness = 3;
+  float Brightness = 2.2;
   float Contrast = 1.1;
   vec4 AverageLuminance = vec4(0.5, 0.5, 0.5, 1.0);
   vec4 texturecolor = Texel(tex, texture_coords);
