@@ -12,7 +12,9 @@ local game = {}
 
 local TESTING = true
 
+-- TODO: Debug spawn global
 world = nil
+  -- TODO END: Debug spawn global
 
 function game:enter(_, level)
   self.originalSeed, _ = love.math.getRandomSeed()

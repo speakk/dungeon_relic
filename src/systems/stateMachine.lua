@@ -38,9 +38,9 @@ local stateTypes = {
             entity.stateMachine.attackDone = false
             local sprite = entity.sprite
             sprite.currentQuadIndex = 5
-            flux.to(sprite, 2, { currentQuadIndex = 7 })
+            flux.to(sprite, 0.5, { currentQuadIndex = 7 })
             :oncomplete(function() sprite.currentQuadIndex = 8 end)
-            :oncomplete(function() Timer.after(1, function() entity.stateMachine.attackPrepared = true end) end)
+            :oncomplete(function() Timer.after(0.5, function() entity.stateMachine.attackPrepared = true end) end)
             --entity.animation.currentAnimations = { "attack" }
           end,
           update = function(_, dt)
