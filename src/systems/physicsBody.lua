@@ -71,7 +71,7 @@ function PhysicsBodySystem:markOutOfScreenInactive()
   if self.camera then
     local l, t, w, h = self.camera:getVisible()
     local onScreenAll = {}
-    Gamestate.current().spatialHash:each(l, t, w, h, function(entity)
+    Gamestate.current().spatialHash.all:each(l, t, w, h, function(entity)
       table.insert(onScreenAll, entity)
     end)
 
@@ -135,7 +135,7 @@ end
 function PhysicsBodySystem:entityMovedByPhysics(entity, physicsX, physicsY) --luacheck: ignore
   local transformX, transformY = positionUtil.getPhysicsBodyTransform(entity)
   local targetX, targetY = Vector.split(Vector(physicsX, physicsY) - Vector(transformX, transformY))
-  entity.position.vec = Vector(targetX, targetY)
+  entity.position.vec.x, entity.position.vec.y = targetX, targetY
 end
 
 return PhysicsBodySystem

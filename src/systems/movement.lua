@@ -38,7 +38,7 @@ function MovementSystem:update(dt)
     -- Right now just copy directionIntent -> acceleration. here. TODO: Move directionIntent -> acceleration relationship into its own system
     local acceleration = entity.directionIntent.vec.copy
     entity.velocity.vec = entity.velocity.vec + acceleration
-    entity.position.vec = entity.position.vec + entity.velocity.vec * dt * entity.speed.value
+    entity.position.vec.x, entity.position.vec.y = Vector.split(entity.position.vec + entity.velocity.vec * dt * entity.speed.value)
     applyFriction2d(entity.velocity.vec, 15, dt)
   end
 end

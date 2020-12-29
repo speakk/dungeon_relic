@@ -15,6 +15,16 @@ function DebugSystem:toggleDebug() -- luacheck: ignore
   Gamestate.current().debug = not Gamestate.current().debug
 end
 
+function DebugSystem:startLuaDebugger() --luacheck: ignore
+  debug.debug()
+end
+
+function DebugSystem:keyPressed(key)
+  if key == 'f2' then
+    self:getWorld():emit("startLuaDebugger")
+  end
+end
+
 local lineHeight = 20
 
 function DebugSystem:drawDebug()

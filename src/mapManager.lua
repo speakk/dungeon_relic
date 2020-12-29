@@ -395,9 +395,9 @@ local function generateSimpleMap(seed, descending, width, height)
 
   featuresLayer.tiles[entranceY][entranceX] = "entrance"
   if descending then
-    featuresLayer.tiles[entranceY+2][entranceX] = "player"
+    featuresLayer.tiles[entranceY+1][entranceX] = "player"
   else
-    featuresLayer.tiles[exitY+2][exitX] = "player"
+    featuresLayer.tiles[exitY+1][exitX] = "player"
   end
   -- ENTRANCE / EXIT END
 
@@ -412,6 +412,13 @@ local function generateSimpleMap(seed, descending, width, height)
     local x, y, _ = getPositionInRandomRoom(rotMap._rooms, 1)
     if not featuresLayer.tiles[y][x] then
       featuresLayer.tiles[y][x] = "bush"
+    end
+  end
+
+  for _=1,10 do
+    local x, y, _ = getPositionInRandomRoom(rotMap._rooms, 1)
+    if not featuresLayer.tiles[y][x] then
+      featuresLayer.tiles[y][x] = "spawner"
     end
   end
 

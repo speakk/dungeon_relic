@@ -2,6 +2,7 @@ local Gamestate = require 'libs.hump.gamestate'
 local shash = require 'libs.shash'
 local Timer = require 'libs.hump.timer'
 local bump = require 'libs.bump'
+local flux = require 'libs.flux'
 local Gamera = require 'libs.gamera'
 
 local switchLevels = require 'states.switchLevels'
@@ -11,6 +12,7 @@ local game = {}
 
 local TESTING = true
 
+world = nil
 
 function game:enter(_, level)
   self.originalSeed, _ = love.math.getRandomSeed()
@@ -19,6 +21,11 @@ function game:enter(_, level)
   love.math.setRandomSeed(self.currentLevelNumber + self.originalSeed)
 
   self.world = Concord.world()
+
+  -- TODO: Debug spawn global
+  world = self.world
+  -- TODO END: Debug spawn global
+
   print("Adding systems")
   self.world:addSystems(
     ECS.s.input,
@@ -37,6 +44,7 @@ function game:enter(_, level)
     -- Dungeon features END
     ECS.s.spatialHash,
     ECS.s.gridCollision,
+    ECS.s.interactable,
     ECS.s.checkEntityMoved,
     ECS.s.animation,
     ECS.s.light,
@@ -53,8 +61,12 @@ function game:enter(_, level)
   print("Systems added")
 
   local hashCellSize = 256
-  self.spatialHash = shash.new(hashCellSize)
-  print("HASH?", self.spatialHash)
+  self.spatialHash = {
+    all = shash.new(hashCellSize),
+    interactable = shash.new(hashCellSize)
+  }
+  --shash.new(hashCellSize)
+  --print("HASH?", self.spatialHash)
 
   self.bumpWorld = bump.newWorld(64)
 
@@ -82,6 +94,7 @@ function game:update(dt)
   Timer.update(dt)
   self.world:emit("clearDirectionIntent", dt)
   self.world:emit("preUpdate", dt)
+  flux.update(dt)
   self.world:emit("update", dt)
 end
 
@@ -113,6 +126,13 @@ function game:draw()
   -- self.world:emit("drawLights")
   -- self.world:emit("drawUI")
   -- if self.debug then self.world:emit("drawDebug") end
+end
+
+
+-- TODO: TEMP: DEBUG func to spawn entity
+function spawn(assemblageId, x, y)
+  local entity = Concord.entity(world):assemble(ECS.a.getBySelector(assemblageId))
+  entity:give("position", x*32, y*32)
 end
 
 function game:keypressed(pressedKey, scancode, isrepeat)

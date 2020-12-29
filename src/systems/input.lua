@@ -43,6 +43,10 @@ function InputSystem:update(dt)
   if shooting then
     self:getWorld():emit('playerShoot', shootingDirection.normalized)
   end
+
+  if love.keyboard.isDown('space') then
+    self:getWorld():emit('playerInteractIntent')
+  end
 end
 
 function InputSystem:keyPressed(pressedKey, scancode, isrepeat)

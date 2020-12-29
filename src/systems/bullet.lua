@@ -13,6 +13,14 @@ end
 function BulletSystem:bulletCollision(bulletEntity, target)
   self:getWorld():emit("takeDamage", target, bulletEntity.damager.value)
 
+  Concord.entity(self:getWorld()):assemble(ECS.a.getBySelector('particle_emitters.smallDamageHit'))
+  :give('position', Vector.split(bulletEntity.position.vec))
+  :give('origin', 0.5, 0.5)
+
+  Concord.entity(self:getWorld()):assemble(ECS.a.getBySelector('particle_emitters.bulletHit'))
+  :give('position', Vector.split(bulletEntity.position.vec))
+  :give('origin', 0.5, 0.5)
+
   bulletEntity:destroy()
 end
 

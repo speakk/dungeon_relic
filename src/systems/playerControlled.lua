@@ -43,4 +43,10 @@ function PlayerControlledSystem:playerShoot(direction)
   end
 end
 
+function PlayerControlledSystem:playerInteractIntent()
+  for _, entity in ipairs(self.pool) do
+    self:getWorld():emit("interactIntent", entity)
+  end
+end
+
 return PlayerControlledSystem

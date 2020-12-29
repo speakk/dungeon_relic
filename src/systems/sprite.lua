@@ -9,8 +9,8 @@ local function compareY(a, b)
   local mediaEntityA = mediaManager:getMediaEntity(a.sprite.spriteId)
   local mediaEntityB = mediaManager:getMediaEntity(b.sprite.spriteId)
 
-  local _, _, _, h1 = mediaEntityA.quads[a.sprite.currentQuadIndex or 1]:getViewport()
-  local _, _, _, h2 = mediaEntityB.quads[b.sprite.currentQuadIndex or 1]:getViewport()
+  local _, _, _, h1 = mediaEntityA.quads[a.sprite:getCurrentQuadIndex()]:getViewport()
+  local _, _, _, h2 = mediaEntityB.quads[b.sprite:getCurrentQuadIndex()]:getViewport()
 
   local aOriginY = a.origin and a.origin.y or 0
   local bOriginY = b.origin and b.origin.y or 0
@@ -131,6 +131,13 @@ function SpriteSystem:init()
     local layerId = entity.sprite.layerId
     self.layers[layerId] = self.layers[layerId] or {}
     table.insert(self.layers[layerId].entities, entity)
+
+    local mediaEntity = mediaManager:getMediaEntity(entity.sprite.spriteId)
+    local _, _, w, h = mediaEntity.quads[1]:getViewport()
+    entity.sprite.width = w
+    entity.sprite.height = h
+    entity.sprite.originXPixels = entity.origin and entity.origin.x * w or 0
+    entity.sprite.originYPixels = entity.origin and entity.origin.y * h or 0
   end
 
   self.pool.onEntityRemoved = function(_, entity)
@@ -171,7 +178,7 @@ local function drawLayer(self, layerId, shaderId)
     local mediaEntity = mediaManager:getMediaEntity(spriteId)
 
     local position = entity.position.vec
-    local currentQuadIndex = entity.sprite.currentQuadIndex or 1
+    local currentQuadIndex = entity.sprite.getCurrentQuadIndex()
     local currentQuad = mediaEntity.quads[currentQuadIndex]
     local quadX, quadY, w, h = currentQuad:getViewport()
     local origin = { x = 0, y = 0 }

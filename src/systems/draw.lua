@@ -11,6 +11,7 @@ local _layerZIndexArray = {
   "onGround", -- Characters, walls etc go here
   "aboveGround",
   "particles",
+  "tooltips",
   "debugWithCamera",
   "ui",
   "debugNoCamera",

@@ -5,7 +5,7 @@ local getTransform = memoize(function(body, entity)
   local sprite = entity.sprite
   if sprite then
     local mediaEntity = mediaManager:getMediaEntity(sprite.spriteId)
-    local quad = mediaEntity.quads[sprite.currentQuadIndex or 1]
+    local quad = mediaEntity.quads[sprite:getCurrentQuadIndex()]
     local _, _, quadW, quadH = quad:getViewport()
     local w = quadW * body.width
     local h = quadH * body.height

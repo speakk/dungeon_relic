@@ -1,3 +1,6 @@
+local Gamestate = require 'libs.hump.gamestate'
+local flux = require 'libs.flux'
+local Timer = require 'libs.hump.timer'
 local StateMachineSystem = Concord.system({ pool = { "stateMachine" } })
 
 local stateTypes = {
@@ -7,13 +10,68 @@ local stateTypes = {
       states = {
         idle = {
           enter = function()
+            if entity.aiControlled then
+              entity:remove("aiControlled")
+            end
             print("basicAi idle enter")
           end,
-          update = function(dt)
-            print("Updating idle")
+          update = function(_, dt)
+            local x, y = Vector.split(entity.position.vec)
+            local range = 200
+            local target = nil
+            Gamestate.current().spatialHash.all:each(x - range/2, y - range/2, range, range, function(possibleTarget)
+              if possibleTarget:has("playerControlled") then
+                target = possibleTarget
+              end
+            end)
+
+            if target then
+              entity.stateMachine.target = target
+              return "attackPrepare"
+            end
           end
         },
-        move = {}
+        attackPrepare = {
+          enter = function()
+            --entity:give("aiControlled")
+            print("basicAi attackPrepare enter")
+            entity.stateMachine.attackDone = false
+            local sprite = entity.sprite
+            sprite.currentQuadIndex = 5
+            flux.to(sprite, 2, { currentQuadIndex = 7 })
+            :oncomplete(function() sprite.currentQuadIndex = 8 end)
+            :oncomplete(function() Timer.after(1, function() entity.stateMachine.attackPrepared = true end) end)
+            --entity.animation.currentAnimations = { "attack" }
+          end,
+          update = function(_, dt)
+            if entity.stateMachine.attackPrepared then
+              entity.stateMachine.attackPrepared = false
+              return "attack"
+            end
+          end
+        },
+        attack = {
+          enter = function()
+            print("basicAi attack enter")
+            entity.stateMachine.attackDone = false
+            local range = 100
+            local direction = entity.position.vec + (entity.stateMachine.target.position.vec - entity.position.vec).normalized * range
+
+            flux.to(entity.position.vec, 0.6, { x = direction.x, y = direction.y })
+            :ease('backin')
+            :onupdate(function() print("Tweening pos", entity.position.vec) end)
+            :oncomplete(function()
+              entity.stateMachine.attackDone = true
+            end)
+          end,
+          update = function()
+            if entity.stateMachine.attackDone then
+              print("Attack is done, return to idle")
+              entity.stateMachine.attackDone = false
+              return "idle"
+            end
+          end
+        }
       }
     }
   end,
@@ -62,6 +120,11 @@ function StateMachineSystem:init()
   self.pool.onEntityAdded = function(_, entity)
     local machineType = stateTypes[entity.stateMachine.stateType](entity)
     entity.stateMachine.machine = state_machine:new(machineType.states, machineType.defaultState)
+    entity.stateMachine.machine:set_state(machineType.defaultState)
+  end
+
+  self.pool.onEntityRemoved = function (_, entity)
+    entity.stateMachine.machine = nil
   end
 end
 
