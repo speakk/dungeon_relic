@@ -1,6 +1,5 @@
 local positionUtil = require 'utils.position'
-
-local ROT=require 'libs.rotLove.src.rot'
+local dungeonGenerator = require 'utils.dungeonGenerator'
 
 local function isPositionAvailable(self, x, y)
   return self.collisionMap[positionUtil.positionToString(x, y)]
@@ -131,10 +130,6 @@ local function drawTile(x, y, tileValue, tileSize, _, _, offsetX, offsetY)
   love.graphics.draw(tileSet, quad, finalX, finalY)
 end
 
-local function getTileCenter(x, y, tileSize)
-  return x*tileSize - tileSize/2, y*tileSize - tileSize/2
-end
-
 local function placeEntity(assemblageId, tileSize, gridX, gridY, world)
   local entity = Concord.entity(world):assemble(ECS.a.getBySelector(assemblageId))
   entity:give("position", gridX*tileSize, gridY*tileSize)
@@ -147,6 +142,7 @@ local tileValueToEntity = {
   exit = function(x, y, _, tileSize, world) placeEntity("dungeon_features.portal_down", tileSize, x, y, world) end,
   entrance = function(x, y, _, tileSize, world) placeEntity("dungeon_features.portal_up", tileSize, x, y, world) end,
   spawner = function(x, y, _, tileSize, world) placeEntity("dungeon_features.spawner", tileSize, x, y, world) end,
+  monster = function(x, y, _, tileSize, world) placeEntity("characters.monsterA", tileSize, x, y, world) end,
   pillar = function(x, y, _, tileSize, world) placeEntity("dungeon_features.pillar", tileSize, x, y, world) end,
   bush = function(x, y, _, tileSize, world) placeEntity("dungeon_features.bush", tileSize, x, y, world) end,
   player = function(x, y, _, tileSize, world) placeEntity("characters.player", tileSize, x, y, world) end,
@@ -165,6 +161,7 @@ local handleTile = {
   exit = {createEntity},
   entrance = {createEntity},
   spawner = {createEntity},
+  monster = {createEntity},
   pillar = {createEntity},
   bush = {createEntity},
   player = {createEntity}
@@ -335,6 +332,8 @@ local function createLayer(width, height, valueFunction)
 end
 
 local function generateSimpleMap(seed, descending, width, height)
+  width = width
+  height = height
   local map = { layers = {} }
   --local scale = 0.1
   --
@@ -345,36 +344,69 @@ local function generateSimpleMap(seed, descending, width, height)
   -- corridorWidth table Length of east-west corridors (default {3)
   -- corridorHeight table Length of north-south corridors (default {2)
 
-  local rotMapGenerator = ROT.Map.Brogue:new(width, height,{
-    roomWidth = {2, 3},
-    roomHeight = {2, 3}
+  -- local rotMapGenerator = ROT.Map.Brogue:new(width, height,{
+  -- })
+
+  local dungeon = dungeonGenerator.generateDungeon(width, height, 10, 10, {
+    roomWidthMin = 5,
+    roomHeightMin = 5
   })
 
   local rotMapLayer = {}
 
-  local rotMap = rotMapGenerator:create(function(x, y, type)
+  for y=1,#dungeon.tiles[1] do
+    local row = dungeon.tiles[y]
     if not rotMapLayer[y] then rotMapLayer[y] = {} end
-    if type == 0 then rotMapLayer[y][x] = "floor" end
-    if type == 1 then rotMapLayer[y][x] = "wall" end
-    if type == 2 then rotMapLayer[y][x] = "floor" end -- TODO: add door
-  end, true)
+    for x=1,#row do
+      local tile = dungeon.tiles[y][x]
+      if tile == "floor" then print("Floor at x/y", x,y) end
+      rotMapLayer[y][x] = tile -- TODO: Add type mapping here
+    end
+  end
+
+
+  -- local rotMap = rotMapGenerator:create(function(x, y, type)
+  --   if not rotMapLayer[y] then rotMapLayer[y] = {} end
+  --   if type == 0 then rotMapLayer[y][x] = "floor" end
+  --   if type == 1 then rotMapLayer[y][x] = "wall" end
+  --   if type == 2 then rotMapLayer[y][x] = "floor" end -- TODO: add door
+  -- end, false)
 
   local getRandomPositionInRoom = function(room, padding)
-    print("Getting random pos in room", room:getLeft(), room:getRight(), room:getTop(), room:getBottom())
-    local x = love.math.random(room:getLeft() + padding, room:getRight() - padding)
-    local y = love.math.random(room:getTop() + padding, room:getBottom() - padding)
+    if padding > room.w/2 or padding > room.h/2 then error("Padding too large for room size") end
+    local empties = {}
+    print("ROOM", inspect(room))
+    for y=room.y+padding,room.y+room.h-padding do
+      for x=room.x+padding,room.x+room.w-padding do
+        print(rotMapLayer[y][x])
+        if rotMapLayer[y][x] == "floor" then table.insert(empties, {x,y}) end
+      end
+    end
+
+    if #empties == 0 then error("No empty spot found in room") end
+
+    local empty = table.pick_random(empties)
+    local x, y = empty[1],empty[2]
+
     print("Final x, y", x, y)
+    if rotMapLayer[y][x] == "wall" then
+      error ("Trying to get position in room which is actually wall x/y: " .. x .. "/" .. y)
+    end
+
     return x, y
   end
 
   local getPositionInRandomRoom = function(rooms, padding)
+    local nonNilRooms = functional.filter(rooms, function(room) return room end)
     padding = padding or 1
-    local randomRoom = table.pick_random(rooms)
+    local randomRoom = table.pick_random(nonNilRooms)
     local x, y = getRandomPositionInRoom(randomRoom, padding)
     return x, y, randomRoom
   end
 
   local featuresLayer = createLayer(width, height)
+
+  if #(dungeon.rooms) == 0 then error("No rooms in dungeon") end
 
   --for _=1,5 do
   --  local spawnerX, spawnerY = getPositionInRandomRoom(rotMap._rooms)
@@ -383,13 +415,14 @@ local function generateSimpleMap(seed, descending, width, height)
 
   -- ENTRANCE / EXIT START
   -- Create exit
-  local exitX, exitY, exitRoom = getPositionInRandomRoom(rotMap._rooms, 2)
+  local exitX, exitY, exitRoom = getPositionInRandomRoom(dungeon.rooms, 2)
   featuresLayer.tiles[exitY][exitX] = "exit"
 
   -- Create entrance room. Make sure we find one that is not the same as the exit room
-  local nonExitRooms = functional.filter(table.copy(rotMap._rooms), function(room)
+  local nonExitRooms = functional.filter(table.copy(dungeon.rooms), function(room)
     return room ~= exitRoom
   end)
+  if #nonExitRooms == 0 then error("No nonExitRooms found") end
   local entranceX, entranceY, entranceRoom = getPositionInRandomRoom(nonExitRooms, 2)
   if not entranceRoom then error("No eligible entrance room found, exiting") end
 
@@ -402,23 +435,23 @@ local function generateSimpleMap(seed, descending, width, height)
   -- ENTRANCE / EXIT END
 
   for _=1,10 do
-    local x, y, _ = getPositionInRandomRoom(rotMap._rooms, 1)
+    local x, y, _ = getPositionInRandomRoom(dungeon.rooms, 1)
     if not featuresLayer.tiles[y][x] then
       featuresLayer.tiles[y][x] = "pillar"
     end
   end
 
   for _=1,10 do
-    local x, y, _ = getPositionInRandomRoom(rotMap._rooms, 1)
+    local x, y, _ = getPositionInRandomRoom(dungeon.rooms, 1)
     if not featuresLayer.tiles[y][x] then
       featuresLayer.tiles[y][x] = "bush"
     end
   end
 
-  for _=1,10 do
-    local x, y, _ = getPositionInRandomRoom(rotMap._rooms, 1)
+  for _=1,20 do
+    local x, y, _ = getPositionInRandomRoom(dungeon.rooms, 1)
     if not featuresLayer.tiles[y][x] then
-      featuresLayer.tiles[y][x] = "spawner"
+      featuresLayer.tiles[y][x] = "monster"
     end
   end
 
@@ -426,8 +459,8 @@ local function generateSimpleMap(seed, descending, width, height)
 
   -- Fill the whole thing up with floor
   table.insert(map.layers, createLayer(width, height, function(x, y)
-    for _, room in ipairs(rotMap._rooms) do
-      local l,t,r,b = room:getLeft(), room:getTop(), room:getRight(), room:getBottom()
+    for _, room in ipairs(dungeon.rooms) do
+      local l,t,r,b = room.x,room.y,room.x+room.w,room.y+room.h
       if x >= l and x <= r and y >= t and y <= b then
         return 'roomFloor'
       end
@@ -445,8 +478,8 @@ end
 MapManager.generateMap = function(levelNumber, descending)
   local tileSize = 32
 
-  local width = 25
-  local height = 25
+  local width = 30
+  local height = 30
 
   local map = generateSimpleMap(levelNumber, descending, width, height)
 

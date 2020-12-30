@@ -13,7 +13,6 @@ local stateTypes = {
             if entity.aiControlled then
               entity:remove("aiControlled")
             end
-            print("basicAi idle enter")
           end,
           update = function(_, dt)
             local x, y = Vector.split(entity.position.vec)
@@ -34,7 +33,6 @@ local stateTypes = {
         attackPrepare = {
           enter = function()
             --entity:give("aiControlled")
-            print("basicAi attackPrepare enter")
             entity.stateMachine.attackDone = false
             local sprite = entity.sprite
             sprite.currentQuadIndex = 5
@@ -52,14 +50,12 @@ local stateTypes = {
         },
         attack = {
           enter = function()
-            print("basicAi attack enter")
             entity.stateMachine.attackDone = false
             local range = 100
             local direction = entity.position.vec + (entity.stateMachine.target.position.vec - entity.position.vec).normalized * range
 
             flux.to(entity.position.vec, 0.6, { x = direction.x, y = direction.y })
             :ease('backin')
-            :onupdate(function() print("Tweening pos", entity.position.vec) end)
             :oncomplete(function()
               entity.stateMachine.attackDone = true
             end)
