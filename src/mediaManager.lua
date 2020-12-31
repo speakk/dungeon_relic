@@ -75,6 +75,9 @@ local MediaManager = Class {
     self.atlases["autoLoaded"] = createMediaEntities(self, fileEntities)
     self.atlases["dynamic"] = Atlas(3000, 3000)
   end,
+  resetDynamicAtlas = function(self)
+    self.atlases["dynamic"] = Atlas(3000, 3000)
+  end,
   getMediaEntity = function(self, path)
     return self.tree[path]
   end,

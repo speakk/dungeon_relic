@@ -22,6 +22,8 @@ function game:enter(_, level)
   self.currentLevelNumber = level or 1
   love.math.setRandomSeed(self.currentLevelNumber + self.originalSeed)
 
+  mediaManager:resetDynamicAtlas()
+
   self.world = Concord.world()
 
   -- TODO: Debug spawn global

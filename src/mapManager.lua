@@ -168,7 +168,6 @@ local handleTile = {
 }
 
 local function drawCanvas(tileSize, layers, world, canvasSizeX, canvasSizeY, startX, startY, endX, endY)
-  print("Drawing map canvas, size: ", canvasSizeX, canvasSizeY, "start x, y", startX, startY, "end x, y", endX, endY)
   local canvas = love.graphics.newCanvas(canvasSizeX, canvasSizeY)
   love.graphics.setCanvas(canvas)
 
@@ -279,7 +278,6 @@ local MapManager = Class {
   end,
 
   setMap = function(self, map, world)
-    print("setMap, new map ahoy!", map)
     clearMediaEntries(self.floorCanvasEntities)
     clearEntities(self.floorCanvasEntities)
 
@@ -331,10 +329,7 @@ local function createLayer(width, height, valueFunction)
   return layer
 end
 
-local function generateSimpleMap(seed, descending, width, height)
-  width = width
-  height = height
-  local map = { layers = {} }
+local function generateSimpleMap(seed, descending)
   --local scale = 0.1
   --
   -- roomWidth table Room width for rectangle one of cross rooms (default {4)
@@ -346,11 +341,24 @@ local function generateSimpleMap(seed, descending, width, height)
 
   -- local rotMapGenerator = ROT.Map.Brogue:new(width, height,{
   -- })
+  local outerPadding = 1
 
-  local dungeon = dungeonGenerator.generateDungeon(width, height, 10, 10, {
-    roomWidthMin = 5,
-    roomHeightMin = 5
+  local width=30
+  local height=30
+
+  local dungeon = dungeonGenerator.generateDungeon(width, height, 5, 5, {
+    roomsMin = 8,
+    roomsMax = 9,
+    roomWidthMin = 4,
+    roomHeightMin = 5,
+    outerPadding = outerPadding
   })
+
+  local map = {
+    layers = {},
+    width = width + outerPadding*2,
+    height = height + outerPadding*2
+  }
 
   local rotMapLayer = {}
 
@@ -359,7 +367,6 @@ local function generateSimpleMap(seed, descending, width, height)
     if not rotMapLayer[y] then rotMapLayer[y] = {} end
     for x=1,#row do
       local tile = dungeon.tiles[y][x]
-      if tile == "floor" then print("Floor at x/y", x,y) end
       rotMapLayer[y][x] = tile -- TODO: Add type mapping here
     end
   end
@@ -375,10 +382,8 @@ local function generateSimpleMap(seed, descending, width, height)
   local getRandomPositionInRoom = function(room, padding)
     if padding > room.w/2 or padding > room.h/2 then error("Padding too large for room size") end
     local empties = {}
-    print("ROOM", inspect(room))
     for y=room.y+padding,room.y+room.h-padding do
       for x=room.x+padding,room.x+room.w-padding do
-        print(rotMapLayer[y][x])
         if rotMapLayer[y][x] == "floor" then table.insert(empties, {x,y}) end
       end
     end
@@ -388,7 +393,6 @@ local function generateSimpleMap(seed, descending, width, height)
     local empty = table.pick_random(empties)
     local x, y = empty[1],empty[2]
 
-    print("Final x, y", x, y)
     if rotMapLayer[y][x] == "wall" then
       error ("Trying to get position in room which is actually wall x/y: " .. x .. "/" .. y)
     end
@@ -404,7 +408,7 @@ local function generateSimpleMap(seed, descending, width, height)
     return x, y, randomRoom
   end
 
-  local featuresLayer = createLayer(width, height)
+  local featuresLayer = createLayer(width+outerPadding*2, height+outerPadding*2)
 
   if #(dungeon.rooms) == 0 then error("No rooms in dungeon") end
 
@@ -458,7 +462,7 @@ local function generateSimpleMap(seed, descending, width, height)
   table.insert(map.layers, featuresLayer)
 
   -- Fill the whole thing up with floor
-  table.insert(map.layers, createLayer(width, height, function(x, y)
+  table.insert(map.layers, createLayer(width+outerPadding*2, height+outerPadding*2, function(x, y)
     for _, room in ipairs(dungeon.rooms) do
       local l,t,r,b = room.x,room.y,room.x+room.w,room.y+room.h
       if x >= l and x <= r and y >= t and y <= b then
@@ -468,10 +472,11 @@ local function generateSimpleMap(seed, descending, width, height)
     return 'floor'
   end))
 
-  table.insert(map.layers, createLayer(width, height, function(x, y)
+  table.insert(map.layers, createLayer(width+outerPadding*2, height+outerPadding*2, function(x, y)
     local value = rotMapLayer[y][x]
     if value == "wall" then return value end
   end))
+
   return map
 end
 
@@ -485,7 +490,7 @@ MapManager.generateMap = function(levelNumber, descending)
 
   return {
     tileSize = tileSize,
-    size = { x = width, y = height },
+    size = { x = map.width, y = map.height },
     layers = map.layers
   }
 end

@@ -13,7 +13,7 @@ local images = {
 local mainMenu = {}
 
 function mainMenu:enter() --luacheck: ignore
-  self.keySelectedIndex = nil
+  self.selectedIndex = nil
 end
 
 local function getCentered(image, scale)
@@ -58,8 +58,7 @@ function mainMenu:update(dt) -- luacheck: ignore
   mouseX = mouseX / scale
   mouseY = mouseY / scale
 
-  for _, element in ipairs(self.elements) do
-    element.hovered = false
+  for i, element in ipairs(self.elements) do
     local x = getCentered(element.activeImage, scale)
     local y = element.y
     local w = element.w
@@ -69,8 +68,7 @@ function mainMenu:update(dt) -- luacheck: ignore
       mouseY > y and
       mouseY < y + h then
 
-      element.hovered = true
-      self.keySelectedIndex = nil
+      self.selectedIndex = i
 
       if love.mouse.isDown(1) then
         element:clickFunction()
@@ -81,29 +79,30 @@ end
 
 function mainMenu:keypressed(key)
   if key == 'down' then
-    if not self.keySelectedIndex then self.keySelectedIndex = 0 end
-    self.keySelectedIndex = self.keySelectedIndex + 1
+    if not self.selectedIndex then self.selectedIndex = 0 end
+    self.selectedIndex = self.selectedIndex + 1
   end
   if key == 'up' then
-    if not self.keySelectedIndex then self.keySelectedIndex = 0 end
-    self.keySelectedIndex = self.keySelectedIndex - 1
+    if not self.selectedIndex then self.selectedIndex = 0 end
+    self.selectedIndex = self.selectedIndex - 1
   end
 
-  if self.keySelectedIndex then
-    if self.keySelectedIndex > #(self.elements) then
-      self.keySelectedIndex = 1
-    elseif self.keySelectedIndex < 1 then
-      self.keySelectedIndex = #(self.elements)
+  if self.selectedIndex then
+    if self.selectedIndex > #(self.elements) then
+      self.selectedIndex = 1
+    elseif self.selectedIndex < 1 then
+      self.selectedIndex = #(self.elements)
     end
   end
 
-  if (key == 'space' or key == 'return') and self.keySelectedIndex then
-    self.elements[self.keySelectedIndex].clickFunction()
+  if (key == 'space' or key == 'return') then
+    if self.selectedIndex then
+      self.elements[self.selectedIndex].clickFunction()
+    end
   end
 end
 
-local function drawElement(element, scale, keySelected)
-  local active = keySelected or element.hovered
+local function drawElement(element, scale, active)
   element.activeImage = active and element.hoverImage or element.normalImage
   local x = getCentered(element.activeImage, scale)
   love.graphics.draw(element.activeImage, x, element.y)
@@ -117,7 +116,7 @@ function mainMenu:draw() -- luacheck: ignore
   love.graphics.draw(images.background, x, 0)
 
   for i, element in ipairs(self.elements) do
-    drawElement(element, scale, self.keySelectedIndex == i)
+    drawElement(element, scale, self.selectedIndex == i)
   end
 
   -- x = getCentered(images.playButton, scale)
