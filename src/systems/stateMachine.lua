@@ -10,9 +10,7 @@ local stateTypes = {
       states = {
         idle = {
           enter = function()
-            if entity.aiControlled then
-              entity:remove("aiControlled")
-            end
+            entity.sprite.currentQuadIndex = 1
           end,
           update = function(_, dt)
             local x, y = Vector.split(entity.position.vec)
@@ -51,19 +49,27 @@ local stateTypes = {
         attack = {
           enter = function()
             entity.stateMachine.attackDone = false
-            local range = 100
-            local direction = entity.position.vec + (entity.stateMachine.target.position.vec - entity.position.vec).normalized * range
+            local direction = (entity.stateMachine.target.position.vec - entity.position.vec).normalized
+            entity.directionIntent.vec = direction
 
-            flux.to(entity.position.vec, 0.6, { x = direction.x, y = direction.y })
+            local maxSpeed = 200
+            entity.speed.value = 0
+
+            flux.to(entity.speed, 0.6, { value = maxSpeed })
             :ease('backin')
             :oncomplete(function()
               entity.stateMachine.attackDone = true
+              entity.speed.value = 0
+              entity.velocity.vec.x = 0
+              entity.velocity.vec.y = 0
+              entity.directionIntent.vec.x = 0
+              entity.directionIntent.vec.y = 0
             end)
           end,
           update = function()
             if entity.stateMachine.attackDone then
-              print("Attack is done, return to idle")
               entity.stateMachine.attackDone = false
+              entity.stateMachine.attackPrepared = false
               return "idle"
             end
           end
