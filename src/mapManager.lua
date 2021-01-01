@@ -132,7 +132,7 @@ end
 
 local function placeEntity(assemblageId, tileSize, gridX, gridY, world)
   local entity = Concord.entity(world):assemble(ECS.a.getBySelector(assemblageId))
-  entity:give("position", gridX*tileSize, gridY*tileSize)
+  entity:give("position", gridX*tileSize + tileSize/2, gridY*tileSize + tileSize/2)
 end
 
 local tileValueToEntity = {
@@ -346,7 +346,7 @@ local function generateSimpleMap(seed, descending)
   local width=30
   local height=30
 
-  local dungeon = dungeonGenerator.generateDungeon(width, height, 5, 5, {
+  local dungeon = dungeonGenerator.generateDungeon(width, height, 10, 10, {
     roomsMin = 8,
     roomsMax = 9,
     roomWidthMin = 4,
