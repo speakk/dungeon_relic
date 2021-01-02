@@ -133,6 +133,7 @@ end
 local function placeEntity(assemblageId, tileSize, gridX, gridY, world)
   local entity = Concord.entity(world):assemble(ECS.a.getBySelector(assemblageId))
   entity:give("position", gridX*tileSize + tileSize/2, gridY*tileSize + tileSize/2)
+  return entity
 end
 
 local tileValueToEntity = {
@@ -145,7 +146,13 @@ local tileValueToEntity = {
   monster = function(x, y, _, tileSize, world) placeEntity("characters.monsterA", tileSize, x, y, world) end,
   pillar = function(x, y, _, tileSize, world) placeEntity("dungeon_features.pillar", tileSize, x, y, world) end,
   bush = function(x, y, _, tileSize, world) placeEntity("dungeon_features.bush", tileSize, x, y, world) end,
-  player = function(x, y, _, tileSize, world) placeEntity("characters.player", tileSize, x, y, world) end,
+  player = function(x, y, _, tileSize, world)
+    placeEntity("items.leather_armor", tileSize, x+1, y+1, world)
+    local player = placeEntity("characters.player", tileSize, x, y, world)
+    local inventoryEntity = Concord.entity(world):assemble(ECS.a.getBySelector('items.backbag'))
+    print("ID?", player.id.value, inventoryEntity.id.value)
+    player:give("inventory", inventoryEntity.id.value)
+  end,
   wall = function(x, y, _, _, world) return Concord.entity(world):give("gridCollisionItem", x, y) end
 }
 

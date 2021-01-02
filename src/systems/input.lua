@@ -43,15 +43,19 @@ function InputSystem:update(dt)
   if shooting then
     self:getWorld():emit('playerShoot', shootingDirection.normalized)
   end
-
-  if love.keyboard.isDown('space') then
-    self:getWorld():emit('playerInteractIntent')
-  end
 end
 
 function InputSystem:keyPressed(pressedKey, scancode, isrepeat)
   if pressedKey == 't' then
     self:getWorld():emit("toggleDebug")
+  end
+
+  if pressedKey == 'space' then
+    self:getWorld():emit('playerInteractIntent')
+  end
+
+  if pressedKey == 'c' then
+    self:getWorld():emit('playerPickupIntent')
   end
 end
 

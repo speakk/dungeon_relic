@@ -42,12 +42,20 @@ function InteractableSystem:drawTooltips()
   end
 end
 
-function InteractableSystem:interactIntent(entity)
+function InteractableSystem:interactIntent(entity, category)
   local x, y = Vector.split(entity.position.vec)
   local range = entity.interacter.range
   Gamestate.current().spatialHash.interactable:each(x - range / 2, y - range / 2, range / 2, range / 2, function(interactableEntity)
     local interactable = interactableEntity.interactable
-    self:getWorld():emit(interactable.event.name, interactable.event.props)
+    if interactable.category == category then
+      --self:getWorld():emit(interactable.event.name, interactable.event.props)
+      if interactable.event.props then
+        print("Emitting", interactable.event.name, entity, unpack(interactable.event.props))
+        self:getWorld():emit(interactable.event.name, entity, unpack(interactable.event.props))
+      else
+        self:getWorld():emit(interactable.event.name, entity)
+      end
+    end
   end)
 end
 

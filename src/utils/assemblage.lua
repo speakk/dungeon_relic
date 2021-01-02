@@ -1,3 +1,5 @@
+local Gamestate = require 'libs.hump.gamestate'
+
 local function createAssemblageHierarchy(directory)
   local assemblageNames = love.filesystem.getDirectoryItems(directory)
 
@@ -25,8 +27,7 @@ local function createAssemblageHierarchy(directory)
 
     -- Return function that gets passed into entity:assemble
     return function(e)
-      -- Ths function is here for if you want to for example ensure an ID for each assembled entity:
-      -- e:give('id', entityRegistry.generateId())
+      e:give('id', Gamestate.current():generateEntityID())
       e:assemble(assemblage)
     end
   end

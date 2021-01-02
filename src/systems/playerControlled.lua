@@ -45,7 +45,13 @@ end
 
 function PlayerControlledSystem:playerInteractIntent()
   for _, entity in ipairs(self.pool) do
-    self:getWorld():emit("interactIntent", entity)
+    self:getWorld():emit("interactIntent", entity, "default")
+  end
+end
+
+function PlayerControlledSystem:playerPickupIntent()
+  for _, entity in ipairs(self.pool) do
+    self:getWorld():emit("interactIntent", entity, "pickup")
   end
 end
 

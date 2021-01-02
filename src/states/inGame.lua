@@ -14,9 +14,35 @@ local TESTING = true
 
 -- TODO: Debug spawn global
 world = nil
-  -- TODO END: Debug spawn global
+
+function game:spawn(assemblageId, x, y)
+  local entity = Concord.entity(self.world):assemble(ECS.a.getBySelector(assemblageId))
+  entity:give("position", x*32, y*32)
+end
+
+-- TODO END: Debug spawn global
+
+function game:serialize()
+  return {
+    currentLevelNumber = self.currentLevelNumber,
+    world = self.world:serialize(),
+    entityIdHead = self.entityIdHead
+  }
+end
+
+function game:deserialize(state)
+  self.currentLevelNumber = state.currentLevelNumber
+  self.world = state.world:deserialize()
+  self.entityIdHead = state.entityIdHead
+end
+
+function game:generateEntityID()
+  self.entityIdHead = self.entityIdHead + 1
+  return self.entityIdHead
+end
 
 function game:enter(_, level)
+  self.entityIdHead = self.entityIdHead or 0
   self.originalSeed, _ = love.math.getRandomSeed()
   local previousLevel = self.currentLevelNumber or 1
   self.currentLevelNumber = level or 1
@@ -32,6 +58,7 @@ function game:enter(_, level)
 
   print("Adding systems")
   self.world:addSystems(
+    ECS.s.id,
     ECS.s.input,
     ECS.s.debug,
     ECS.s.playerControlled,
@@ -48,6 +75,7 @@ function game:enter(_, level)
     -- Dungeon features END
     ECS.s.spatialHash,
     ECS.s.gridCollision,
+    ECS.s.item,
     ECS.s.interactable,
     ECS.s.checkEntityMoved,
     ECS.s.animation,
@@ -86,6 +114,7 @@ function game:enter(_, level)
 
   if TESTING then
     self.world:emit('initTest')
+
   end
 end
 
@@ -132,12 +161,6 @@ function game:draw()
   -- if self.debug then self.world:emit("drawDebug") end
 end
 
-
--- TODO: TEMP: DEBUG func to spawn entity
-function spawn(assemblageId, x, y)
-  local entity = Concord.entity(world):assemble(ECS.a.getBySelector(assemblageId))
-  entity:give("position", x*32, y*32)
-end
 
 function game:keypressed(pressedKey, scancode, isrepeat)
   self.world:emit('keyPressed', pressedKey, scancode, isrepeat)

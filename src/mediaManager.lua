@@ -79,6 +79,7 @@ local MediaManager = Class {
     self.atlases["dynamic"] = Atlas(3000, 3000)
   end,
   getMediaEntity = function(self, path)
+    if not self.tree[path] then error("No mediaEntity found for " .. path) end
     return self.tree[path]
   end,
   setMediaEntity = function(self, path, mediaEntity)
