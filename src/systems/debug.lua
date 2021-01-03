@@ -38,13 +38,13 @@ function DebugSystem:drawDebug()
   love.graphics.setColor(1,1,1,1)
   love.graphics.print("FPS: "..tostring(love.timer.getFPS( )), 10, getNewLineY())
 
-  local map = Gamestate.current().mapManager.map
+  -- local map = Gamestate.current().mapManager.map
 
-  for _, entity in ipairs(self.players) do
-    local tileX = math.floor(entity.position.vec.x/map.tileSize)
-    local tileY = math.floor(entity.position.vec.y/map.tileSize)
-    love.graphics.print("Player location: " .. tostring(tileX) .. "," .. tostring(tileY), 10, getNewLineY())
-  end
+  -- for _, entity in ipairs(self.players) do
+  --   local tileX = math.floor(entity.position.vec.x/map.tileSize)
+  --   local tileY = math.floor(entity.position.vec.y/map.tileSize)
+  --   love.graphics.print("Player location: " .. tostring(tileX) .. "," .. tostring(tileY), 10, getNewLineY())
+  -- end
 end
 
 function DebugSystem:systemsLoaded()

@@ -1,3 +1,7 @@
+local Gamestate = require 'libs.hump.gamestate'
+
+local inventoryState = require 'states.inventory'
+
 local InventoryUISystem = Concord.system({ pool = { "playerControlled", "inventory" }, itemsInInventory = { "item", "inInventory" }})
 
 local font = love.graphics.newFont('media/fonts/TrueType/PixeloidSans.ttf', 18)
@@ -6,6 +10,14 @@ function InventoryUISystem:init()
   self.pool.onEntityAdded = function(_, entity)
     self.inventoryId = entity.inventory.entityId
   end
+end
+
+function InventoryUISystem:showInventory()
+  local inPlayerInventory = functional.filter(self.itemsInInventory, function(itemEntity)
+    return itemEntity.inInventory.inventoryId == self.inventoryId
+  end)
+
+  Gamestate.push(inventoryState, inPlayerInventory)
 end
 
 function InventoryUISystem:drawInventory()
@@ -27,7 +39,7 @@ function InventoryUISystem:drawInventory()
 end
 
 function InventoryUISystem:systemsLoaded()
-  self:getWorld():emit("registerLayer", "ui", self.drawInventory, self, false)
+  --self:getWorld():emit("registerLayer", "ui", self.drawInventory, self, false)
 end
 
 return InventoryUISystem

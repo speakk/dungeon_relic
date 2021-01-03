@@ -1,3 +1,7 @@
+local Gamestate = require 'libs.hump.gamestate'
+
+local inventoryState = require 'states.inventory'
+
 local InputSystem = Concord.system({})
 
 function InputSystem:update(dt)
@@ -45,7 +49,7 @@ function InputSystem:update(dt)
   end
 end
 
-function InputSystem:keyPressed(pressedKey, scancode, isrepeat)
+function InputSystem:keyPressed(pressedKey)
   if pressedKey == 't' then
     self:getWorld():emit("toggleDebug")
   end
@@ -56,6 +60,11 @@ function InputSystem:keyPressed(pressedKey, scancode, isrepeat)
 
   if pressedKey == 'c' then
     self:getWorld():emit('playerPickupIntent')
+  end
+
+  if pressedKey == 'tab' then
+    self:getWorld():emit('showInventory')
+    --Gamestate.push(inventoryState)
   end
 end
 
