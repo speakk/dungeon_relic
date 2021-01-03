@@ -1,13 +1,13 @@
-local Gamestate = require 'libs.hump.gamestate'
+local inGame = require 'states.inGame'
 
 local LevelChangeSystem = Concord.system({})
 
 function LevelChangeSystem:descendLevel() --luacheck: ignore
-  Gamestate.current():descendLevel()
+  inGame:descendLevel()
 end
 
 function LevelChangeSystem:ascendLevel() --luacheck: ignore
-  Gamestate.current():ascendLevel()
+  inGame:ascendLevel()
 end
 
 return LevelChangeSystem

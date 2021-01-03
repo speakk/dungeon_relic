@@ -1,4 +1,4 @@
-local Gamestate = require 'libs.hump.gamestate'
+local inGame = require 'states.inGame'
 local flux = require 'libs.flux'
 local Timer = require 'libs.hump.timer'
 local StateMachineSystem = Concord.system({ pool = { "stateMachine" } })
@@ -16,7 +16,7 @@ local stateTypes = {
             local x, y = Vector.split(entity.position.vec)
             local range = 200
             local target = nil
-            Gamestate.current().spatialHash.all:each(x - range/2, y - range/2, range, range, function(possibleTarget)
+            inGame.spatialHash.all:each(x - range/2, y - range/2, range, range, function(possibleTarget)
               if possibleTarget:has("playerControlled") then
                 target = possibleTarget
               end

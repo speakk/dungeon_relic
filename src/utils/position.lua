@@ -1,4 +1,4 @@
-local Gamestate = require 'libs.hump.gamestate'
+local settings = require 'settings'
 local memoize = require 'libs.memoize'
 
 local getTransform = memoize(function(body, entity)
@@ -31,7 +31,7 @@ return {
     return x + '|' + y
   end,
   gridToPixels = function(x, y)
-    local tileSize = Gamestate.current().mapManager.map.tileSize
+    local tileSize = settings.tileSize
     return x*tileSize, y*tileSize
   end,
   getPhysicsBodyTransform = function(entity)

@@ -1,4 +1,4 @@
-local Gamestate = require 'libs.hump.gamestate'
+local inGame = require 'states.inGame'
 local Timer = require 'libs.hump.timer'
 
 local GridCollisionSystem = Concord.system({ pool = { "gridCollisionItem" } })
@@ -91,10 +91,10 @@ function GridCollisionSystem:updateCollisionTileMap()
       entity:destroy()
     end
 
-    local collisionMap = Gamestate.current().mapManager:getCollisionMap()
+    local collisionMap = inGame.mapManager:getCollisionMap()
     local tileRectangles = mergeTilesIntoRectangles(collisionMap)
 
-    local tileSize = Gamestate.current().mapManager.map.tileSize
+    local tileSize = inGame.mapManager.map.tileSize
 
     for _, rect in ipairs(tileRectangles) do
       local entity = Concord.entity(self:getWorld())
@@ -115,7 +115,7 @@ function GridCollisionSystem:updateCollisionTileMap()
 end
 
 local function setCollisionValue(x, y, value, self)
-  local mapManager = Gamestate.current().mapManager
+  local mapManager = inGame.mapManager
   mapManager:setCollisionMapValue(
   x,
   y,

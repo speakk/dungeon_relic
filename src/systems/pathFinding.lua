@@ -1,4 +1,4 @@
-local Gamestate = require 'libs.hump.gamestate'
+local inGame = require 'states.inGame'
 
 local positionUtils = require 'utils.position'
 
@@ -9,7 +9,7 @@ function PathFindingSystem:update()
     if not entity.pathFind.currentPath then
       local targetPosition = entity.pathFind.targetPosition
       local entityX, entityY = Vector.unpack(entity.position.vec)
-      local path = Gamestate.current().mapManager.getPath(
+      local path = inGame.mapManager.getPath(
         entityX,
         entityY,
         targetPosition.x,

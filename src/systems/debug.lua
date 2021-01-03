@@ -1,18 +1,18 @@
-local Gamestate = require 'libs.hump.gamestate'
+local inGame = require 'states.inGame'
 
 local DebugSystem = Concord.system({players = { "playerControlled" }})
 
 function DebugSystem:enableDebug() -- luacheck: ignore
-  Gamestate.current().debug = true
+  inGame.debug = true
 end
 
 function DebugSystem:disableDebug() -- luacheck: ignore
-  Gamestate.current().debug = false
+  inGame.debug = false
 end
 
 function DebugSystem:toggleDebug() -- luacheck: ignore
   print("Toggled")
-  Gamestate.current().debug = not Gamestate.current().debug
+  inGame.debug = not inGame.debug
 end
 
 function DebugSystem:startLuaDebugger() --luacheck: ignore
@@ -38,7 +38,7 @@ function DebugSystem:drawDebug()
   love.graphics.setColor(1,1,1,1)
   love.graphics.print("FPS: "..tostring(love.timer.getFPS( )), 10, getNewLineY())
 
-  -- local map = Gamestate.current().mapManager.map
+  -- local map = inGame.mapManager.map
 
   -- for _, entity in ipairs(self.players) do
   --   local tileX = math.floor(entity.position.vec.x/map.tileSize)

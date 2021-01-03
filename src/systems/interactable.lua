@@ -1,4 +1,4 @@
-local Gamestate = require 'libs.hump.gamestate'
+local inGame = require 'states.inGame'
 
 local font = love.graphics.newFont('media/fonts/TrueType/PixeloidSans.ttf', 18)
 
@@ -12,7 +12,7 @@ function InteractableSystem:update(dt)
   for _, entity in ipairs(self.interacter) do
     local x, y = Vector.split(entity.position.vec)
     local range = entity.interacter.range
-    Gamestate.current().spatialHash.interactable:each(x - range / 2, y - range / 2, range / 2, range / 2, function(interactableEntity)
+    inGame.spatialHash.interactable:each(x - range / 2, y - range / 2, range / 2, range / 2, function(interactableEntity)
       interactableEntity.interactable.active = true
     end)
   end
@@ -45,7 +45,7 @@ end
 function InteractableSystem:interactIntent(entity, category)
   local x, y = Vector.split(entity.position.vec)
   local range = entity.interacter.range
-  Gamestate.current().spatialHash.interactable:each(x - range / 2, y - range / 2, range / 2, range / 2, function(interactableEntity)
+  inGame.spatialHash.interactable:each(x - range / 2, y - range / 2, range / 2, range / 2, function(interactableEntity)
     local interactable = interactableEntity.interactable
     if interactable.category == category then
       --self:getWorld():emit(interactable.event.name, interactable.event.props)

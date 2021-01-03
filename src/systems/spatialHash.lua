@@ -1,4 +1,4 @@
-local Gamestate = require 'libs.hump.gamestate'
+local inGame = require 'states.inGame'
 local positionUtil = require 'utils.position'
 
 local SpatialHashSystem = Concord.system({ pool = { "position" }, interactable = { "position", "interactable" } })
@@ -13,7 +13,7 @@ function SpatialHashSystem:update()
   local l, t, w, h = self.camera:getVisible()
 
   local screenSpatialGroup = {}
-  Gamestate.current().spatialHash.all:each(l, t, w, h, function(entity)
+  inGame.spatialHash.all:each(l, t, w, h, function(entity)
     table.insert(screenSpatialGroup, entity)
   end)
 
@@ -30,7 +30,7 @@ local function getEntityDimensions(entity)
     local _, _, physicsWidth, physicsHeight = positionUtil.getPhysicsBodyTransform(entity)
     w, h = physicsWidth, physicsHeight
   else
-    local tileSize = Gamestate.current().mapManager.map.tileSize
+    local tileSize = inGame.mapManager.map.tileSize
     w, h = tileSize, tileSize
   end
 
@@ -43,32 +43,32 @@ end
 function SpatialHashSystem:init()
   self.pool.onEntityAdded = function(_, entity)
     local x, y, w, h = getEntityDimensions(entity)
-    Gamestate.current().spatialHash.all:add( entity, x, y, w, h)
+    inGame.spatialHash.all:add( entity, x, y, w, h)
   end
 
   self.interactable.onEntityAdded = function(_, entity)
     local x, y, w, h = getEntityDimensions(entity)
-    Gamestate.current().spatialHash.interactable:add( entity, x, y, w, h)
+    inGame.spatialHash.interactable:add( entity, x, y, w, h)
   end
 
   self.pool.onEntityRemoved = function(_, entity)
-    Gamestate.current().spatialHash.all:remove(entity)
+    inGame.spatialHash.all:remove(entity)
   end
 
   self.interactable.onEntityRemoved = function(_, entity)
-    Gamestate.current().spatialHash.interactable:remove(entity)
+    inGame.spatialHash.interactable:remove(entity)
   end
 end
 
 function SpatialHashSystem:entityMoved(entity) -- luacheck: ignore
-  Gamestate.current().spatialHash.all:update(
+  inGame.spatialHash.all:update(
     entity,
     entity.position.vec.x,
     entity.position.vec.y
   )
 
   if entity.interactable then
-    Gamestate.current().spatialHash.interactable:update(
+    inGame.spatialHash.interactable:update(
       entity,
       entity.position.vec.x,
       entity.position.vec.y

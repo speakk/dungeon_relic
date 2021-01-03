@@ -1,4 +1,4 @@
-local Gamestate = require 'libs.hump.gamestate'
+local inGame = require 'states.inGame'
 local positionUtil = require 'utils.position'
 
 local PhysicsBodySystem = Concord.system({ pool = {"physicsBody", "position", "physicsBodyActive"}, potential = {"physicsBody", "position"} })
@@ -8,11 +8,11 @@ function PhysicsBodySystem:init()
     local transformX, transformY, w, h = positionUtil.getPhysicsBodyTransform(entity)
     local targetX, targetY = Vector.split(entity.position.vec + Vector(transformX, transformY))
 
-    Gamestate.current().bumpWorld:add(entity, targetX, targetY, w, h)
+    inGame.bumpWorld:add(entity, targetX, targetY, w, h)
   end
 
   self.pool.onEntityRemoved = function(_, entity)
-    Gamestate.current().bumpWorld:remove(entity)
+    inGame.bumpWorld:remove(entity)
   end
 end
 
@@ -43,7 +43,7 @@ function PhysicsBodySystem:setCamera(camera)
 end
 
 function PhysicsBodySystem:drawDebugWithCamera() --luacheck: ignore
-  if Gamestate.current().debug then
+  if inGame.debug then
     for _, entity in ipairs(self.pool) do
       love.graphics.setColor(1,1,0)
       local offsetX, offsetY, w, h = positionUtil.getPhysicsBodyTransform(entity)
@@ -52,7 +52,7 @@ function PhysicsBodySystem:drawDebugWithCamera() --luacheck: ignore
       love.graphics.setColor(1,1,1)
     end
 
-    local bumpWorld = Gamestate.current().bumpWorld
+    local bumpWorld = inGame.bumpWorld
     local items, _ = bumpWorld:getItems()
     love.graphics.setColor(0,1,0)
     for _, item in ipairs(items) do
@@ -71,7 +71,7 @@ function PhysicsBodySystem:markOutOfScreenInactive()
   if self.camera then
     local l, t, w, h = self.camera:getVisible()
     local onScreenAll = {}
-    Gamestate.current().spatialHash.all:each(l, t, w, h, function(entity)
+    inGame.spatialHash.all:each(l, t, w, h, function(entity)
       table.insert(onScreenAll, entity)
     end)
 
@@ -94,7 +94,7 @@ function PhysicsBodySystem:update(dt)
   self:markOutOfScreenInactive()
   for _, entity in ipairs(self.pool) do
     if not entity.physicsBody then return end
-    local bumpWorld = Gamestate.current().bumpWorld
+    local bumpWorld = inGame.bumpWorld
     if not bumpWorld:hasItem(entity) then return end
     if entity.position and not entity.physicsBody.static then
       --local targetX, targetY = getCenteredLocation(entity)

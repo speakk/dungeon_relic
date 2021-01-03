@@ -1,4 +1,4 @@
-local Gamestate = require 'libs.hump.gamestate'
+local inGame = require 'states.inGame'
 
 local SpriteSystem = Concord.system({ pool = { "sprite", "position" } })
 
@@ -203,7 +203,7 @@ local function drawLayer(self, layerId, shaderId)
 
     table.insert(rects, rect)
 
-    if Gamestate.current().debug then
+    if inGame.debug then
       love.graphics.circle('fill', position.x, position.y, 2)
     end
   end
