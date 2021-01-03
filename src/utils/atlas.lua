@@ -18,26 +18,30 @@ return Class {
       quads = {}
     }
 
+    local padding = 1
+
     local spriteWidth, spriteHeight = imageData:getDimensions()
+    spriteWidth = spriteWidth + padding
+    spriteHeight = spriteHeight + padding
 
     if self.currentY + spriteHeight > self.image:getHeight() then
       error("Ran out of texture space! Tell the dev, wtf!")
     else
-      self.imageData:paste(imageData, self.currentX, self.currentY)
+      self.imageData:paste(imageData, self.currentX + padding * 2, self.currentY + padding * 2)
 
 
       for x=1, framesX do
         for y=1, framesY do
-          local quadW = spriteWidth / framesX
-          local quadH = spriteHeight / framesY
-          local quadX = self.currentX + (x - 1) * quadW
-          local quadY = self.currentY + (y - 1) * quadH
+          local quadW = (spriteWidth + padding) / framesX
+          local quadH = (spriteHeight + padding) / framesY
+          local quadX = self.currentX + (x - 1) * (quadW + padding * 0)
+          local quadY = self.currentY + (y - 1) * (quadH + padding * 0)
           local quad = love.graphics.newQuad(quadX, quadY, quadW, quadH, self.image:getDimensions())
           table.insert(mediaEntity.quads, quad)
         end
       end
 
-      self.currentX = self.currentX + spriteWidth
+      self.currentX = self.currentX + spriteWidth + padding*2
 
       if spriteHeight > self.lastRowHeight then
         self.lastRowHeight = spriteHeight
@@ -45,7 +49,7 @@ return Class {
 
       if self.currentX + spriteWidth > self.image:getWidth() then
         self.currentX = 0
-        self.currentY = self.currentY + self.lastRowHeight
+        self.currentY = self.currentY + self.lastRowHeight + padding * 2
         self.lastRowHeight = 0
       end
     end
