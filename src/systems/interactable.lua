@@ -33,11 +33,14 @@ function InteractableSystem:drawTooltips()
   for _, entity in ipairs(self.interactable) do
     local interactable = entity.interactable
     if interactable.active then
+      entity.sprite.outline = true
       local x, y = Vector.split(entity.position.vec)
       local finalX, finalY = self.camera:toScreen(x, y)
       local maxWidth = 100
       love.graphics.setColor(1,1,1,1)
       love.graphics.printf(interactable.tooltip, font, finalX, finalY, maxWidth, 'center')
+    else
+      entity.sprite.outline = false
     end
   end
 end

@@ -23,11 +23,17 @@ end
 shaders = {
   uniformLightShader = love.graphics.newShader [[
   #ifdef VERTEX
+
   attribute vec2 origin;
   varying vec2 vertexOrigin;
+
+  attribute vec2 stepSizeIn;
+  varying vec2 stepSize;
+
   vec4 position(mat4 transform_projection, vec4 vertex_position)
   {
     vertexOrigin = origin;
+    stepSize = stepSizeIn;
     // The order of operations matters when doing matrix multiplication.
     return transform_projection * vertex_position;
   }
@@ -36,6 +42,8 @@ shaders = {
 
   #ifdef PIXEL
   varying vec2 vertexOrigin;
+
+  varying vec2 stepSize;
 
   uniform Image lightCanvas;
   uniform vec2 lightCanvasRatio;
@@ -50,11 +58,35 @@ shaders = {
     float screenRatio = screenSize.y / screenSize.x;
     vec2 camPosNorm = cameraPos / screenSize;
 
-    //vec4 lightCanvasColor = Texel(lightCanvas, (screen_coords + cameraPos) / canvasSize); // WORKS WITH CAMERA SCALE 1
-    //vec4 lightCanvasColor = Texel(lightCanvas, (screen_coords + cameraPos * cameraScale) / canvasSize / cameraScale);
-    vec4 lightCanvasColor = Texel(lightCanvas, (vertexOrigin * cameraScale + cameraPos * cameraScale) / canvasSize / cameraScale);
     vec4 texturecolor = Texel(tex, texture_coords);
-    return texturecolor * vec4(lightCanvasColor.rgb, 1);
+
+    if (stepSize.x > 0) {
+      float alpha = 4*Texel( tex, texture_coords ).a;
+      alpha -= Texel( tex, texture_coords + vec2( stepSize.x, 0.0f ) ).a;
+      alpha -= Texel( tex, texture_coords + vec2( -stepSize.x, 0.0f ) ).a;
+      alpha -= Texel( tex, texture_coords + vec2( 0.0f, stepSize.y ) ).a;
+      alpha -= Texel( tex, texture_coords + vec2( 0.0f, -stepSize.y ) ).a;
+
+      // calculate resulting color
+      vec4 resultCol = vec4( 1.0f, 1.0f, 1.0f, alpha );
+      if (resultCol.a == 0) {
+        texturecolor = Texel(tex, texture_coords);
+      } else {
+        texturecolor = resultCol;
+      }
+    }
+
+    vec4 lightCanvasColor = Texel(lightCanvas, (vertexOrigin * cameraScale + cameraPos * cameraScale) / canvasSize / cameraScale);
+
+    if (texturecolor == vec4(1,1,1,1)) {
+      // Switch to just "texturecolor" if you want outline to be visible even in dark
+
+      //return texturecolor;
+      float level = lightCanvasColor.r;
+      return texturecolor * vec4(level, level, level, 1);
+    } else {
+      return texturecolor * vec4(lightCanvasColor.rgb, 1);
+    }
     //return lightCanvasColor;
   }
 
@@ -62,20 +94,23 @@ shaders = {
   ]]
 }
 
-local function createRectangle(x, y, w, h, quad, originX, originY, flipped)
+local function createRectangle(x, y, w, h, quad, originX, originY, flipped, outline)
+  local stepSizeX = outline and 0.01/w or 0
+  local stepSizeY = outline and 0.01/h or 0
+
   if flipped then
     return {
-      { x+w, y, quad.x, quad.y, originX, originY },
-      { x, y, quad.x + quad.w, quad.y, originX, originY },
-      { x, y+h, quad.x + quad.w, quad.y + quad.h, originX, originY },
-      { x+w, y+h, quad.x, quad.y + quad.h, originX, originY }
+      { x+w, y, quad.x, quad.y, originX, originY, stepSizeX, stepSizeY },
+      { x, y, quad.x + quad.w, quad.y, originX, originY, stepSizeX, stepSizeY },
+      { x, y+h, quad.x + quad.w, quad.y + quad.h, originX, originY, stepSizeX, stepSizeY },
+      { x+w, y+h, quad.x, quad.y + quad.h, originX, originY, stepSizeX, stepSizeY }
     }
   else
     return {
-      { x, y, quad.x, quad.y, originX, originY },
-      { x+w, y, quad.x + quad.w, quad.y, originX, originY },
-      { x+w, y+h, quad.x + quad.w, quad.y + quad.h, originX, originY },
-      { x, y+h, quad.x, quad.y + quad.h, originX, originY }
+      { x, y, quad.x, quad.y, originX, originY, stepSizeX, stepSizeY },
+      { x+w, y, quad.x + quad.w, quad.y, originX, originY, stepSizeX, stepSizeY },
+      { x+w, y+h, quad.x + quad.w, quad.y + quad.h, originX, originY, stepSizeX, stepSizeY },
+      { x, y+h, quad.x, quad.y + quad.h, originX, originY, stepSizeX, stepSizeY }
     }
   end
 end
@@ -154,7 +189,7 @@ function SpriteSystem:screenEntitiesUpdated(entities)
   self.screenSpatialGroup = entities
 end
 
-local function drawLayer(self, layerId, shaderId)
+local function drawLayer(self, layerId, shaderId, outline)
   if not self.camera then return end
 
   if shaderId then
@@ -199,7 +234,7 @@ local function drawLayer(self, layerId, shaderId)
       y = quadY / imageH,
       w = w / imageW,
       h = h / imageH
-    }, position.x, position.y, flipped)
+    }, position.x, position.y, flipped, entity.sprite.outline)
 
     table.insert(rects, rect)
 
@@ -230,12 +265,13 @@ local function drawLayer(self, layerId, shaderId)
   end
 end
 
-local function createDrawFunction(self, layerName, atlasId, shader)
+local function createDrawFunction(self, layerName, atlasId, shader, outline)
   local atlasImage = mediaManager:getAtlas(atlasId):getImage()
   local mesh = love.graphics.newMesh({
     { "VertexPosition", "float", 2 },
     { "VertexTexCoord", "float", 2 },
     { "origin", "float", 2 },
+    { "stepSizeIn", "float", 2 },
   }, 200000, "triangles", "dynamic")
   mesh:setTexture(atlasImage)
 
@@ -243,13 +279,14 @@ local function createDrawFunction(self, layerName, atlasId, shader)
     entities = {},
     mesh = mesh
   }
-  return function() drawLayer(self, layerName, shader) end
+  return function() drawLayer(self, layerName, shader, outline) end
 end
 
 function SpriteSystem:systemsLoaded()
   self:getWorld():emit("registerLayer", "ground", createDrawFunction(self, "ground", "dynamic"), self, true)
   self:getWorld():emit("registerLayer", "groundLevel", createDrawFunction(self, "groundLevel", "autoLoaded"), self, true)
   self:getWorld():emit("registerLayer", "onGround", createDrawFunction(self, "onGround", "autoLoaded", "uniformLightShader"), self, true)
+  self:getWorld():emit("registerLayer", "items", createDrawFunction(self, "items", "autoLoaded", "uniformLightShader", true), self, true)
   self:getWorld():emit("registerLayer", "aboveGround", createDrawFunction(self, "aboveGround", "autoLoaded"), self, true)
 end
 

@@ -8,6 +8,7 @@ local _layerZIndexArray = {
   "ground",
   "groundLevel", -- Level with ground
   "lights",
+  "items",
   "onGround", -- Characters, walls etc go here
   "aboveGround",
   "particles",
