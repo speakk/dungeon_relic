@@ -10,7 +10,7 @@ function ItemSystem:init()
   end
 end
 
-function ItemSystem:pickItemUp(newOwner, itemEntity)
+function ItemSystem:pickItemUp(newOwner, itemEntity) --luacheck: ignore
   if not newOwner.inventory then
     error("Tried to pick item up with no inventory")
   end
@@ -18,11 +18,5 @@ function ItemSystem:pickItemUp(newOwner, itemEntity)
   itemEntity:remove("position")
   itemEntity:give("inInventory", newOwner.inventory.entityId)
 end
---
--- function ItemSystem:moveItemToInventory(picker, item)
---   item:remove("position")
---   item:give("inInventory", picker.id.value)
--- end
---
 
 return ItemSystem

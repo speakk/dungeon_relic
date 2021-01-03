@@ -143,6 +143,9 @@ local uiTypeHandlers = {
       love.graphics.setColor(1,1,1,1)
       love.graphics.draw(element.overlayImage, imgX, imgY, 0, imageScale, imageScale)
     end
+  end,
+  inventory = function(element, x, y, width, height)
+
   end
 }
 

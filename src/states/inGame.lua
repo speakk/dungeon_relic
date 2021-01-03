@@ -41,7 +41,16 @@ function game:generateEntityID()
   return self.entityIdHead
 end
 
+function game:setEntityId(id, entity)
+  self.entityIdMap[id] = entity
+end
+
+function game:removeEntityId(id)
+  self.entityIdMap[id] = nil
+end
+
 function game:enter(_, level)
+  self.entityIdMap = {}
   self.entityIdHead = self.entityIdHead or 0
   self.originalSeed, _ = love.math.getRandomSeed()
   local previousLevel = self.currentLevelNumber or 1
@@ -88,6 +97,7 @@ function game:enter(_, level)
     ECS.s.camera,
     ECS.s.sprite,
     ECS.s.draw,
+    ECS.s.inventoryUI,
     ECS.s.ui
   )
   print("Systems added")

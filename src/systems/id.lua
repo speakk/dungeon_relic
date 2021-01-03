@@ -3,14 +3,13 @@ local Gamestate = require 'libs.hump.gamestate'
 local IDSystem = Concord.system({ pool = { 'id' }})
 
 function IDSystem:init()
-  -- self.pool.onEntityAdded = function(_, entity)
-  --   print("onEntityAdded for id")
-  --   if not entity.id.value then
-  --     local id = Gamestate.current():generateEntityID()
-  --     print("ADDING ID", id)
-  --     entity.id.value = id
-  --   end
-  -- end
+  self.pool.onEntityAdded = function(_, entity)
+    Gamestate.current():setEntityId(entity.id.value, entity)
+  end
+
+  self.pool.onEntityRemoved = function(_, entity)
+    Gamestate.current():removeEntityId(entity.id.value)
+  end
 end
 
 return IDSystem
