@@ -67,14 +67,12 @@ function LightSystem:preDrawLights(canvas)
 end
 
 function LightSystem:drawLights()
-  love.graphics.setBlendMode("multiply", "premultiplied")
   love.graphics.draw(self.lightCanvas)
-  love.graphics.setBlendMode("alpha")
 end
 
 function LightSystem:systemsLoaded()
   self:getWorld():emit("registerLayer", "preDrawLights", LightSystem.preDrawLights, self, false)
-  self:getWorld():emit("registerLayer", "lights", LightSystem.drawLights, self, true)
+  self:getWorld():emit("registerLayer", "lights", LightSystem.drawLights, self, true, { blendType = "multiply", multiply = "premultiplied" })
 end
 
 function LightSystem:update(dt)

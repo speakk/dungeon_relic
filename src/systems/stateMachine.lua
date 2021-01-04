@@ -52,11 +52,11 @@ local stateTypes = {
             local direction = (entity.stateMachine.target.position.vec - entity.position.vec).normalized
             entity.directionIntent.vec = direction
 
-            local maxSpeed = 200
+            local maxSpeed = 300
             entity.speed.value = 0
 
             flux.to(entity.speed, 0.6, { value = maxSpeed })
-            :ease('backin')
+            :ease('circout')
             :oncomplete(function()
               entity.stateMachine.attackDone = true
               entity.speed.value = 0

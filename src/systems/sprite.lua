@@ -2,6 +2,8 @@ local inGame = require 'states.inGame'
 
 local SpriteSystem = Concord.system({ pool = { "sprite", "position" } })
 
+local outlineShader = love.graphics.newShader('src/shaders/outline.fs')
+
 local function compareY(a, b)
   if a.sprite.zIndex ~= b.sprite.zIndex then
     return a.sprite.zIndex < b.sprite.zIndex
@@ -34,6 +36,30 @@ shaders = {
   {
     vertexOrigin = origin;
     stepSize = stepSizeIn;
+    // vec2 offset = vec2(0,0);
+
+    // if(vertex_position.x < origin.x) {
+    //   vertex_position.x = vertex_position.x - 1;
+    //   offset.x = -1;
+    // }
+    // else
+    // {
+    //   vertex_position.x = vertex_position.x + 1;
+    //   offset.x = 1;
+    // }
+
+    // if(vertex_position.y < origin.y) {
+    //   vertex_position.y = vertex_position.y - 1;
+    //   offset.y = -1;
+    // }
+    // else
+    // {
+    //   vertex_position.y = vertex_position.y + 1;
+    //   offset.y = 1;
+    // }
+
+    // VaryingTexCoord = VertexTexCoord + vec4(offset,0,0)/32;
+
     // The order of operations matters when doing matrix multiplication.
     return transform_projection * vertex_position;
   }
@@ -189,7 +215,7 @@ function SpriteSystem:screenEntitiesUpdated(entities)
   self.screenSpatialGroup = entities
 end
 
-local function drawLayer(self, layerId, shaderId, outline)
+local function drawLayer(self, layerId, shaderId)
   if not self.camera then return end
 
   if shaderId then
@@ -286,7 +312,7 @@ function SpriteSystem:systemsLoaded()
   self:getWorld():emit("registerLayer", "ground", createDrawFunction(self, "ground", "dynamic"), self, true)
   self:getWorld():emit("registerLayer", "groundLevel", createDrawFunction(self, "groundLevel", "autoLoaded"), self, true)
   self:getWorld():emit("registerLayer", "onGround", createDrawFunction(self, "onGround", "autoLoaded", "uniformLightShader"), self, true)
-  self:getWorld():emit("registerLayer", "items", createDrawFunction(self, "items", "autoLoaded", "uniformLightShader", true), self, true)
+  self:getWorld():emit("registerLayer", "items", createDrawFunction(self, "items", "autoLoaded", "uniformLightShader", true), self, true, nil)
   self:getWorld():emit("registerLayer", "aboveGround", createDrawFunction(self, "aboveGround", "autoLoaded"), self, true)
 end
 

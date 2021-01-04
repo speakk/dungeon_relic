@@ -1,6 +1,6 @@
 return function(entity, x, y)
   entity:give("position", x, y)
-  entity:give("speed", 70)
+  entity:give("speed", 200)
   entity:give("damager", 40)
   entity:give("velocity")
   entity:give("selfDestroy", 500)
