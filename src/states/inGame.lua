@@ -114,6 +114,7 @@ function game:enter(_, level)
 
   self.world:emit('systemsLoaded')
   local camera = Gamera.new(0, 0, love.graphics.getWidth(), love.graphics.getHeight())
+  self.camera = camera
   self.world:emit("setCamera", camera)
 
   self.mapManager = MapManager()

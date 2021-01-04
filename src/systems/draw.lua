@@ -1,4 +1,5 @@
 local DrawSystem = Concord.system({})
+local inGame = require 'states.inGame'
 
 
 -- Helper array
@@ -17,6 +18,53 @@ local _layerZIndexArray = {
   "ui",
   "debugNoCamera",
 }
+
+local noiseImageData = love.image.newImageData(128, 128)
+noiseImageData:mapPixel(function(x,y,w,h)
+  local value = love.math.noise(x,y)
+  print(value)
+  return value, value, value, 1
+end, 0, 0)
+
+local noiseImage = love.graphics.newImage(noiseImageData)
+noiseImage:setWrap("repeat", "repeat")
+
+local lightsShader = {
+  shader = love.graphics.newShader [[
+  uniform Image noise;
+  uniform vec2 noise_res;
+  uniform vec2 noise_offset;
+  uniform float noise_strength;
+  vec4 effect(vec4 c, Image t, vec2 uv, vec2 px) {
+    float n = Texel(noise, (px + noise_offset) / noise_res).r * noise_strength + 1.0;
+    return Texel(t, uv) * vec4(n,n,n, 1);
+    //return c * vec4(n, n, n, 1.0);
+  }
+  ]],
+  init = function(shader)
+    local w,h = noiseImageData:getDimensions()
+    if shader:hasUniform("noise") then
+      shader:send("noise", noiseImage)
+      shader:send("noise_res", { w, h })
+      shader:send("noise_strength", 0.3)
+    end
+  end,
+  sendParams = function(shader)
+    if shader:hasUniform("noise_offset") then
+      local x,y = inGame.camera:getVisible()
+      local scale = inGame.camera:getScale()
+      shader:send("noise_offset", { x*scale, y*scale })
+    end
+  end
+}
+
+local screenSpaceShaders = {
+  lights = lightsShader
+}
+
+for _, shaderContainer in pairs(screenSpaceShaders) do
+  shaderContainer.init(shaderContainer.shader)
+end
 
 local layerZIndexMap = {}
 for i, layerName in ipairs(_layerZIndexArray) do
@@ -62,9 +110,11 @@ function DrawSystem:draw() --luacheck: ignore
       self:getWorld():emit("attachCamera")
     end
 
-    if layer.screenSpaceShader then
-      layer.screenSpaceShader.setParams(layer.self)
-      love.graphics.setShader(layer.screenSpaceShader.shader)
+    local screenSpaceShader = screenSpaceShaders[layer.name]
+
+    if screenSpaceShader then
+      screenSpaceShader.sendParams(screenSpaceShader.shader)
+      love.graphics.setShader(screenSpaceShader.shader)
     end
 
     layer.callBack(layer.self, layer.bufferCanvas)

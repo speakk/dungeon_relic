@@ -1,3 +1,5 @@
+local settings = require 'settings'
+
 return Class {
   init = function(self, width, height)
     self.imageData = love.image.newImageData(width, height)
@@ -10,6 +12,8 @@ return Class {
   end,
   -- Returns mediaEntity
   addImage = function(self, imageData, framesX, framesY)
+    local padding = settings.spritePadding -- Padding for each sprite by px
+
     framesX = framesX or 1
     framesY = framesY or 1
 
@@ -19,33 +23,34 @@ return Class {
     }
 
     local spriteWidth, spriteHeight = imageData:getDimensions()
-    spriteWidth = spriteWidth
-    spriteHeight = spriteHeight
 
     if self.currentY + spriteHeight > self.image:getHeight() then
       error("Ran out of texture space! Tell the dev, wtf!")
     else
-      self.imageData:paste(imageData, self.currentX, self.currentY)
 
+      local quadW = spriteWidth / framesX + padding*2
+      local quadH = spriteHeight / framesY + padding*2
+      local sourceW, sourceH = spriteWidth / framesX, spriteHeight / framesY
 
       for x=1, framesX do
         for y=1, framesY do
-          local quadW = spriteWidth / framesX
-          local quadH = spriteHeight / framesY
+          local sourceX,sourceY = (x - 1) * sourceW, (y - 1) * sourceH
+
           local quadX = self.currentX + (x - 1) * quadW
           local quadY = self.currentY + (y - 1) * quadH
+          self.imageData:paste(imageData, quadX + padding, quadY + padding, sourceX, sourceY, sourceW, sourceH)
           local quad = love.graphics.newQuad(quadX, quadY, quadW, quadH, self.image:getDimensions())
           table.insert(mediaEntity.quads, quad)
         end
       end
 
-      self.currentX = self.currentX + spriteWidth
+      self.currentX = self.currentX + spriteWidth + (framesX * padding * 2)
 
       if spriteHeight > self.lastRowHeight then
-        self.lastRowHeight = spriteHeight
+        self.lastRowHeight = spriteHeight + padding * 2
       end
 
-      if self.currentX + spriteWidth > self.image:getWidth() then
+      if self.currentX + spriteWidth + (framesX * padding * 2) > self.image:getWidth() then
         self.currentX = 0
         self.currentY = self.currentY + self.lastRowHeight
         self.lastRowHeight = 0

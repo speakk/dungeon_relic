@@ -70,6 +70,17 @@ function LightSystem:drawLights()
   love.graphics.draw(self.lightCanvas)
 end
 
+local noiseShader = love.graphics.newShader [[
+uniform Image noise;
+uniform vec2 noise_res;
+uniform vec2 noise_offset;
+uniform float noise_strength;
+vec4 effect(vec4 c, Image t, vec2 uv, vec2 px) {
+  float n = Texel(noise, (px + noise_offset) / noise_res).r * noise_strength + 1.0;
+  return c * vec4(n, n, n, 1.0);
+}
+]]
+
 function LightSystem:systemsLoaded()
   self:getWorld():emit("registerLayer", "preDrawLights", LightSystem.preDrawLights, self, false)
   self:getWorld():emit("registerLayer", "lights", LightSystem.drawLights, self, true, { blendType = "multiply", multiply = "premultiplied" })

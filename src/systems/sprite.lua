@@ -1,8 +1,9 @@
 local inGame = require 'states.inGame'
+local settings = require 'settings'
 
 local SpriteSystem = Concord.system({ pool = { "sprite", "position" } })
 
-local outlineShader = love.graphics.newShader('src/shaders/outline.fs')
+--local outlineShader = love.graphics.newShader('src/shaders/outline.fs')
 
 local function compareY(a, b)
   if a.sprite.zIndex ~= b.sprite.zIndex then
@@ -254,7 +255,7 @@ local function drawLayer(self, layerId, shaderId)
       if entity.velocity.vec.x < 0 then flipped = true end
     end
 
-    local finalX, finalY = position.x - origin.x, position.y - origin.y
+    local finalX, finalY = position.x - origin.x - settings.spritePadding, position.y - origin.y - settings.spritePadding
     local rect = createRectangle(finalX, finalY, w, h, {
       x = quadX / imageW,
       y = quadY / imageH,

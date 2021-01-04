@@ -1,3 +1,4 @@
 return {
-  tileSize = 32
+  tileSize = 32,
+  spritePadding = 2
 }
