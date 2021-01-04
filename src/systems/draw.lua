@@ -22,7 +22,6 @@ local _layerZIndexArray = {
 local noiseImageData = love.image.newImageData(128, 128)
 noiseImageData:mapPixel(function(x,y,w,h)
   local value = love.math.noise(x,y)
-  print(value)
   return value, value, value, 1
 end, 0, 0)
 

@@ -3,7 +3,7 @@ return function(entity, x, y)
   entity:give("directionIntent")
   entity:give("speed", 0)
   entity:give("damager", 20)
-  entity:give("health", 30)
+  entity:give("health", 50, nil, 0.1)
   entity:give("sprite", 'characters.monster_B-sheet', "onGround")
   entity:give("stateMachine", "basicAi")
 
@@ -13,6 +13,14 @@ return function(entity, x, y)
     centered = true,
     tags = { "monster" },
     collisionEvent = { name = "monsterCollision", targetTags = { "player" } }
+  })
+
+  entity:give("simpleAnimation", {
+    death = {
+      from = 9,
+      to = 15,
+      duration = 0.5
+    }
   })
 
   -- entity:give("animation", {

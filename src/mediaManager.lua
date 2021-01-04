@@ -35,7 +35,7 @@ local function fillTree(folder, fileTree, root, result)
         if lfs.getInfo(asepriteMetaDataName) then
           local fileData = love.filesystem.read("string", asepriteMetaDataName)
           resultEntity.asepriteMetaData = json.decode(fileData)
-          print("Got asepriteMetaData", inspect(resultEntity.asepriteMetaData))
+          --print("Got asepriteMetaData", inspect(resultEntity.asepriteMetaData))
         end
 
         table.insert(result, resultEntity)

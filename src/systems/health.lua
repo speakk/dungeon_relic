@@ -1,3 +1,5 @@
+local flux = require 'libs.flux'
+
 local HealthSystem = Concord.system({ pool = { "health" }})
 
 function HealthSystem:init()
@@ -20,6 +22,8 @@ function HealthSystem:takeDamage(target, damage)
     if target.health.countDown == 0 then
       target.health.countDown = target.health.damageCooldown
       self:getWorld():emit("setHealth", target, target.health.value - damage)
+      target.sprite.whiteAmount = 1
+      flux.to(target.sprite, 0.3, { whiteAmount = 0 })
 
       local spurt = Concord.entity(self:getWorld())
       spurt:give('sprite', 'decals.blood.spurt' .. love.math.random(1, 3), "groundLevel", nil, 1)

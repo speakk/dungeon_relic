@@ -34,9 +34,13 @@ local stateTypes = {
             entity.stateMachine.attackDone = false
             local sprite = entity.sprite
             sprite.currentQuadIndex = 5
-            flux.to(sprite, 0.5, { currentQuadIndex = 7 })
+            entity.stateMachine.tween = flux.to(sprite, 0.5, { currentQuadIndex = 7 })
             :oncomplete(function() sprite.currentQuadIndex = 8 end)
-            :oncomplete(function() Timer.after(0.5, function() entity.stateMachine.attackPrepared = true end) end)
+            :oncomplete(function() Timer.after(0.5, function()
+              if entity.stateMachine then
+                entity.stateMachine.attackPrepared = true
+              end
+            end) end)
             --entity.animation.currentAnimations = { "attack" }
           end,
           update = function(_, dt)
@@ -55,7 +59,7 @@ local stateTypes = {
             local maxSpeed = 300
             entity.speed.value = 0
 
-            flux.to(entity.speed, 0.6, { value = maxSpeed })
+            entity.stateMachine.tween = flux.to(entity.speed, 0.6, { value = maxSpeed })
             :ease('circout')
             :oncomplete(function()
               entity.stateMachine.attackDone = true
@@ -124,10 +128,11 @@ function StateMachineSystem:init()
     entity.stateMachine.machine = state_machine:new(machineType.states, machineType.defaultState)
     entity.stateMachine.machine:set_state(machineType.defaultState)
   end
+end
 
-  self.pool.onEntityRemoved = function (_, entity)
-    entity.stateMachine.machine = nil
-  end
+function StateMachineSystem:removeStateMachineComponent(entity)
+  entity.stateMachine.tween:stop()
+  entity:remove("stateMachine")
 end
 
 function StateMachineSystem:update(dt)

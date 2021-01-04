@@ -33,35 +33,15 @@ shaders = {
   attribute vec2 stepSizeIn;
   varying vec2 stepSize;
 
+  attribute float whiteAmountIn;
+  varying float whiteAmount;
+
   vec4 position(mat4 transform_projection, vec4 vertex_position)
   {
     vertexOrigin = origin;
     stepSize = stepSizeIn;
-    // vec2 offset = vec2(0,0);
+    whiteAmount = whiteAmountIn;
 
-    // if(vertex_position.x < origin.x) {
-    //   vertex_position.x = vertex_position.x - 1;
-    //   offset.x = -1;
-    // }
-    // else
-    // {
-    //   vertex_position.x = vertex_position.x + 1;
-    //   offset.x = 1;
-    // }
-
-    // if(vertex_position.y < origin.y) {
-    //   vertex_position.y = vertex_position.y - 1;
-    //   offset.y = -1;
-    // }
-    // else
-    // {
-    //   vertex_position.y = vertex_position.y + 1;
-    //   offset.y = 1;
-    // }
-
-    // VaryingTexCoord = VertexTexCoord + vec4(offset,0,0)/32;
-
-    // The order of operations matters when doing matrix multiplication.
     return transform_projection * vertex_position;
   }
   #endif
@@ -69,8 +49,8 @@ shaders = {
 
   #ifdef PIXEL
   varying vec2 vertexOrigin;
-
   varying vec2 stepSize;
+  varying float whiteAmount;
 
   uniform Image lightCanvas;
   uniform vec2 lightCanvasRatio;
@@ -112,7 +92,15 @@ shaders = {
       float level = lightCanvasColor.r;
       return texturecolor * vec4(level, level, level, 1);
     } else {
-      return texturecolor * vec4(lightCanvasColor.rgb, 1);
+      if (whiteAmount > 0) {
+        vec4 lit = texturecolor * vec4(lightCanvasColor.rgb, 1);
+        vec4 white = vec4(1,1,1,1);
+        lit.rgb = mix(lit.rgb, white.rgb, whiteAmount);
+        lit.rgb *= lit.a;
+        return lit;
+      } else {
+        return texturecolor * vec4(lightCanvasColor.rgb, 1);
+      }
     }
     //return lightCanvasColor;
   }
@@ -121,23 +109,23 @@ shaders = {
   ]]
 }
 
-local function createRectangle(x, y, w, h, quad, originX, originY, flipped, outline)
+local function createRectangle(x, y, w, h, quad, originX, originY, flipped, outline, whiteAmount)
   local stepSizeX = outline and 0.01/w or 0
   local stepSizeY = outline and 0.01/h or 0
 
   if flipped then
     return {
-      { x+w, y, quad.x, quad.y, originX, originY, stepSizeX, stepSizeY },
-      { x, y, quad.x + quad.w, quad.y, originX, originY, stepSizeX, stepSizeY },
-      { x, y+h, quad.x + quad.w, quad.y + quad.h, originX, originY, stepSizeX, stepSizeY },
-      { x+w, y+h, quad.x, quad.y + quad.h, originX, originY, stepSizeX, stepSizeY }
+      { x+w, y, quad.x, quad.y, originX, originY, stepSizeX, stepSizeY, whiteAmount },
+      { x, y, quad.x + quad.w, quad.y, originX, originY, stepSizeX, stepSizeY, whiteAmount },
+      { x, y+h, quad.x + quad.w, quad.y + quad.h, originX, originY, stepSizeX, stepSizeY, whiteAmount },
+      { x+w, y+h, quad.x, quad.y + quad.h, originX, originY, stepSizeX, stepSizeY, whiteAmount }
     }
   else
     return {
-      { x, y, quad.x, quad.y, originX, originY, stepSizeX, stepSizeY },
-      { x+w, y, quad.x + quad.w, quad.y, originX, originY, stepSizeX, stepSizeY },
-      { x+w, y+h, quad.x + quad.w, quad.y + quad.h, originX, originY, stepSizeX, stepSizeY },
-      { x, y+h, quad.x, quad.y + quad.h, originX, originY, stepSizeX, stepSizeY }
+      { x, y, quad.x, quad.y, originX, originY, stepSizeX, stepSizeY, whiteAmount },
+      { x+w, y, quad.x + quad.w, quad.y, originX, originY, stepSizeX, stepSizeY, whiteAmount },
+      { x+w, y+h, quad.x + quad.w, quad.y + quad.h, originX, originY, stepSizeX, stepSizeY, whiteAmount },
+      { x, y+h, quad.x, quad.y + quad.h, originX, originY, stepSizeX, stepSizeY, whiteAmount }
     }
   end
 end
@@ -261,7 +249,7 @@ local function drawLayer(self, layerId, shaderId)
       y = quadY / imageH,
       w = w / imageW,
       h = h / imageH
-    }, position.x, position.y, flipped, entity.sprite.outline)
+    }, position.x, position.y, flipped, entity.sprite.outline, entity.sprite.whiteAmount or 0)
 
     table.insert(rects, rect)
 
@@ -299,6 +287,7 @@ local function createDrawFunction(self, layerName, atlasId, shader, outline)
     { "VertexTexCoord", "float", 2 },
     { "origin", "float", 2 },
     { "stepSizeIn", "float", 2 },
+    { "whiteAmountIn", "float", 1 },
   }, 200000, "triangles", "dynamic")
   mesh:setTexture(atlasImage)
 

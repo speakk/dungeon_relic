@@ -16,6 +16,10 @@ function PhysicsBodySystem:init()
   end
 end
 
+function PhysicsBodySystem:removePhysicsComponent(entity)
+  entity:remove("physicsBody")
+end
+
 local function containsAnyInTable(a, b)
   for _, aItem in ipairs(a) do
     for _, bItem in ipairs(b) do
@@ -27,6 +31,7 @@ local function containsAnyInTable(a, b)
 end
 
 local function handleCollisionEvent(world, source, target)
+  if not source.physicsBody or not target.physicsBody then return end
   local event = source.physicsBody.collisionEvent
   if event then
     if event.targetTags then
@@ -102,6 +107,7 @@ function PhysicsBodySystem:update(dt)
       local targetX, targetY = Vector.split(entity.position.vec + Vector(transformX, transformY))
       local physicsX, physicsY, collisions, _ = bumpWorld:move(entity, targetX, targetY,
       function(item, other)
+        if not item.physicsBody or not other.physicsBody then return false end
         local containsIgnore = containsAnyInTable(other.physicsBody.tags, item.physicsBody.targetIgnoreTags)
         or containsAnyInTable(item.physicsBody.tags, other.physicsBody.targetIgnoreTags)
         if containsIgnore then

@@ -1,3 +1,5 @@
+local flux = require 'libs.flux'
+
 local DeathSystem = Concord.system({})
 
 function DeathSystem:healthReachedZero(target)
@@ -7,7 +9,21 @@ function DeathSystem:healthReachedZero(target)
   splat:give('position', Vector.split(target.position.vec))
   splat:give('selfDestroy', 3000)
 
-  target:destroy()
+  if target.simpleAnimation and target.simpleAnimation.death then
+    print("Had death anim")
+    local anim = target.simpleAnimation.death
+    self:getWorld():emit("removeStateMachineComponent", target)
+    self:getWorld():emit("removePhysicsComponent", target)
+    target:remove("animation")
+    target:remove("velocity")
+    target:remove("speed")
+    target.sprite.currentQuadIndex = anim.from
+    flux.to(target.sprite, anim.duration, { currentQuadIndex = anim.to })
+    :oncomplete(function()
+    end)
+  else
+    target:destroy()
+  end
 end
 
 return DeathSystem
