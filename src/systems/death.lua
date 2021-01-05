@@ -1,6 +1,28 @@
 local flux = require 'libs.flux'
 
-local DeathSystem = Concord.system({})
+local DeathSystem = Concord.system({ pool = { "dead" }})
+
+function DeathSystem:init()
+  self.pool.onEntityAdded = function(_, entity)
+    if entity.simpleAnimation and entity.simpleAnimation.death then
+      print("Had death anim")
+      local anim = entity.simpleAnimation.death
+      self:getWorld():emit("removeStateMachineComponent", entity)
+      --self:getWorld():emit("removePhysicsComponent", entity)
+      entity:remove("physicsBody")
+      entity:remove("animation")
+      entity:remove("velocity")
+      entity:remove("speed")
+      entity.sprite.currentQuadIndex = anim.from
+      flux.to(entity.sprite, anim.duration, { currentQuadIndex = anim.to })
+      :oncomplete(function()
+      end)
+    else
+      entity:destroy()
+    end
+
+  end
+end
 
 function DeathSystem:healthReachedZero(target)
   local splat = Concord.entity(self:getWorld())
@@ -9,21 +31,7 @@ function DeathSystem:healthReachedZero(target)
   splat:give('position', Vector.split(target.position.vec))
   splat:give('selfDestroy', 3000)
 
-  if target.simpleAnimation and target.simpleAnimation.death then
-    print("Had death anim")
-    local anim = target.simpleAnimation.death
-    self:getWorld():emit("removeStateMachineComponent", target)
-    self:getWorld():emit("removePhysicsComponent", target)
-    target:remove("animation")
-    target:remove("velocity")
-    target:remove("speed")
-    target.sprite.currentQuadIndex = anim.from
-    flux.to(target.sprite, anim.duration, { currentQuadIndex = anim.to })
-    :oncomplete(function()
-    end)
-  else
-    target:destroy()
-  end
+  target:give("dead")
 end
 
 return DeathSystem

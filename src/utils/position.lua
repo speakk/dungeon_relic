@@ -21,7 +21,7 @@ local getTransform = memoize(function(body, entity)
     local centerY = originYpx + body.offsetY * quadW
     local y = centerY - w/2
 
-    return x, y, w, h
+    return x - settings.spritePadding, y - settings.spritePadding, w, h
   end
   return 0, 0, body.pixelWidth or 32, body.pixelHeight or 32
 end)

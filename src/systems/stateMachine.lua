@@ -4,7 +4,7 @@ local Timer = require 'libs.hump.timer'
 local StateMachineSystem = Concord.system({ pool = { "stateMachine" } })
 
 local stateTypes = {
-  basicAi = function(entity)
+  basicAi = function(entity, world)
     return {
       defaultState = "idle",
       states = {
@@ -30,7 +30,7 @@ local stateTypes = {
         },
         attackPrepare = {
           enter = function()
-            --entity:give("aiControlled")
+            world:emit("monsterPrepareAttack")
             entity.stateMachine.attackDone = false
             local sprite = entity.sprite
             sprite.currentQuadIndex = 5
@@ -124,14 +124,16 @@ end
 
 function StateMachineSystem:init()
   self.pool.onEntityAdded = function(_, entity)
-    local machineType = stateTypes[entity.stateMachine.stateType](entity)
+    local machineType = stateTypes[entity.stateMachine.stateType](entity, self:getWorld())
     entity.stateMachine.machine = state_machine:new(machineType.states, machineType.defaultState)
     entity.stateMachine.machine:set_state(machineType.defaultState)
   end
 end
 
 function StateMachineSystem:removeStateMachineComponent(entity)
-  entity.stateMachine.tween:stop()
+  if entity.stateMachine.tween then
+    entity.stateMachine.tween:stop()
+  end
   entity:remove("stateMachine")
 end
 

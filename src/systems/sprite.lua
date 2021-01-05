@@ -249,7 +249,7 @@ local function drawLayer(self, layerId, shaderId)
       y = quadY / imageH,
       w = w / imageW,
       h = h / imageH
-    }, position.x, position.y, flipped, entity.sprite.outline, entity.sprite.whiteAmount or 0)
+    }, position.x - origin.x, position.y - origin.y, flipped, entity.sprite.outline, entity.sprite.whiteAmount or 0)
 
     table.insert(rects, rect)
 

@@ -12,17 +12,16 @@ local images = {
 
 local mainMenu = {}
 
-function mainMenu:enter() --luacheck: ignore
-  self.selectedIndex = nil
-end
-
-local function getCentered(image, scale)
-  local screenW, screenH = love.graphics.getDimensions()
-  local imageW, imageH = image:getDimensions()
-  return ((screenW / scale - imageW) / 2), ((screenH / scale - imageH) / 2)
-end
-
 local scale = 4
+
+local function startGame()
+  Gamestate.switch(inGame)
+end
+
+local function quit()
+  love.event.quit()
+end
+
 
 local function createButton(y, image, hoverImage, clickFunction, hoverFunction)
   local w, h = image:getDimensions()
@@ -38,19 +37,29 @@ local function createButton(y, image, hoverImage, clickFunction, hoverFunction)
   }
 end
 
-local function startGame()
-  Gamestate.switch(inGame)
-end
 
-local function quit()
-  love.event.quit()
-end
-
-function mainMenu:enter() -- luacheck: ignore
+function mainMenu:enter() --luacheck: ignore
   self.elements = {
     createButton(160, images.playButton, images.playButtonHover, startGame),
     createButton(190, images.quitButton, images.quitButtonHover, quit)
   }
+
+  self.selectedIndex = nil
+
+  self.music = love.audio.newSource('media/sounds/music/menu.mp3', 'stream')
+  self.music:setVolume(0.1)
+  self.music:setLooping(true)
+  self.music:play()
+end
+
+function mainMenu:leave()
+  self.music:stop()
+end
+
+local function getCentered(image)
+  local screenW, screenH = love.graphics.getDimensions()
+  local imageW, imageH = image:getDimensions()
+  return ((screenW / scale - imageW) / 2), ((screenH / scale - imageH) / 2)
 end
 
 function mainMenu:update(dt) -- luacheck: ignore
@@ -102,7 +111,7 @@ function mainMenu:keypressed(key)
   end
 end
 
-local function drawElement(element, scale, active)
+local function drawElement(element, active)
   element.activeImage = active and element.hoverImage or element.normalImage
   local x = getCentered(element.activeImage, scale)
   love.graphics.draw(element.activeImage, x, element.y)
@@ -112,11 +121,11 @@ function mainMenu:draw() -- luacheck: ignore
   love.graphics.push()
   love.graphics.scale(scale)
 
-  local x = getCentered(images.background, scale)
+  local x = getCentered(images.background)
   love.graphics.draw(images.background, x, 0)
 
   for i, element in ipairs(self.elements) do
-    drawElement(element, scale, self.selectedIndex == i)
+    drawElement(element, self.selectedIndex == i)
   end
 
   -- x = getCentered(images.playButton, scale)
