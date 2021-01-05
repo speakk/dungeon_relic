@@ -4,6 +4,16 @@ return function(entity)
   entity:give("directionIntent")
   entity:give("clearDirectionIntent")
   entity:give("interacter")
+  entity:give("equipmentSlots", {
+    "headArmor",
+    "rightHandArmor",
+    "rightHandWeapon",
+    "torso",
+    "leftHandArmor",
+    "leftHandWeapon",
+    "rightLegArmor",
+    "leftLegArmor"
+  })
   entity:give("speed", 200)
   entity:give("origin", 0.5, 1)
   entity:give("stateMachine", "player")

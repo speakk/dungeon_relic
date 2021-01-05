@@ -38,6 +38,17 @@ function state:keypressed(pressedKey) --luacheck: ignore
     self.dropItemsCallback(self.world, self.owner, item)
     table.remove_value(self.items, item)
   end
+
+  if pressedKey == "e" then
+    local item = self.items[self.selectedItemIndex]
+    if item.equippable then
+      if item.equippable.equippedById == self.owner.id then
+        item.equippable.equippedById = nil
+      else
+        item.equippable.equippedById = self.owner.id
+      end
+    end
+  end
 end
 
 function state:changeSelectedItem(direction)

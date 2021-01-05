@@ -98,6 +98,7 @@ function game:enter(_, level)
     ECS.s.sprite,
     ECS.s.draw,
     ECS.s.inventoryUI,
+    ECS.s.equipmentUI,
     ECS.s.ui,
     ECS.s.audioEffects
   )
