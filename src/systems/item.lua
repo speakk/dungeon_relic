@@ -19,4 +19,10 @@ function ItemSystem:pickItemUp(newOwner, itemEntity) --luacheck: ignore
   itemEntity:give("inInventory", newOwner.inventory.entityId)
 end
 
+function ItemSystem:dropItem(owner, itemEntity) -- luacheck: ignore
+  print("Dropping item")
+  itemEntity:remove("inInventory")
+  itemEntity:give("position", Vector.split(owner.position.vec))
+end
+
 return ItemSystem

@@ -148,6 +148,7 @@ local tileValueToEntity = {
   bush = function(x, y, _, tileSize, world) placeEntity("dungeon_features.bush", tileSize, x, y, world) end,
   player = function(x, y, _, tileSize, world)
     placeEntity("items.leather_armor", tileSize, x+1, y+1, world)
+    placeEntity("items.leather_armor", tileSize, x+1, y+2, world)
     local player = placeEntity("characters.player", tileSize, x, y, world)
     local inventoryEntity = Concord.entity(world):assemble(ECS.a.getBySelector('items.backbag'))
     print("ID?", player.id.value, inventoryEntity.id.value)

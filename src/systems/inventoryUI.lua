@@ -4,12 +4,15 @@ local inventoryState = require 'states.inventory'
 
 local InventoryUISystem = Concord.system({ pool = { "playerControlled", "inventory" }, itemsInInventory = { "item", "inInventory" }})
 
-local font = love.graphics.newFont('media/fonts/TrueType/PixeloidSans.ttf', 18)
-
 function InventoryUISystem:init()
   self.pool.onEntityAdded = function(_, entity)
     self.inventoryId = entity.inventory.entityId
+    self.player = entity
   end
+end
+
+local function dropItem(world, owner, item)
+  world:emit("dropItem", owner, item)
 end
 
 function InventoryUISystem:showInventory()
@@ -17,29 +20,9 @@ function InventoryUISystem:showInventory()
     return itemEntity.inInventory.inventoryId == self.inventoryId
   end)
 
-  Gamestate.push(inventoryState, inPlayerInventory)
-end
+  print("inPlayerInventory length", #inPlayerInventory)
 
-function InventoryUISystem:drawInventory()
-  local inPlayerInventory = functional.filter(self.itemsInInventory, function(itemEntity)
-    return itemEntity.inInventory.inventoryId == self.inventoryId
-  end)
-
-  local x = 800
-  local y = 10
-  local maxWidth = 100
-  for _, itemEntity in ipairs(inPlayerInventory) do
-    love.graphics.setColor(1,1,1,1)
-    love.graphics.printf(itemEntity.displayName.value, font, x, y, maxWidth)
-    local mediaEntity = mediaManager:getMediaEntity(itemEntity.sprite.spriteId)
-    local atlasImage = mediaManager:getAtlas("autoLoaded"):getImage()
-    local quad = mediaEntity.quads[itemEntity.sprite.currentQuadIndex]
-    love.graphics.draw(atlasImage, quad, x + maxWidth, y)
-  end
-end
-
-function InventoryUISystem:systemsLoaded()
-  --self:getWorld():emit("registerLayer", "ui", self.drawInventory, self, false)
+  Gamestate.push(inventoryState, self.player, inPlayerInventory, self:getWorld(), dropItem)
 end
 
 return InventoryUISystem
