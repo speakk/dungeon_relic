@@ -5,7 +5,6 @@ local component = Concord.component("equipmentSlots", function(self, slots)
 end)
 
 function component:serialize()
-  print("serializing equipmentSlots")
   return { slots = bitser.dumps(self.slots) }
 end
 

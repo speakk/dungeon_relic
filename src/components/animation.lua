@@ -6,7 +6,6 @@ local component = Concord.component("animation", function(self, conf)
 end)
 
 function component:serialize()
-  print("serializing animation")
   return {
     currentAnimations = bitser.dumps(self.currentAnimations),
     animations = bitser.dumps(self.animations)

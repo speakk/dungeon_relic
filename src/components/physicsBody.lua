@@ -25,7 +25,6 @@ local component = Concord.component("physicsBody", function(self, conf)
 end)
 
 function component:serialize()
-  print("serializing physicsBody")
   return {
     offsetX = self.offsetX,
     offsetY = self.offsetY,

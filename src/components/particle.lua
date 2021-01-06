@@ -7,7 +7,6 @@ local component = Concord.component("particle", function(self, systemTypes, offs
 end)
 
 function component:serialize()
-  print("serializing particle")
   return {
     systemTypes = bitser.dumps(self.systemTypes),
     offsetX = self.offsetX,

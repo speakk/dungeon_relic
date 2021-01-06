@@ -1,3 +1,4 @@
+local bitser = require 'libs.bitser'
 local positionUtil = require 'utils.position'
 local dungeonGenerator = require 'utils.dungeonGenerator'
 
@@ -285,7 +286,7 @@ local MapManager = Class {
     return self.collisionMap
   end,
 
-  setMap = function(self, map, world)
+  setMap = function(self, map, world, createEntities)
     clearMediaEntries(self.floorCanvasEntities)
     clearEntities(self.floorCanvasEntities)
 
@@ -306,6 +307,17 @@ local MapManager = Class {
 
   getMap = function(self)
     return self.map
+  end,
+
+  serialize = function(self)
+    return {
+      mapData = bitser.dumps(self.map)
+    }
+  end,
+
+  deserialize = function(self, data, world)
+    --self:setMap(bitser.loads(data.mapData), world)
+    self.map = bitser.loads(data.mapData)
   end,
 
   getPath = function(self, fromX, fromY, toX, toY)

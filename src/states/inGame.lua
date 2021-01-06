@@ -26,7 +26,8 @@ function game:serialize()
   return {
     currentLevelNumber = self.currentLevelNumber,
     world = self.world:serialize(),
-    entityIdHead = self.entityIdHead
+    entityIdHead = self.entityIdHead,
+    mapData = self.mapManager:serialize()
   }
 end
 
@@ -34,6 +35,7 @@ function game:deserialize(data)
   self.currentLevelNumber = data.currentLevelNumber
   self.world:deserialize(data.world)
   self.entityIdHead = data.entityIdHead
+  self.mapManager:deserialize(data.mapData, self.world)
 end
 
 function game:generateEntityID()
