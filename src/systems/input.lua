@@ -1,6 +1,4 @@
-local Gamestate = require 'libs.hump.gamestate'
-
-local inventoryState = require 'states.inventory'
+local saveUtils = require 'utils.save'
 
 local InputSystem = Concord.system({})
 
@@ -64,7 +62,14 @@ function InputSystem:keyPressed(pressedKey)
 
   if pressedKey == 'tab' then
     self:getWorld():emit('showInventory')
-    --Gamestate.push(inventoryState)
+  end
+
+  if pressedKey == 'f5' then
+    saveUtils.quickSave()
+  end
+
+  if pressedKey == 'f9' then
+    saveUtils.quickLoad()
   end
 end
 

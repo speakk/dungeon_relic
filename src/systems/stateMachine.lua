@@ -131,10 +131,12 @@ function StateMachineSystem:init()
 end
 
 function StateMachineSystem:removeStateMachineComponent(entity)
-  if entity.stateMachine.tween then
-    entity.stateMachine.tween:stop()
+  if entity.stateMachine then
+    if entity.stateMachine.tween then
+      entity.stateMachine.tween:stop()
+    end
+    entity:remove("stateMachine")
   end
-  entity:remove("stateMachine")
 end
 
 function StateMachineSystem:update(dt)

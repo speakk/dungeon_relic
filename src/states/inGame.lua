@@ -30,10 +30,10 @@ function game:serialize()
   }
 end
 
-function game:deserialize(state)
-  self.currentLevelNumber = state.currentLevelNumber
-  self.world = state.world:deserialize()
-  self.entityIdHead = state.entityIdHead
+function game:deserialize(data)
+  self.currentLevelNumber = data.currentLevelNumber
+  self.world:deserialize(data.world)
+  self.entityIdHead = data.entityIdHead
 end
 
 function game:generateEntityID()
@@ -43,6 +43,10 @@ end
 
 function game:setEntityId(id, entity)
   self.entityIdMap[id] = entity
+end
+
+function game:getEntity(id)
+  return self.entityIdMap[id]
 end
 
 function game:removeEntityId(id)
@@ -99,8 +103,8 @@ function game:enter(_, level)
     ECS.s.draw,
     ECS.s.inventoryUI,
     ECS.s.equipmentUI,
-    ECS.s.ui,
-    ECS.s.audioEffects
+    ECS.s.ui
+    --ECS.s.audioEffects -- TODO: Enable again
   )
   print("Systems added")
 

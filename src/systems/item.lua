@@ -1,8 +1,10 @@
+local inGame = require 'states.inGame'
+
 local ItemSystem = Concord.system({ pool = { "item" }})
 
 function ItemSystem:init()
   self.pool.onEntityAdded = function(_, entity)
-    entity:give("interactable", "Press c to pick up", { name = "pickItemUp", props = { entity }}, "pickup")
+    entity:give("interactable", "Press c to pick up", { name = "pickItemUp", props = { entity.id.value }}, "pickup")
   end
 
   self.pool.onEntityRemoved = function(_, entity)
@@ -10,7 +12,8 @@ function ItemSystem:init()
   end
 end
 
-function ItemSystem:pickItemUp(newOwner, itemEntity) --luacheck: ignore
+function ItemSystem:pickItemUp(newOwner, itemEntityId) --luacheck: ignore
+  local itemEntity = inGame:getEntity(itemEntityId)
   if not newOwner.inventory then
     error("Tried to pick item up with no inventory")
   end

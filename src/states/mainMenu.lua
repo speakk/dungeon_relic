@@ -49,7 +49,7 @@ function mainMenu:enter() --luacheck: ignore
   self.music = love.audio.newSource('media/sounds/music/menu.mp3', 'stream')
   self.music:setVolume(0.1)
   self.music:setLooping(true)
-  self.music:play()
+  --self.music:play() -- TODO: Enable again
 end
 
 function mainMenu:leave()
