@@ -7,7 +7,6 @@ local component = Concord.component("interactable", function(self, tooltip, even
 end)
 
 function component:serialize()
-  print("Serializing interactable")
   return {
     tooltip = self.tooltip,
     event = bitser.dumps(self.event),

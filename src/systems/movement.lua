@@ -1,3 +1,5 @@
+local settings = require 'settings'
+
 local MovementSystem = Concord.system({
   pool = { "velocity", "directionIntent", "position" },
   clearDirectionIntents = { "clearDirectionIntent", "directionIntent" }
@@ -10,10 +12,10 @@ function MovementSystem:clearDirectionIntent(_)
 end
 
 function MovementSystem:mapChange(map)
-  local tileSize = map.tileSize
+  local tileSize = settings.tileSize
   self.mapBounds = {
     min = Vector(map.tileSize, map.tileSize),
-    max = Vector((map.size.x + 1) * tileSize, (map.size.y + 1) * tileSize)
+    max = Vector((map.width + 1) * tileSize, (map.height + 1) * tileSize)
   }
 end
 

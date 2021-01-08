@@ -1,4 +1,5 @@
 local bitser = require 'libs.bitser'
+local settings = require 'settings'
 local positionUtil = require 'utils.position'
 local dungeonGenerator = require 'utils.dungeonGenerator'
 
@@ -131,72 +132,126 @@ local function drawTile(x, y, tileValue, tileSize, _, _, offsetX, offsetY)
   love.graphics.draw(tileSet, quad, finalX, finalY)
 end
 
-local function placeEntity(assemblageId, tileSize, gridX, gridY, world)
+local function placeEntity(assemblageId, gridX, gridY, world)
   local entity = Concord.entity(world):assemble(ECS.a.getBySelector(assemblageId))
-  entity:give("position", gridX*tileSize + tileSize/2, gridY*tileSize + tileSize/2)
+  entity:give("position", gridX*settings.tileSize + settings.tileSize/2, gridY*settings.tileSize + settings.tileSize/2)
   return entity
 end
 
-local tileValueToEntity = {
-  void = function(x, y, _, _, world)
-    return Concord.entity(world):give("gridCollisionItem", x, y)
-  end,
-  exit = function(x, y, _, tileSize, world) placeEntity("dungeon_features.portal_down", tileSize, x, y, world) end,
-  entrance = function(x, y, _, tileSize, world) placeEntity("dungeon_features.portal_up", tileSize, x, y, world) end,
-  spawner = function(x, y, _, tileSize, world) placeEntity("dungeon_features.spawner", tileSize, x, y, world) end,
-  monster = function(x, y, _, tileSize, world) placeEntity("characters.monsterA", tileSize, x, y, world) end,
-  pillar = function(x, y, _, tileSize, world) placeEntity("dungeon_features.pillar", tileSize, x, y, world) end,
-  bush = function(x, y, _, tileSize, world) placeEntity("dungeon_features.bush", tileSize, x, y, world) end,
-  player = function(x, y, _, tileSize, world)
-    placeEntity("items.leather_armor", tileSize, x+1, y+1, world)
-    placeEntity("items.leather_armor", tileSize, x+1, y+2, world)
-    local player = placeEntity("characters.player", tileSize, x, y, world)
-    local inventoryEntity = Concord.entity(world):assemble(ECS.a.getBySelector('items.backbag'))
-    print("ID?", player.id.value, inventoryEntity.id.value)
-    player:give("inventory", inventoryEntity.id.value)
-  end,
-  wall = function(x, y, _, _, world) return Concord.entity(world):give("gridCollisionItem", x, y) end
-}
-
-local function createEntity(x, y, tileValue, tileSize, world, tiles)
-  tileValueToEntity[tileValue](x, y, tileValue, tileSize, world, tiles)
+local function spawnPlayer(x, y, world)
+  placeEntity("items.leather_armor", x+1, y+1, world)
+  placeEntity("items.leather_armor", x+1, y+2, world)
+  local player = placeEntity("characters.player", x, y, world)
+  local inventoryEntity = Concord.entity(world):assemble(ECS.a.getBySelector('items.backbag'))
+  print("ID?", player.id.value, inventoryEntity.id.value)
+  player:give("inventory", inventoryEntity.id.value)
 end
 
+local function createCollisionEntity(x, y, _, _, world) Concord.entity(world):give("gridCollisionItem", x, y):setSerializable(false) end
+
 local handleTile = {
-  wall = {drawAutotile, createEntity},
+  wall = {drawAutotile, createCollisionEntity},
   floor = {drawTile},
   roomFloor = {drawTile},
-  void = {drawTile, createEntity},
-  exit = {createEntity},
-  entrance = {createEntity},
-  spawner = {createEntity},
-  monster = {createEntity},
-  pillar = {createEntity},
-  bush = {createEntity},
-  player = {createEntity}
+  void = {drawTile, createCollisionEntity},
 }
 
-local function drawCanvas(tileSize, layers, world, canvasSizeX, canvasSizeY, startX, startY, endX, endY)
+local getRandomPositionInRoom = function(dungeon, room, padding)
+  if padding > room.w/2 or padding > room.h/2 then error("Padding too large for room size") end
+  local empties = {}
+  for y=room.y+padding,room.y+room.h-padding do
+    for x=room.x+padding,room.x+room.w-padding do
+      if dungeon[y][x] == "floor" then table.insert(empties, {x,y}) end
+    end
+  end
+
+  if #empties == 0 then error("No empty spot found in room") end
+
+  local empty = table.pick_random(empties)
+  local x, y = empty[1],empty[2]
+
+  if dungeon[y][x] == "wall" then
+    error ("Trying to get position in room which is actually wall x/y: " .. x .. "/" .. y)
+  end
+
+  return x, y
+end
+
+local getPositionInRandomRoom = function(dungeon, rooms, padding)
+  local nonNilRooms = functional.filter(rooms, function(room) return room end)
+  padding = padding or 1
+  local randomRoom = table.pick_random(nonNilRooms)
+  local x, y = getRandomPositionInRoom(dungeon, randomRoom, padding)
+  return x, y, randomRoom
+end
+
+
+-- Run only when
+local function spawnEntities(dungeon, descending, world)
+  if #(dungeon.rooms) == 0 then error("No rooms in dungeon") end
+
+  print("UH", inspect(dungeon))
+
+  --for _=1,5 do
+  --  local spawnerX, spawnerY = getPositionInRandomRoom(rotMap._rooms)
+  --  featuresLayer.tiles[spawnerY][spawnerX] = "spawner"
+  --end
+
+  -- ENTRANCE / EXIT START
+  -- Create exit
+  local exitX, exitY, exitRoom = getPositionInRandomRoom(dungeon.tiles, dungeon.rooms, 2)
+  placeEntity("dungeon_features.portal_down", exitX, exitY, world)
+
+  -- Create entrance room. Make sure we find one that is not the same as the exit room
+  local nonExitRooms = functional.filter(table.copy(dungeon.rooms), function(room)
+    return room ~= exitRoom
+  end)
+  if #nonExitRooms == 0 then error("No nonExitRooms found") end
+  local entranceX, entranceY, entranceRoom = getPositionInRandomRoom(dungeon.tiles, nonExitRooms, 2)
+  if not entranceRoom then error("No eligible entrance room found, exiting") end
+
+  placeEntity("dungeon_features.portal_up", exitX, exitY, world)
+  if descending then
+    spawnPlayer(entranceX+1, entranceY+1, world)
+  else
+    spawnPlayer(exitX+1, exitY+1, world)
+  end
+  -- ENTRANCE / EXIT END
+
+  for _=1,10 do
+    local x, y, _ = getPositionInRandomRoom(dungeon.tiles, dungeon.rooms, 1)
+    placeEntity("dungeon_features.pillar", x, y, world)
+  end
+
+  for _=1,10 do
+    local x, y, _ = getPositionInRandomRoom(dungeon.tiles, dungeon.rooms, 1)
+    placeEntity("dungeon_features.bush", x, y, world)
+  end
+
+  for _=1,20 do
+    local x, y, _ = getPositionInRandomRoom(dungeon.tiles, dungeon.rooms, 1)
+    placeEntity("characters.monsterA", x, y, world)
+  end
+end
+
+local function drawCanvas(tileSize, mapData, world, canvasSizeX, canvasSizeY, startX, startY, endX, endY)
   local canvas = love.graphics.newCanvas(canvasSizeX, canvasSizeY)
   love.graphics.setCanvas(canvas)
 
   -- NOTE: Right now drawing all layers right on each other in the same canvas.
   -- Consider possible benefits of having the layers being drawn separately
   -- (would allow parallax movement between layers etc)
-  for _, layer in ipairs(layers) do
-    local tiles = layer.tiles
-    for y = startY, endY -1 do
-      for x = startX, endX -1 do
-        if tiles[y] and tiles[y][x] then
-          local tileValue = tiles[y][x]
-          local tileHandlers = handleTile[tileValue]
-          if tileHandlers then
-            for _, tileHandler in ipairs(tileHandlers) do
-              tileHandler(x, y, tileValue, tileSize, world, tiles, startX, startY)
-            end
-          else
-            error ("No tile handler for: " .. tileValue)
+  for y = startY, endY -1 do
+    for x = startX, endX -1 do
+      if mapData[y] and mapData[y][x] then
+        local tileValue = mapData[y][x]
+        local tileHandlers = handleTile[tileValue]
+        if tileHandlers then
+          for _, tileHandler in ipairs(tileHandlers) do
+            tileHandler(x, y, tileValue, tileSize, world, mapData, startX, startY)
           end
+        else
+          error ("No tile handler for: " .. tileValue)
         end
       end
     end
@@ -207,14 +262,12 @@ local function drawCanvas(tileSize, layers, world, canvasSizeX, canvasSizeY, sta
   return canvas
 end
 
-local function drawMap(map, world)
+local function initializeMap(map, world)
   local canvasSizeInTilesX = 10
   local canvasSizeInTilesY = 10
 
-  local canvasesX = math.ceil(map.size.x/canvasSizeInTilesX)
-  local canvasesY = math.ceil(map.size.y/canvasSizeInTilesY)
-
-  local entities = {}
+  local canvasesX = math.ceil(map.width/canvasSizeInTilesX)
+  local canvasesY = math.ceil(map.height/canvasSizeInTilesY)
 
   for canvasY=0,canvasesY-1 do
     for canvasX=0,canvasesX-1 do
@@ -222,12 +275,12 @@ local function drawMap(map, world)
       local startY = canvasY * canvasSizeInTilesY + 1
       local endX = startX + canvasSizeInTilesX
       local endY = startY + canvasSizeInTilesY
-      local canvasWidth = canvasSizeInTilesX * map.tileSize
-      local canvasHeight = canvasSizeInTilesY * map.tileSize
+      local canvasWidth = canvasSizeInTilesX * settings.tileSize
+      local canvasHeight = canvasSizeInTilesY * settings.tileSize
 
       local canvas = drawCanvas(
-      map.tileSize,
-      map.layers,
+      settings.tileSize,
+      map.mapData.tiles,
       world,
       canvasWidth, canvasHeight,
       startX, startY, endX, endY
@@ -239,41 +292,29 @@ local function drawMap(map, world)
       local mediaPath = 'mapLayerCache.floor' .. startX .. "|" .. startY
       mediaManager:setMediaEntity(mediaPath, mediaEntity)
 
-      local entity = Concord.entity()
+      Concord.entity(world)
       :give('sprite', mediaPath, "ground")
       :give('size', canvasWidth, canvasHeight)
-      :give('position', startX * map.tileSize, startY * map.tileSize)
-
-      table.insert(entities, entity)
+      :give('position', startX * settings.tileSize, startY * settings.tileSize)
+      :setSerializable(false)
     end
   end
-
-  return entities
 end
-
-local function clearMediaEntries(entities)
-  if not entities then return end
-  for _, entity in ipairs(entities) do
-    mediaManager:removeMediaEntity(entity.sprite.image)
-  end
-end
-
-local function clearEntities(entities)
-  if not entities then return end
-  for _, entity in ipairs(entities) do
-    entity:destroy()
-  end
-
-  entities.length = 0
-end
-
 
 local MapManager = Class {
-  init = function(self)
-    self.collisionMap = {}
-    self.map = {}
-    self.entities = {}
-    self.layerSprites = {}
+  init = function(self, map, world)
+    self.collisionMap = functional.generate(map.height, function(_)
+      return functional.generate(map.width, function(_)
+        return 0
+      end)
+    end)
+
+    self.map = map
+    initializeMap(map, world)
+  end,
+
+  initializeEntities = function(self, descending, world)
+    spawnEntities(self.map.mapData, descending, world)
   end,
 
   -- Note: x and y are grid coordinates, not pixel
@@ -286,81 +327,16 @@ local MapManager = Class {
     return self.collisionMap
   end,
 
-  setMap = function(self, map, world, createEntities)
-    clearMediaEntries(self.floorCanvasEntities)
-    clearEntities(self.floorCanvasEntities)
-
-    self.collisionMap = functional.generate(map.size.y, function(_)
-      return functional.generate(map.size.x, function(_)
-        return 0
-      end)
-    end)
-
-    self.map = map
-
-    self.mapCanvasEntities = drawMap(map, world)
-
-    for _, entity in ipairs(self.mapCanvasEntities) do
-      world:addEntity(entity)
-    end
-  end,
+  -- setMap = function(self, map, world, createEntities)
+  -- end,
 
   getMap = function(self)
     return self.map
   end,
 
-  serialize = function(self)
-    return {
-      mapData = bitser.dumps(self.map)
-    }
-  end,
-
-  deserialize = function(self, data, world)
-    --self:setMap(bitser.loads(data.mapData), world)
-    self.map = bitser.loads(data.mapData)
-  end,
-
-  getPath = function(self, fromX, fromY, toX, toY)
-    return luastar:find(self.map.size.x, self.map.size.y,
-      { x = fromX, y = fromY },
-      { x = toX, y = toY },
-      isPositionAvailable,
-      true)
-  end
 }
 
-local function createLayer(width, height, valueFunction)
-  local layer = {
-    tiles = {}
-  }
-  if width and height then
-    for y=1,height do
-      local row = {}
-      table.insert(layer.tiles, row)
-
-      for x=1,width do
-        if valueFunction then
-          row[x] = valueFunction(x, y)
-        end
-      end
-    end
-  end
-
-  return layer
-end
-
-local function generateSimpleMap(seed, descending)
-  --local scale = 0.1
-  --
-  -- roomWidth table Room width for rectangle one of cross rooms (default {4)
-  -- roomHeight table Room height for rectangle one of cross rooms (default {3)
-  -- crossWidth table Room width for rectangle two of cross rooms (default {3)
-  -- crossHeight table Room height for rectangle two of cross rooms (default {2)
-  -- corridorWidth table Length of east-west corridors (default {3)
-  -- corridorHeight table Length of north-south corridors (default {2)
-
-  -- local rotMapGenerator = ROT.Map.Brogue:new(width, height,{
-  -- })
+MapManager.generateMap = function()
   local outerPadding = 1
 
   local width=30
@@ -375,144 +351,12 @@ local function generateSimpleMap(seed, descending)
   })
 
   local map = {
-    layers = {},
+    mapData = dungeon,
     width = width + outerPadding*2,
     height = height + outerPadding*2
   }
 
-  local rotMapLayer = {}
-
-  for y=1,#dungeon.tiles[1] do
-    local row = dungeon.tiles[y]
-    if not rotMapLayer[y] then rotMapLayer[y] = {} end
-    for x=1,#row do
-      local tile = dungeon.tiles[y][x]
-      rotMapLayer[y][x] = tile -- TODO: Add type mapping here
-    end
-  end
-
-
-  -- local rotMap = rotMapGenerator:create(function(x, y, type)
-  --   if not rotMapLayer[y] then rotMapLayer[y] = {} end
-  --   if type == 0 then rotMapLayer[y][x] = "floor" end
-  --   if type == 1 then rotMapLayer[y][x] = "wall" end
-  --   if type == 2 then rotMapLayer[y][x] = "floor" end -- TODO: add door
-  -- end, false)
-
-  local getRandomPositionInRoom = function(room, padding)
-    if padding > room.w/2 or padding > room.h/2 then error("Padding too large for room size") end
-    local empties = {}
-    for y=room.y+padding,room.y+room.h-padding do
-      for x=room.x+padding,room.x+room.w-padding do
-        if rotMapLayer[y][x] == "floor" then table.insert(empties, {x,y}) end
-      end
-    end
-
-    if #empties == 0 then error("No empty spot found in room") end
-
-    local empty = table.pick_random(empties)
-    local x, y = empty[1],empty[2]
-
-    if rotMapLayer[y][x] == "wall" then
-      error ("Trying to get position in room which is actually wall x/y: " .. x .. "/" .. y)
-    end
-
-    return x, y
-  end
-
-  local getPositionInRandomRoom = function(rooms, padding)
-    local nonNilRooms = functional.filter(rooms, function(room) return room end)
-    padding = padding or 1
-    local randomRoom = table.pick_random(nonNilRooms)
-    local x, y = getRandomPositionInRoom(randomRoom, padding)
-    return x, y, randomRoom
-  end
-
-  local featuresLayer = createLayer(width+outerPadding*2, height+outerPadding*2)
-
-  if #(dungeon.rooms) == 0 then error("No rooms in dungeon") end
-
-  --for _=1,5 do
-  --  local spawnerX, spawnerY = getPositionInRandomRoom(rotMap._rooms)
-  --  featuresLayer.tiles[spawnerY][spawnerX] = "spawner"
-  --end
-
-  -- ENTRANCE / EXIT START
-  -- Create exit
-  local exitX, exitY, exitRoom = getPositionInRandomRoom(dungeon.rooms, 2)
-  featuresLayer.tiles[exitY][exitX] = "exit"
-
-  -- Create entrance room. Make sure we find one that is not the same as the exit room
-  local nonExitRooms = functional.filter(table.copy(dungeon.rooms), function(room)
-    return room ~= exitRoom
-  end)
-  if #nonExitRooms == 0 then error("No nonExitRooms found") end
-  local entranceX, entranceY, entranceRoom = getPositionInRandomRoom(nonExitRooms, 2)
-  if not entranceRoom then error("No eligible entrance room found, exiting") end
-
-  featuresLayer.tiles[entranceY][entranceX] = "entrance"
-  if descending then
-    featuresLayer.tiles[entranceY+1][entranceX] = "player"
-  else
-    featuresLayer.tiles[exitY+1][exitX] = "player"
-  end
-  -- ENTRANCE / EXIT END
-
-  for _=1,10 do
-    local x, y, _ = getPositionInRandomRoom(dungeon.rooms, 1)
-    if not featuresLayer.tiles[y][x] then
-      featuresLayer.tiles[y][x] = "pillar"
-    end
-  end
-
-  for _=1,10 do
-    local x, y, _ = getPositionInRandomRoom(dungeon.rooms, 1)
-    if not featuresLayer.tiles[y][x] then
-      featuresLayer.tiles[y][x] = "bush"
-    end
-  end
-
-  for _=1,20 do
-    local x, y, _ = getPositionInRandomRoom(dungeon.rooms, 1)
-    if not featuresLayer.tiles[y][x] then
-      featuresLayer.tiles[y][x] = "monster"
-    end
-  end
-
-  table.insert(map.layers, featuresLayer)
-
-  -- Fill the whole thing up with floor
-  table.insert(map.layers, createLayer(width+outerPadding*2, height+outerPadding*2, function(x, y)
-    for _, room in ipairs(dungeon.rooms) do
-      local l,t,r,b = room.x,room.y,room.x+room.w,room.y+room.h
-      if x >= l and x <= r and y >= t and y <= b then
-        return 'roomFloor'
-      end
-    end
-    return 'floor'
-  end))
-
-  table.insert(map.layers, createLayer(width+outerPadding*2, height+outerPadding*2, function(x, y)
-    local value = rotMapLayer[y][x]
-    if value == "wall" then return value end
-  end))
-
   return map
-end
-
-MapManager.generateMap = function(levelNumber, descending)
-  local tileSize = 32
-
-  local width = 30
-  local height = 30
-
-  local map = generateSimpleMap(levelNumber, descending, width, height)
-
-  return {
-    tileSize = tileSize,
-    size = { x = map.width, y = map.height },
-    layers = map.layers
-  }
 end
 
 return MapManager

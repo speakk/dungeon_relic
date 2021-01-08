@@ -23,6 +23,7 @@ function Entity.new(world)
    local e = setmetatable({
       __world      = nil,
       __components = {},
+      __serializable = true,
 
       __isEntity = true,
    }, Entity.__mt)
@@ -126,6 +127,20 @@ function Entity:destroy()
    end
 
    return self
+end
+
+--- Sets the Entity to be serialized
+-- Should the entity be serialized upon world:serialize()
+-- Default is true
+-- @return self
+function Entity:setSerializable(serializable)
+  self.__serializable = serializable
+
+  return self
+end
+
+function Entity:getSerializable()
+  return self.__serializable
 end
 
 -- Internal: Tells the World it's in that this Entity is dirty.

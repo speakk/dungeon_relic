@@ -1,6 +1,8 @@
 local bitser = require 'libs.bitser'
+local Gamestate = require 'libs.hump.gamestate'
 
 local inGame = require 'states.inGame'
+local switchLevels = require 'states.switchLevels'
 
 local quickSaveName = "quickSave.save"
 
@@ -13,8 +15,12 @@ local function saveGame(fileName)
 end
 
 local function loadGame(fileName)
-  local data = love.filesystem.read(fileName)
-  inGame:deserialize(bitser.loads(data))
+  local data = bitser.loads(love.filesystem.read(fileName))
+  Gamestate.switch(inGame, true, {
+    data = data
+  })
+  --inGame:deserialize(bitser.loads(data))
+  --Gamestate.switch(switchLevels, data)
 end
 
 return {

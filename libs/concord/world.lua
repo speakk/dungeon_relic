@@ -323,10 +323,10 @@ function World:serialize()
 
    for i = 1, self.__entities.size do
       local entity = self.__entities[i]
-
-      local entityData = entity:serialize()
-
-      data[i] = entityData
+      if entity:getSerializable() then
+        local entityData = entity:serialize()
+        table.insert(data, entityData)
+      end
    end
 
    return data
@@ -346,7 +346,7 @@ function World:deserialize(data, append)
       self:addEntity(entity)
    end
 
-   self:__flush()
+   --self:__flush()
 end
 
 --- Returns true if the World has a name.

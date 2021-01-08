@@ -8,6 +8,8 @@ local Gamera = require 'libs.gamera'
 local switchLevels = require 'states.switchLevels'
 local MapManager = require 'mapManager'
 
+local bitser = require 'libs.bitser'
+
 local game = {}
 
 local TESTING = true
@@ -26,17 +28,18 @@ function game:serialize()
   return {
     currentLevelNumber = self.currentLevelNumber,
     world = self.world:serialize(),
+    originalSeed = self.originalSeed,
     entityIdHead = self.entityIdHead,
-    mapData = self.mapManager:serialize()
+    map = bitser.dumps(self.mapManager:getMap())
   }
 end
 
-function game:deserialize(data)
-  self.currentLevelNumber = data.currentLevelNumber
-  self.world:deserialize(data.world)
-  self.entityIdHead = data.entityIdHead
-  self.mapManager:deserialize(data.mapData, self.world)
-end
+-- function game:deserialize(data)
+--   self.currentLevelNumber = data.currentLevelNumber
+--   self.world:deserialize(data.world)
+--   self.entityIdHead = data.entityIdHead
+--   self.mapManager:deserialize(data.mapData, self.world)
+-- end
 
 function game:generateEntityID()
   self.entityIdHead = self.entityIdHead + 1
@@ -55,23 +58,20 @@ function game:removeEntityId(id)
   self.entityIdMap[id] = nil
 end
 
-function game:enter(_, level)
+function game:enter(_, isPreviousState, conf)
   self.entityIdMap = {}
   self.entityIdHead = self.entityIdHead or 0
-  self.originalSeed, _ = love.math.getRandomSeed()
-  local previousLevel = self.currentLevelNumber or 1
-  self.currentLevelNumber = level or 1
-  love.math.setRandomSeed(self.currentLevelNumber + self.originalSeed)
-
   mediaManager:resetDynamicAtlas()
-
   self.world = Concord.world()
 
-  -- TODO: Debug spawn global
-  world = self.world
-  -- TODO END: Debug spawn global
+  local hashCellSize = 256
+  self.spatialHash = {
+    all = shash.new(hashCellSize),
+    interactable = shash.new(hashCellSize)
+  }
 
-  print("Adding systems")
+  self.bumpWorld = bump.newWorld(64)
+
   self.world:addSystems(
     ECS.s.id,
     ECS.s.input,
@@ -108,34 +108,121 @@ function game:enter(_, level)
     ECS.s.ui
     --ECS.s.audioEffects -- TODO: Enable again
   )
-  print("Systems added")
 
-  local hashCellSize = 256
-  self.spatialHash = {
-    all = shash.new(hashCellSize),
-    interactable = shash.new(hashCellSize)
-  }
-  --shash.new(hashCellSize)
-  --print("HASH?", self.spatialHash)
-
-  self.bumpWorld = bump.newWorld(64)
-
-  self.world:emit('systemsLoaded')
   local camera = Gamera.new(0, 0, love.graphics.getWidth(), love.graphics.getHeight())
   self.camera = camera
   self.world:emit("setCamera", camera)
 
-  self.mapManager = MapManager()
+  self.world:emit('systemsLoaded')
 
-  self.mapManager:setMap(MapManager.generateMap(self.currentLevelNumber, self.currentLevelNumber >= previousLevel), self.world)
+  if isPreviousState then
+    self:deserialize(conf.data)
+  else
+    self:initNewLevel(conf)
+  end
+end
 
+function game:initNewLevel(conf)
+  local map = MapManager.generateMap(conf.levelNumber, conf.descending)
+  self.mapManager = MapManager(map, self.world, true)
+  self.mapManager:initializeEntities(conf.descending, self.world)
   self.world:emit('mapChange', self.mapManager:getMap())
 
   if TESTING then
     self.world:emit('initTest')
-
   end
 end
+
+function game:deserialize(data)
+  self.currentLevelNumber = data.currentLevelNumber
+  print("deserialize world", data.world)
+  self.world:deserialize(data.world)
+  self.entityIdHead = data.entityIdHead
+  self.mapManager = MapManager(bitser.loads(data.map), self.world, false)
+  self.world:emit('mapChange', self.mapManager:getMap())
+end
+
+-- function game:enter(_, level)
+--   self.entityIdMap = {}
+--   self.entityIdHead = self.entityIdHead or 0
+--   self.originalSeed, _ = love.math.getRandomSeed()
+--   local previousLevel = self.currentLevelNumber or 1
+--   self.currentLevelNumber = level or 1
+--   love.math.setRandomSeed(self.currentLevelNumber + self.originalSeed)
+-- 
+--   mediaManager:resetDynamicAtlas()
+-- 
+--   self.world = Concord.world()
+-- 
+--   -- TODO: Debug spawn global
+--   world = self.world
+--   -- TODO END: Debug spawn global
+-- 
+--   print("Adding systems")
+--   self.world:addSystems(
+--     ECS.s.id,
+--     ECS.s.input,
+--     ECS.s.debug,
+--     ECS.s.playerControlled,
+--     ECS.s.aiControlled,
+--     ECS.s.stateMachine,
+--     ECS.s.bullet,
+--     ECS.s.monster,
+--     ECS.s.movement,
+--     ECS.s.physicsBody,
+--     ECS.s.levelChange,
+--     -- Dungeon features ->
+--     ECS.s.portal,
+--     ECS.s.spawner,
+--     -- Dungeon features END
+--     ECS.s.spatialHash,
+--     ECS.s.gridCollision,
+--     ECS.s.item,
+--     ECS.s.interactable,
+--     ECS.s.checkEntityMoved,
+--     ECS.s.animation,
+--     ECS.s.light,
+--     ECS.s.dropShadow,
+--     ECS.s.health,
+--     ECS.s.death,
+--     ECS.s.particle,
+--     ECS.s.selfDestroy,
+--     ECS.s.camera,
+--     ECS.s.sprite,
+--     ECS.s.draw,
+--     ECS.s.inventoryUI,
+--     ECS.s.equipmentUI,
+--     ECS.s.ui
+--     --ECS.s.audioEffects -- TODO: Enable again
+--   )
+--   print("Systems added")
+-- 
+--   local hashCellSize = 256
+--   self.spatialHash = {
+--     all = shash.new(hashCellSize),
+--     interactable = shash.new(hashCellSize)
+--   }
+--   --shash.new(hashCellSize)
+--   --print("HASH?", self.spatialHash)
+-- 
+--   self.bumpWorld = bump.newWorld(64)
+-- 
+--   self.world:emit('systemsLoaded')
+--   local camera = Gamera.new(0, 0, love.graphics.getWidth(), love.graphics.getHeight())
+--   self.camera = camera
+--   self.world:emit("setCamera", camera)
+-- 
+--   self.mapManager = MapManager()
+-- 
+--   self.mapManager:setMap(MapManager.generateMap(self.currentLevelNumber, self.currentLevelNumber >= previousLevel), self.world)
+-- 
+--   self.world:emit('mapChange', self.mapManager:getMap())
+-- 
+--   if TESTING then
+--     self.world:emit('initTest')
+-- 
+--   end
+-- end
 
 function game:leave()
   self.world:emit("systemsCleanUp")

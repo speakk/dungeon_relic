@@ -1,4 +1,4 @@
-local lume = require 'libs.lume'
+local settings = require 'settings'
 
 local CameraSystem = Concord.system({ pool = { 'cameraTarget', 'position', 'velocity', 'speed' }})
 
@@ -15,8 +15,8 @@ function CameraSystem:setCamera(camera)
   self.camera = camera
   self.camera:setScale(4.0)
   if self.map then
-    local tileSize = self.map.tileSize
-    self.camera:setWorld(tileSize, tileSize, self.map.size.x * tileSize, self.map.size.y * tileSize)
+    local tileSize = settings.tileSize
+    self.camera:setWorld(tileSize, tileSize, self.map.width * tileSize, self.map.height * tileSize)
   end
 end
 
@@ -35,7 +35,7 @@ function CameraSystem:detachCamera()
 end
 
 function CameraSystem:mapChange(map)
-  self.camera:setWorld(map.tileSize, map.tileSize, map.size.x * map.tileSize, map.size.y * map.tileSize)
+  self.camera:setWorld(settings.tileSize, settings.tileSize, map.width * settings.tileSize, map.height * settings.tileSize)
   self.map = map
 end
 

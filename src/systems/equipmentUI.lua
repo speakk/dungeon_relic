@@ -27,6 +27,7 @@ local getPos = function(slot,containerX,containerY,w,h, slotSize)
 end
 
 function EquipmentUISystem:draw()
+  if not self.slots then return end
   local screenW,screenH = love.graphics.getDimensions()
 
   local paddingX,paddingY = 50, 50

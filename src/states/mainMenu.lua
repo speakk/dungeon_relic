@@ -15,7 +15,14 @@ local mainMenu = {}
 local scale = 4
 
 local function startGame()
-  Gamestate.switch(inGame)
+  Gamestate.switch(inGame, false, {
+    levelNumber = 1,
+    descending = true
+  })
+end
+
+local function loadGame()
+  saveUtil.quickLoad()
 end
 
 local function quit()
