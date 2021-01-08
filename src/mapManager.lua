@@ -190,8 +190,6 @@ end
 local function spawnEntities(dungeon, descending, world)
   if #(dungeon.rooms) == 0 then error("No rooms in dungeon") end
 
-  print("UH", inspect(dungeon))
-
   --for _=1,5 do
   --  local spawnerX, spawnerY = getPositionInRandomRoom(rotMap._rooms)
   --  featuresLayer.tiles[spawnerY][spawnerX] = "spawner"
@@ -210,7 +208,7 @@ local function spawnEntities(dungeon, descending, world)
   local entranceX, entranceY, entranceRoom = getPositionInRandomRoom(dungeon.tiles, nonExitRooms, 2)
   if not entranceRoom then error("No eligible entrance room found, exiting") end
 
-  placeEntity("dungeon_features.portal_up", exitX, exitY, world)
+  placeEntity("dungeon_features.portal_up", entranceX, entranceY, world)
   if descending then
     spawnPlayer(entranceX+1, entranceY+1, world)
   else

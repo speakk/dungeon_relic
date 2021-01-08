@@ -126,6 +126,7 @@ function game:initNewLevel(conf)
   local map = MapManager.generateMap(conf.levelNumber, conf.descending)
   self.mapManager = MapManager(map, self.world, true)
   self.mapManager:initializeEntities(conf.descending, self.world)
+  self.currentLevelNumber = conf.levelNumber
   self.world:emit('mapChange', self.mapManager:getMap())
 
   if TESTING then
@@ -243,13 +244,13 @@ end
 
 function game:descendLevel()
   local newLevelNumber = self.currentLevelNumber + 1
-  print("newLevelNumber", newLevelNumber)
+  --print("newLevelNumber", newLevelNumber)
   Gamestate.switch(switchLevels, self.currentLevelNumber, newLevelNumber)
 end
 
 function game:ascendLevel()
   local newLevelNumber = self.currentLevelNumber - 1
-  print("newLevelNumber", newLevelNumber)
+  --print("newLevelNumber", newLevelNumber)
   Gamestate.switch(switchLevels, self.currentLevelNumber, newLevelNumber)
 end
 
