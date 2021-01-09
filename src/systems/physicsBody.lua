@@ -1,7 +1,7 @@
 local inGame = require 'states.inGame'
 local positionUtil = require 'utils.position'
 
-local PhysicsBodySystem = Concord.system({ pool = {"physicsBody", "position", "physicsBodyActive"}, potential = {"physicsBody", "position"} })
+local PhysicsBodySystem = Concord.system({ pool = {"physicsBody", "position" } })
 
 function PhysicsBodySystem:init()
   self.pool.onEntityAdded = function(_, entity)
@@ -16,7 +16,7 @@ function PhysicsBodySystem:init()
   end
 end
 
-function PhysicsBodySystem:removePhysicsComponent(entity)
+function PhysicsBodySystem:removePhysicsComponent(entity) -- luacheck: ignore
   entity:remove("physicsBody")
 end
 
@@ -72,32 +72,45 @@ function PhysicsBodySystem:systemsLoaded()
   self:getWorld():emit("registerLayer", "debugWithCamera", PhysicsBodySystem.drawDebugWithCamera, self, true)
 end
 
-function PhysicsBodySystem:markOutOfScreenInactive()
+-- function PhysicsBodySystem:markOutOfScreenInactive()
+--   if self.camera then
+--     local l, t, w, h = self.camera:getVisible()
+--     local onScreenAll = {}
+--     inGame.spatialHash.all:each(l, t, w, h, function(entity)
+--       table.insert(onScreenAll, entity)
+--     end)
+--
+--     for _, entity in ipairs(self.potential) do
+--       if functional.contains(onScreenAll, entity) then
+--         -- Remove from onScreenAll to optimize finding it for the next
+--         -- entity
+--         table.remove_value(onScreenAll, entity)
+--         if not entity.physicsBodyActive then
+--           entity:ensure("physicsBodyActive")
+--         end
+--       else
+--         entity:remove("physicsBodyActive")
+--       end
+--     end
+--   end
+-- end
+
+function PhysicsBodySystem:getOnScreen()
+  local onScreen = {}
   if self.camera then
     local l, t, w, h = self.camera:getVisible()
-    local onScreenAll = {}
     inGame.spatialHash.all:each(l, t, w, h, function(entity)
-      table.insert(onScreenAll, entity)
-    end)
-
-    for _, entity in ipairs(self.potential) do
-      if functional.contains(onScreenAll, entity) then
-        -- Remove from onScreenAll to optimize finding it for the next
-        -- entity
-        table.remove_value(onScreenAll, entity)
-        if not entity.physicsBodyActive then
-          entity:ensure("physicsBodyActive")
-        end
-      else
-        entity:remove("physicsBodyActive")
+      if functional.contains(self.pool, entity) then
+        table.insert(onScreen, entity)
       end
-    end
+    end)
   end
+  return onScreen
 end
 
 function PhysicsBodySystem:update(dt)
-  self:markOutOfScreenInactive()
-  for _, entity in ipairs(self.pool) do
+  local onScreen = self:getOnScreen()
+  for _, entity in ipairs(onScreen) do
     if not entity.physicsBody then return end
     local bumpWorld = inGame.bumpWorld
     if not bumpWorld:hasItem(entity) then return end
