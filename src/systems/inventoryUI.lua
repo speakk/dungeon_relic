@@ -17,7 +17,7 @@ end
 
 function InventoryUISystem:showInventory()
   local inPlayerInventory = functional.filter(self.itemsInInventory, function(itemEntity)
-    return itemEntity.inInventory.inventoryId == self.inventoryId
+    return itemEntity.inInventory.entityId == self.inventoryId
   end)
 
   print("inPlayerInventory length", #inPlayerInventory)

@@ -32,7 +32,6 @@ Concord.utils.loadNamespace("src/systems", ECS.s)
 
 -- -- Global declarations END -- --
 
-local inGame = require 'states.inGame'
 local mainMenu = require 'states.mainMenu'
 
 Gamestate.registerEvents()

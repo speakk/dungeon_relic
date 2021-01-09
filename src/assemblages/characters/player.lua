@@ -1,6 +1,8 @@
 return function(entity)
   entity:assemble(ECS.a.characters.character, 700, 700)
   entity:give("playerControlled")
+  entity:give("displayName", "player")
+  entity:give("persistent")
   entity:give("directionIntent")
   entity:give("clearDirectionIntent")
   entity:give("interacter")

@@ -42,10 +42,10 @@ function state:keypressed(pressedKey) --luacheck: ignore
   if pressedKey == "e" then
     local item = self.items[self.selectedItemIndex]
     if item.equippable then
-      if item.equippable.equippedById == self.owner.id then
+      if item.equippable.equippedById == self.owner.id.value then
         item.equippable.equippedById = nil
       else
-        item.equippable.equippedById = self.owner.id
+        item.equippable.equippedById = self.owner.id.value
       end
     end
   end

@@ -45,7 +45,7 @@ function EquipmentUISystem:draw()
     love.graphics.setColor(1,1,1)
 
     local equippedInSlot = functional.filter(self.items, function(item)
-      return item.equippable.equippedById == self.player.id and item.equippable.slot == slot
+      return item.equippable.equippedById == self.player.id.value and item.equippable.slot == slot
     end)
 
     if #equippedInSlot > 0 then

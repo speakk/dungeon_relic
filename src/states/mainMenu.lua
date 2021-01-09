@@ -1,6 +1,7 @@
 local Gamestate = require 'libs.hump.gamestate'
 
 local inGame = require 'states.inGame'
+local saveUtil = require 'utils.save'
 
 local images = {
   background = love.graphics.newImage('media/ui/mainmenu/menuscreen.png'),
@@ -17,6 +18,7 @@ local scale = 4
 local function startGame()
   Gamestate.switch(inGame, false, {
     levelNumber = 1,
+    firstGameStart = true,
     descending = true
   })
 end

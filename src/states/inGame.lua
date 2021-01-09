@@ -58,9 +58,24 @@ function game:removeEntityId(id)
   self.entityIdMap[id] = nil
 end
 
+-- Data that gets stored between level changes
+function game:serializePersistentInformation()
+  local data = {}
+  for i = 1, self.__entities.size do
+    local entity = self.__entities[i]
+    if entity:getSerializable() then
+      if entity.persistent then
+        local entityData = entity:serialize()
+        table.insert(data, entityData)
+      end
+    end
+  end
+end
+
 function game:enter(_, isPreviousState, conf)
+  self.interLevelData = conf.interLevelData or {}
+  self.entityIdHead = conf.entityIdHead or 1
   self.entityIdMap = {}
-  self.entityIdHead = self.entityIdHead or 0
   mediaManager:resetDynamicAtlas()
   self.world = Concord.world()
 
@@ -74,6 +89,7 @@ function game:enter(_, isPreviousState, conf)
 
   self.world:addSystems(
     ECS.s.id,
+    ECS.s.persistent,
     ECS.s.input,
     ECS.s.debug,
     ECS.s.playerControlled,
@@ -115,6 +131,17 @@ function game:enter(_, isPreviousState, conf)
 
   self.world:emit('systemsLoaded')
 
+  if conf.persistentEntities then
+    for _, entityData in ipairs(conf.persistentEntities) do
+      local entity = Concord.entity()
+      print("Adding entity from previous, omg!")
+      entity:deserialize(entityData)
+      local disp1 = entity.displayName and entity.displayName.value or ""
+      print("Name", disp1)
+      self.world:addEntity(entity)
+    end
+  end
+
   if isPreviousState then
     self:deserialize(conf.data)
   else
@@ -125,7 +152,7 @@ end
 function game:initNewLevel(conf)
   local map = MapManager.generateMap(conf.levelNumber, conf.descending)
   self.mapManager = MapManager(map, self.world, true)
-  self.mapManager:initializeEntities(conf.descending, self.world)
+  self.mapManager:initializeEntities(conf.descending, self.world, conf.firstGameStart)
   self.currentLevelNumber = conf.levelNumber
   self.world:emit('mapChange', self.mapManager:getMap())
 
@@ -242,16 +269,20 @@ function game:resize(width, height)
   self.world:emit('windowResize', width, height)
 end
 
+function game:changeLevel(newLevelNumber)
+  self.world:emit("persistEntities")
+  self.world:__flush()
+  Gamestate.switch(switchLevels, self.entityIdHead, self.persistentEntities, self.currentLevelNumber, newLevelNumber)
+end
+
 function game:descendLevel()
   local newLevelNumber = self.currentLevelNumber + 1
-  --print("newLevelNumber", newLevelNumber)
-  Gamestate.switch(switchLevels, self.currentLevelNumber, newLevelNumber)
+  self:changeLevel(newLevelNumber)
 end
 
 function game:ascendLevel()
   local newLevelNumber = self.currentLevelNumber - 1
-  --print("newLevelNumber", newLevelNumber)
-  Gamestate.switch(switchLevels, self.currentLevelNumber, newLevelNumber)
+  self:changeLevel(newLevelNumber)
 end
 
 function game:draw()

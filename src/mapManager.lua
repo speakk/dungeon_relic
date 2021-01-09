@@ -186,14 +186,9 @@ local getPositionInRandomRoom = function(dungeon, rooms, padding)
 end
 
 
--- Run only when
-local function spawnEntities(dungeon, descending, world)
+-- Run only when initializing new game
+local function spawnEntities(dungeon, descending, world, firstGameStart)
   if #(dungeon.rooms) == 0 then error("No rooms in dungeon") end
-
-  --for _=1,5 do
-  --  local spawnerX, spawnerY = getPositionInRandomRoom(rotMap._rooms)
-  --  featuresLayer.tiles[spawnerY][spawnerX] = "spawner"
-  --end
 
   -- ENTRANCE / EXIT START
   -- Create exit
@@ -209,10 +204,13 @@ local function spawnEntities(dungeon, descending, world)
   if not entranceRoom then error("No eligible entrance room found, exiting") end
 
   placeEntity("dungeon_features.portal_up", entranceX, entranceY, world)
-  if descending then
-    spawnPlayer(entranceX+1, entranceY+1, world)
-  else
-    spawnPlayer(exitX+1, exitY+1, world)
+
+  if firstGameStart then
+    if descending then
+      spawnPlayer(entranceX+1, entranceY+1, world)
+    else
+      spawnPlayer(exitX+1, exitY+1, world)
+    end
   end
   -- ENTRANCE / EXIT END
 
@@ -236,9 +234,6 @@ local function drawCanvas(tileSize, mapData, world, canvasSizeX, canvasSizeY, st
   local canvas = love.graphics.newCanvas(canvasSizeX, canvasSizeY)
   love.graphics.setCanvas(canvas)
 
-  -- NOTE: Right now drawing all layers right on each other in the same canvas.
-  -- Consider possible benefits of having the layers being drawn separately
-  -- (would allow parallax movement between layers etc)
   for y = startY, endY -1 do
     for x = startX, endX -1 do
       if mapData[y] and mapData[y][x] then
@@ -311,8 +306,8 @@ local MapManager = Class {
     initializeMap(map, world)
   end,
 
-  initializeEntities = function(self, descending, world)
-    spawnEntities(self.map.mapData, descending, world)
+  initializeEntities = function(self, descending, world, firstGameStart)
+    spawnEntities(self.map.mapData, descending, world, firstGameStart)
   end,
 
   -- Note: x and y are grid coordinates, not pixel
@@ -324,9 +319,6 @@ local MapManager = Class {
   getCollisionMap = function(self)
     return self.collisionMap
   end,
-
-  -- setMap = function(self, map, world, createEntities)
-  -- end,
 
   getMap = function(self)
     return self.map

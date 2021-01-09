@@ -34,7 +34,6 @@ function World.new()
 
       __systemLookup = {},
 
-      __name    = nil,
       __isWorld = true,
    }, World.__mt)
 
@@ -323,6 +322,7 @@ function World:serialize()
 
    for i = 1, self.__entities.size do
       local entity = self.__entities[i]
+
       if entity:getSerializable() then
         local entityData = entity:serialize()
         table.insert(data, entityData)
@@ -346,19 +346,7 @@ function World:deserialize(data, append)
       self:addEntity(entity)
    end
 
-   --self:__flush()
-end
-
---- Returns true if the World has a name.
--- @treturn boolean
-function World:hasName()
-   return self.__name and true or false
-end
-
---- Returns the name of the World.
--- @treturn string
-function World:getName()
-   return self.__name
+   self:__flush()
 end
 
 --- Callback for when an Entity is added to the World.
