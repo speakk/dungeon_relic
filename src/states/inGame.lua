@@ -147,6 +147,9 @@ function game:enter(_, isPreviousState, conf)
   else
     self:initNewLevel(conf)
   end
+
+  self.world:__flush()
+  self.world:emit("levelLoaded", conf.descending)
 end
 
 function game:initNewLevel(conf)
@@ -269,20 +272,20 @@ function game:resize(width, height)
   self.world:emit('windowResize', width, height)
 end
 
-function game:changeLevel(newLevelNumber)
+function game:changeLevel(newLevelNumber, descending)
   self.world:emit("persistEntities")
   self.world:__flush()
-  Gamestate.switch(switchLevels, self.entityIdHead, self.persistentEntities, self.currentLevelNumber, newLevelNumber)
+  Gamestate.switch(switchLevels, self.entityIdHead, self.persistentEntities, newLevelNumber, descending)
 end
 
 function game:descendLevel()
   local newLevelNumber = self.currentLevelNumber + 1
-  self:changeLevel(newLevelNumber)
+  self:changeLevel(newLevelNumber, true)
 end
 
 function game:ascendLevel()
   local newLevelNumber = self.currentLevelNumber - 1
-  self:changeLevel(newLevelNumber)
+  self:changeLevel(newLevelNumber, false)
 end
 
 function game:draw()

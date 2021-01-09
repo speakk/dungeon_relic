@@ -154,6 +154,7 @@ end
 function PhysicsBodySystem:entityMovedByPhysics(entity, physicsX, physicsY) --luacheck: ignore
   local transformX, transformY = positionUtil.getPhysicsBodyTransform(entity)
   local targetX, targetY = Vector.split(Vector(physicsX, physicsY) - Vector(transformX, transformY))
+  print("entityMovedByPhysics", physicsX, physicsY, transformX, transformY)
   entity.position.vec.x, entity.position.vec.y = targetX, targetY
 end
 

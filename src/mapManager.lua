@@ -224,10 +224,10 @@ local function spawnEntities(dungeon, descending, world, firstGameStart)
     placeEntity("dungeon_features.bush", x, y, world)
   end
 
-  for _=1,20 do
-    local x, y, _ = getPositionInRandomRoom(dungeon.tiles, dungeon.rooms, 1)
-    placeEntity("characters.monsterA", x, y, world)
-  end
+  --for _=1,20 do
+  --  local x, y, _ = getPositionInRandomRoom(dungeon.tiles, dungeon.rooms, 1)
+  --  placeEntity("characters.monsterA", x, y, world)
+  --end
 end
 
 local function drawCanvas(tileSize, mapData, world, canvasSizeX, canvasSizeY, startX, startY, endX, endY)

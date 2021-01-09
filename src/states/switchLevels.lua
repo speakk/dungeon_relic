@@ -2,6 +2,7 @@ local Gamestate = require 'libs.hump.gamestate'
 local switchLevels = {}
 
 function switchLevels:enter(_, entityIdHead, persistentEntities, newLevelNumber, descending) --luacheck: ignore
+  print("DESCENDING", descending)
   local inGame = require 'states.inGame'
   Gamestate.switch(inGame, false, {
     levelNumber = newLevelNumber,
