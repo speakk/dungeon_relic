@@ -68,7 +68,7 @@ function InputSystem:keyPressed(pressedKey)
     saveUtils.quickSave()
   end
 
-  if pressedKey == 'f9' then
+  if pressedKey == 'f8' then
     saveUtils.quickLoad()
   end
 end

@@ -24,6 +24,16 @@ return Class {
 
     local spriteWidth, spriteHeight = imageData:getDimensions()
 
+    if self.currentX + spriteWidth + (framesX * padding * 2) > self.image:getWidth() then
+      self.currentX = 0
+      self.currentY = self.currentY + self.lastRowHeight
+      self.lastRowHeight = 0
+    end
+
+    if self.currentX + spriteWidth > self.image:getWidth() then
+      error("Trying to add image outside of texture width bound")
+    end
+
     if self.currentY + spriteHeight > self.image:getHeight() then
       error("Ran out of texture space! Tell the dev, wtf!")
     else
@@ -50,11 +60,7 @@ return Class {
         self.lastRowHeight = spriteHeight + padding * 2
       end
 
-      if self.currentX + spriteWidth + (framesX * padding * 2) > self.image:getWidth() then
-        self.currentX = 0
-        self.currentY = self.currentY + self.lastRowHeight
-        self.lastRowHeight = 0
-      end
+      print("spriteWidth, currentX, padding, framesX, image:getWidth", spriteWidth, self.currentX, padding, framesX, self.image:getWidth())
     end
 
     self:refreshImage()

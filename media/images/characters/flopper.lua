@@ -1,5 +1,5 @@
 return {
-  framesX = 17,
+  framesX = 22,
   framesY = 1
 }
 

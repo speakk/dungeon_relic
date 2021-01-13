@@ -1,9 +1,10 @@
 local bitser = require 'libs.bitser'
 
-local component = Concord.component("interactable", function(self, tooltip, event, category)
+local component = Concord.component("interactable", function(self, tooltip, event, category, range)
   self.tooltip = tooltip
   self.event = event or error("Interactable must have an event")
   self.category = category or "default"
+  self.range = range or 100
 end)
 
 function component:serialize()

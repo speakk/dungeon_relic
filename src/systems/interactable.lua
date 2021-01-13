@@ -13,7 +13,11 @@ function InteractableSystem:update(dt)
     local x, y = Vector.split(entity.position.vec)
     local range = entity.interacter.range
     inGame.spatialHash.interactable:each(x - range / 2, y - range / 2, range / 2, range / 2, function(interactableEntity)
-      interactableEntity.interactable.active = true
+      local interactable = interactableEntity.interactable
+      local distance = (entity.position.vec - interactableEntity.position.vec).length
+      if distance < interactable.range then
+        interactableEntity.interactable.active = true
+      end
     end)
   end
 end
@@ -49,14 +53,12 @@ function InteractableSystem:interactIntent(entity, category)
   local x, y = Vector.split(entity.position.vec)
   local range = entity.interacter.range
   inGame.spatialHash.interactable:each(x - range / 2, y - range / 2, range / 2, range / 2, function(interactableEntity)
+    local distance = (entity.position.vec - interactableEntity.position.vec).length
     local interactable = interactableEntity.interactable
-    if interactable.category == category then
-      --self:getWorld():emit(interactable.event.name, interactable.event.props)
-      if interactable.event.props then
-        print("Emitting", interactable.event.name, entity, unpack(interactable.event.props))
-        self:getWorld():emit(interactable.event.name, entity, unpack(interactable.event.props))
-      else
-        self:getWorld():emit(interactable.event.name, entity)
+    if distance < interactable.range then
+      local event = interactable.event
+      if interactable.category == category then
+        self:getWorld():emit(event.name, entity, event.props and unpack(event.props) or nil)
       end
     end
   end)

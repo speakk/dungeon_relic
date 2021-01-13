@@ -12,8 +12,12 @@ local function compareY(a, b)
   local mediaEntityA = mediaManager:getMediaEntity(a.sprite.spriteId)
   local mediaEntityB = mediaManager:getMediaEntity(b.sprite.spriteId)
 
-  local _, _, _, h1 = mediaEntityA.quads[a.sprite:getCurrentQuadIndex()]:getViewport()
-  local _, _, _, h2 = mediaEntityB.quads[b.sprite:getCurrentQuadIndex()]:getViewport()
+  local quadA =  mediaEntityA.quads[a.sprite:getCurrentQuadIndex()]
+  local quadB =  mediaEntityB.quads[b.sprite:getCurrentQuadIndex()]
+  if not quadA then error("No quad: " .. a.sprite.spriteId) end
+  if not quadB then error("No quad: " .. b.sprite.spriteId) end
+  local _, _, _, h1 = quadA:getViewport()
+  local _, _, _, h2 = quadB:getViewport()
 
   local aOriginY = a.origin and a.origin.y or 0
   local bOriginY = b.origin and b.origin.y or 0

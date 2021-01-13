@@ -82,7 +82,7 @@ function game:enter(_, isPreviousState, conf)
   local hashCellSize = 256
   self.spatialHash = {
     all = shash.new(hashCellSize),
-    interactable = shash.new(hashCellSize)
+    interactable = shash.new(64)
   }
 
   self.bumpWorld = bump.newWorld(64)

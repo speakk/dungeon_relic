@@ -17,13 +17,13 @@ return function(entity)
     "leftLegArmor"
   })
   entity:give("speed", 200)
-  entity:give("origin", 0.5, 1)
+  entity:give("origin", 0.5, 0.8)
   entity:give("stateMachine", "player")
   entity:give("sprite", 'characters.player7', "onGround")
   entity:give("lightSource", 400, 1, 0.8, 0.5, 1.0)
   entity:give("cameraTarget")
   entity:give("mana", 100)
-  entity:give("physicsBody", { width = 0.6, height = 0.2, offsetX=0.5, offsetY=1.2, tags = { "player" } })
+  entity:give("physicsBody", { width = 0.6, height = 0.2, offsetX=0.5, offsetY=1.0, tags = { "player" } })
 
   entity:give("animation", {
     currentAnimations = { "idle" },
@@ -33,7 +33,6 @@ return function(entity)
           {
             componentName = "sprite",
             propertyName = "currentQuadIndex",
-            durations = {0.5},
             values = { 1 },
           }
         }
@@ -43,8 +42,8 @@ return function(entity)
           {
             componentName = "sprite",
             propertyName = "currentQuadIndex",
-            durations = { 0.1, 0.1 },
-            values = { 1, 2 },
+            durations = functional.generate(13, function(_) return 0.05 end),
+            values = functional.generate(13, function(i) return i end)
           }
         }
       }

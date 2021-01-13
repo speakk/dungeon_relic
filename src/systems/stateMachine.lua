@@ -4,6 +4,44 @@ local Timer = require 'libs.hump.timer'
 local StateMachineSystem = Concord.system({ pool = { "stateMachine" } })
 
 local stateTypes = {
+  flopper = function(entity, world)
+    return {
+      defaultState = "idle",
+      states = {
+        idle = {
+          enter = function()
+            entity.sprite.currentQuadIndex = 1
+            entity.animation.currentAnimations = { "idle" }
+          end,
+          update = function(_, dt)
+            local x, y = Vector.split(entity.position.vec)
+            local range = 200
+            local target = nil
+            inGame.spatialHash.all:each(x - range/2, y - range/2, range, range, function(possibleTarget)
+              if possibleTarget:has("playerControlled") then
+                target = possibleTarget
+              end
+            end)
+            if target then
+              entity.stateMachine.target = target
+              return "attack"
+            end
+          end
+        },
+        attack = {
+          enter = function()
+            entity.sprite.currentQuadIndex = 1
+            entity.animation.currentAnimations = { "run" }
+          end,
+          update = function(_, dt)
+            local direction = (entity.stateMachine.target.position.vec - entity.position.vec).normalized
+            entity.directionIntent.vec = direction
+            entity.speed.value = 100
+          end
+        }
+      }
+    }
+  end,
   basicAi = function(entity, world)
     return {
       defaultState = "idle",
@@ -95,9 +133,25 @@ local stateTypes = {
             if entity.directionIntent.vec.length < 0.1 then
               return "idle"
             end
+            print("Starting run anim")
+
+            -- if entity.stateMachine.animation then
+            --   entity.stateMachine.animation:stop()
+            -- end
+
+            -- local anim = { from = 4, to = 17, duration = 1 }
+            -- local function startAnim()
+            --   entity.sprite.currentQuadIndex = anim.from
+            --   local tween = flux.to(entity.sprite, anim.duration, { currentQuadIndex = anim.to })
+            --   :oncomplete(startAnim)
+            --   return tween
+            -- end
+
+            --entity.stateMachine.animation = startAnim()
             entity.animation.currentAnimations = { "run" }
           end,
           update = function()
+            print("UPDATING RUN")
             if entity.directionIntent.vec.length < 0.1 then
               return "idle"
             end
@@ -108,6 +162,10 @@ local stateTypes = {
   end
 }
 
+--local eventsToStates = {
+--  { stateType = "player", from = { "entityMoved" }, to = "run" }
+--}
+
 local eventsToStates = {
   { stateType = "player", from = { "entityMoved" }, to = "run" }
 }
@@ -116,7 +174,10 @@ for _, eventToState in ipairs(eventsToStates) do
   for _, from in ipairs(eventToState.from) do
     StateMachineSystem[from] = function(_, entity, ...)
       if entity.stateMachine and entity.stateMachine.stateType == eventToState.stateType then
-        entity.stateMachine.machine:set_state(eventToState.to, ...)
+        --print("TO", eventToState.to, entity.stateMachine.machine:_get
+        if entity.stateMachine.machine.current_state ~= eventToState.to then
+          entity.stateMachine.machine:set_state(eventToState.to, ...)
+        end
       end
     end
   end

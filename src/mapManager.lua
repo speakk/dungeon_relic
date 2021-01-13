@@ -94,8 +94,8 @@ end
 
 local tileValueToTileset = {
   wall = tilesetImageWall,
-  floor = tilesetImageFloor,
-  roomFloor = tilesetRoomFloor,
+  roomFloor = tilesetImageFloor,
+  floor = tilesetRoomFloor,
   void = tilesetVoid
 }
 
@@ -224,10 +224,14 @@ local function spawnEntities(dungeon, descending, world, firstGameStart)
     placeEntity("dungeon_features.bush", x, y, world)
   end
 
-  --for _=1,20 do
-  --  local x, y, _ = getPositionInRandomRoom(dungeon.tiles, dungeon.rooms, 1)
-  --  placeEntity("characters.monsterA", x, y, world)
-  --end
+  for _=1,20 do
+    local x, y, _ = getPositionInRandomRoom(dungeon.tiles, dungeon.rooms, 1)
+    if love.math.random() > 0.5 then
+      placeEntity("characters.flopper", x, y, world)
+    else
+      placeEntity("characters.monsterA", x, y, world)
+    end
+  end
 end
 
 local function drawCanvas(tileSize, mapData, world, canvasSizeX, canvasSizeY, startX, startY, endX, endY)
