@@ -8,7 +8,7 @@ return function(entity, x, y)
   entity:give("stateMachine", "flopper")
 
   entity:give("physicsBody", {
-    width = 0.7,
+    width = 0.4,
     height = 0.2,
     offsetY = 0.9,
     tags = { "monster" },

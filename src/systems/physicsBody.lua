@@ -133,7 +133,7 @@ function PhysicsBodySystem:update(dt)
         end
 
         if hasRequired then
-          return "slide"
+          return item.physicsBody.responseType
         else
           return false
         end
@@ -144,6 +144,31 @@ function PhysicsBodySystem:update(dt)
       end
 
       for _, collision in ipairs(collisions) do
+        if collision.bounce then
+          local vel = collision.item.velocity.vec
+          local normal = Vector(collision.normal.x, collision.normal.y)
+
+          collision.item.velocity.vec = vel - 2 * (normal * vel) * normal
+          --collision.item.velocity.vec = Vector(collision.normal.x, collision.normal.y) * collision.item.velocity.vec.length
+          -- --local actualPos = collision.item.position.vec + Vector(transformX, transformY)
+          -- local transform = Vector(transformX, transformY)
+          -- local pos = collision.item.position.vec + transform
+          -- local bounce = Vector(collision.bounce.x, collision.bounce.y)
+          -- local dir = bounce - pos
+          -- print("bounce", bounce, pos, dir)
+          -- --local dir = actualPos - Vector(collision.bounce.x, collision.bounce.y)
+          -- local vel = collision.item.velocity.vec
+          -- --print(physicsX, physicsY, collision.actualPos, dir, vel)
+          -- local length = vel.length
+          -- dir.length = length
+          -- --local final = dir * length
+          -- --print("vel, dir", vel, dir, final)
+          -- vel.x, vel.y = -dir.x, -dir.y
+          -- --collision.item.directionIntent.vec.x = -dir.x * 300
+          -- --collision.item.directionIntent.vec.y = -dir.y * 300
+          -- --
+          -- --print("collision.bounce", inspect(collision.bounce))
+        end
         handleCollisionEvent(self:getWorld(), collision.item, collision.other)
         handleCollisionEvent(self:getWorld(), collision.other, collision.item)
       end
@@ -154,7 +179,7 @@ end
 function PhysicsBodySystem:entityMovedByPhysics(entity, physicsX, physicsY) --luacheck: ignore
   local transformX, transformY = positionUtil.getPhysicsBodyTransform(entity)
   local targetX, targetY = Vector.split(Vector(physicsX, physicsY) - Vector(transformX, transformY))
-  print("entityMovedByPhysics", physicsX, physicsY, transformX, transformY)
+  --print("entityMovedByPhysics", physicsX, physicsY, transformX, transformY)
   entity.position.vec.x, entity.position.vec.y = targetX, targetY
 end
 

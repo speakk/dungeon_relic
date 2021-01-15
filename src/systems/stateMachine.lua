@@ -156,6 +156,32 @@ local stateTypes = {
               return "idle"
             end
           end
+        },
+        playerGoBallistic = {
+          enter = function()
+            entity.stateMachine.machine:_get_state().blocking = true
+            entity.stateMachine.ballisticTimeout = 1
+            entity.animation.currentAnimations = { "ballistic" }
+            entity:remove("friction")
+            entity:give("damager", 20)
+
+            local lookX, lookY = entity.lookAt.x, entity.lookAt.y
+            local speed = 40
+            local direction = (Vector(lookX, lookY) - entity.position.vec).normalized
+            entity.directionIntent.vec = direction * speed
+          end,
+          update = function(self, dt)
+            entity.stateMachine.ballisticTimeout = entity.stateMachine.ballisticTimeout - dt
+            if entity.stateMachine.ballisticTimeout <= 0 then
+              entity.stateMachine.machine:_get_state().blocking = false
+              return "idle"
+            end
+            -- TODO: Rotation
+          end,
+          exit = function()
+            entity:give("friction")
+            entity:remove("damager")
+          end
         }
       }
     }
@@ -167,16 +193,21 @@ local stateTypes = {
 --}
 
 local eventsToStates = {
-  { stateType = "player", from = { "entityMoved" }, to = "run" }
+  --{ stateType = "player", from = { "entityMoved" }, to = "run" },
+  { stateType = "player", from = { "playerGoBallistic" }, to = "playerGoBallistic" , blocking = true}
 }
 
 for _, eventToState in ipairs(eventsToStates) do
   for _, from in ipairs(eventToState.from) do
     StateMachineSystem[from] = function(_, entity, ...)
+      if not entity then error("Event from eventToState must have entity as first argument") end
+
       if entity.stateMachine and entity.stateMachine.stateType == eventToState.stateType then
         --print("TO", eventToState.to, entity.stateMachine.machine:_get
         if entity.stateMachine.machine.current_state ~= eventToState.to then
-          entity.stateMachine.machine:set_state(eventToState.to, ...)
+          if not entity.stateMachine.machine.current_state.blocking then
+            entity.stateMachine.machine:set_state(eventToState.to, ...)
+          end
         end
       end
     end

@@ -98,6 +98,7 @@ function game:enter(_, isPreviousState, conf)
     ECS.s.bullet,
     ECS.s.monster,
     ECS.s.movement,
+    ECS.s.friction,
     ECS.s.physicsBody,
     ECS.s.levelChange,
     -- Dungeon features ->
@@ -305,6 +306,10 @@ end
 
 function game:keypressed(pressedKey, scancode, isrepeat)
   self.world:emit('keyPressed', pressedKey, scancode, isrepeat)
+end
+
+function game:mousemoved(x, y, dx, dy, istouch)
+  self.world:emit('mouseMoved', x, y, dx, dy, istouch)
 end
 
 return game

@@ -1,50 +1,81 @@
 local saveUtils = require 'utils.save'
+local inGame = require 'states.inGame'
+
+local keyMap = require 'keymap'
+local reverseKeyMap = {}
+for action, mappedKey in ipairs(keyMap) do
+  reverseKeyMap[mappedKey] = action
+end
 
 local InputSystem = Concord.system({})
 
+local function checkInput(keyMapDef)
+  local key = keyMap[keyMapDef]
+  if key == "mouse1" then
+    return love.mouse.isDown(1)
+  elseif key == "mouse2" then
+    return love.mouse.isDown(2)
+  else
+    return love.keyboard.isDown(key)
+  end
+end
+
 function InputSystem:update(dt)
-  if love.keyboard.isDown('down') then
+  if checkInput('moveDown') then
     self:getWorld():emit('moveDown')
   end
 
-  if love.keyboard.isDown('up') then
+  if checkInput('moveUp') then
     self:getWorld():emit('moveUp')
   end
 
-  if love.keyboard.isDown('right') then
+  if checkInput('moveRight') then
     self:getWorld():emit('moveRight')
   end
 
-  if love.keyboard.isDown('left') then
+  if checkInput('moveLeft') then
     self:getWorld():emit('moveLeft')
   end
 
-  local shooting = false
-  local shootingDirection = Vector()
-
-  if love.keyboard.isDown('a') then
-    shooting = true
-    shootingDirection = shootingDirection + Vector(-1, 0)
+  if checkInput('goBallistic') then
+    self:getWorld():emit("playersGoBallistic")
   end
 
-  if love.keyboard.isDown('d') then
-    shooting = true
-    shootingDirection = shootingDirection + Vector(1, 0)
+  if checkInput('shoot') then
+    self:getWorld():emit('playerShoot')
   end
 
-  if love.keyboard.isDown('w') then
-    shooting = true
-    shootingDirection = shootingDirection + Vector(0, -1)
-  end
+  -- local shooting = false
+  -- local shootingDirection = Vector()
 
-  if love.keyboard.isDown('s') then
-    shooting = true
-    shootingDirection = shootingDirection + Vector(0, 1)
-  end
+  -- if love.keyboard.isDown('a') then
+  --   shooting = true
+  --   shootingDirection = shootingDirection + Vector(-1, 0)
+  -- end
 
-  if shooting then
-    self:getWorld():emit('playerShoot', shootingDirection.normalized)
-  end
+  -- if love.keyboard.isDown('d') then
+  --   shooting = true
+  --   shootingDirection = shootingDirection + Vector(1, 0)
+  -- end
+
+  -- if love.keyboard.isDown('w') then
+  --   shooting = true
+  --   shootingDirection = shootingDirection + Vector(0, -1)
+  -- end
+
+  -- if love.keyboard.isDown('s') then
+  --   shooting = true
+  --   shootingDirection = shootingDirection + Vector(0, 1)
+  -- end
+
+  -- if shooting then
+  --   self:getWorld():emit('playerShoot', shootingDirection.normalized)
+  -- end
+end
+
+function InputSystem:mouseMoved(x, y)
+  local worldX, worldY = inGame.camera:toWorld(x,y)
+  self:getWorld():emit("playerLookAt", worldX, worldY)
 end
 
 function InputSystem:keyPressed(pressedKey)
@@ -52,7 +83,7 @@ function InputSystem:keyPressed(pressedKey)
     self:getWorld():emit("toggleDebug")
   end
 
-  if pressedKey == 'space' then
+  if reverseKeyMap[pressedKey] == "interact" then
     self:getWorld():emit('playerInteractIntent')
   end
 

@@ -20,6 +20,7 @@ local component = Concord.component("physicsBody", function(self, conf)
   self.targetIgnoreTags = conf.targetIgnoreTags or {}
   self.static = conf.static
   self.collisionEvent = conf.collisionEvent
+  self.responseType = conf.responseType or "slide"
   self.targetTags = conf.targetTags
   self.centered = conf.centered
 end)
@@ -32,6 +33,7 @@ function component:serialize()
     height = self.height,
     pixelWidth = self.pixelWidth,
     pixelHeight = self.pixelHeight,
+    responseType = self.responseType,
     tags = bitser.dumps(self.tags),
     targetIgnoreTags = bitser.dumps(self.targetIgnoreTags),
     static = self.static,
@@ -48,6 +50,7 @@ function component:deserialize(data)
   self.height = data.height
   self.pixelWidth = data.pixelWidth
   self.pixelHeight = data.pixelHeight
+  self.responseType = data.responseType
   self.tags = bitser.loads(data.tags)
   self.targetIgnoreTags = bitser.loads(data.targetIgnoreTags)
   self.static = data.static

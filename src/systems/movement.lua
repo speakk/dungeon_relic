@@ -20,21 +20,6 @@ function MovementSystem:mapChange(map)
 end
 
 -- Friction code yoink'd from the batteries vec lib.
-
-local function applyFriction1d(value, mu, dt)
-  local friction = mu * value * dt
-  if math.abs(friction) > math.abs(value) then
-    return 0
-  else
-    return value - friction
-  end
-end
-
-local function applyFriction2d(vector, mu, dt)
-  vector.x = applyFriction1d(vector.x, mu, dt)
-  vector.y = applyFriction1d(vector.y, mu, dt)
-end
-
 -- New Velocity = old_velocity * (1 - delta_time * transition_speed) + desired_velocity * (delta_time * transition_speed)
 
 function MovementSystem:update(dt)
@@ -47,11 +32,13 @@ function MovementSystem:update(dt)
 
     local vel = entity.velocity.vec
     local pos = entity.position.vec
-    local transitionSpeed = 12
-    local directionIntent = entity.directionIntent.vec
+    -- local transitionSpeed = 12
+    -- local directionIntent = entity.directionIntent.vec
     local entitySpeed = entity.speed.value
-    vel.x,vel.y = Vector.split(vel * (1 - dt * transitionSpeed) + directionIntent * entitySpeed * (dt * transitionSpeed))
+    --vel.x,vel.y = Vector.split(vel * (1 - dt * transitionSpeed) + directionIntent * entitySpeed * (dt * transitionSpeed))
+    vel.x,vel.y = Vector.split(vel + entity.directionIntent.vec * entitySpeed * dt)
     pos.x,pos.y = Vector.split(pos + vel * dt)
+    -- applyFriction2d(entity.velocity.vec, 15, dt)
   end
 end
 
