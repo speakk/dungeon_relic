@@ -41,6 +41,12 @@ local function handleCollisionEvent(world, source, target)
     end
     world:emit(event.name, source, target, event.properties)
   end
+
+  -- TODO: Do this in its own function
+  if source.damager then
+  --self:getWorld():emit("takeDamage", target, monster.damager.value)
+    world:emit("takeDamage", target, source.damager.value)
+  end
 end
 
 function PhysicsBodySystem:setCamera(camera)

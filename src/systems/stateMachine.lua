@@ -133,7 +133,6 @@ local stateTypes = {
             if entity.directionIntent.vec.length < 0.1 then
               return "idle"
             end
-            print("Starting run anim")
 
             -- if entity.stateMachine.animation then
             --   entity.stateMachine.animation:stop()
@@ -151,7 +150,6 @@ local stateTypes = {
             entity.animation.currentAnimations = { "run" }
           end,
           update = function()
-            print("UPDATING RUN")
             if entity.directionIntent.vec.length < 0.1 then
               return "idle"
             end
@@ -163,7 +161,8 @@ local stateTypes = {
             entity.stateMachine.ballisticTimeout = 1
             entity.animation.currentAnimations = { "ballistic" }
             entity:remove("friction")
-            entity:give("damager", 20)
+            entity:give("damager", 100)
+            entity:give("physicalImmunity")
 
             local lookX, lookY = entity.lookAt.x, entity.lookAt.y
             local speed = 40
@@ -181,6 +180,7 @@ local stateTypes = {
           exit = function()
             entity:give("friction")
             entity:remove("damager")
+            entity:remove("physicalImmunity")
           end
         }
       }
@@ -193,8 +193,8 @@ local stateTypes = {
 --}
 
 local eventsToStates = {
-  --{ stateType = "player", from = { "entityMoved" }, to = "run" },
-  { stateType = "player", from = { "playerGoBallistic" }, to = "playerGoBallistic" , blocking = true}
+  { stateType = "player", from = { "entityMoved" }, to = "run" },
+  { stateType = "player", from = { "playerGoBallistic" }, to = "playerGoBallistic"}
 }
 
 for _, eventToState in ipairs(eventsToStates) do
@@ -205,7 +205,7 @@ for _, eventToState in ipairs(eventsToStates) do
       if entity.stateMachine and entity.stateMachine.stateType == eventToState.stateType then
         --print("TO", eventToState.to, entity.stateMachine.machine:_get
         if entity.stateMachine.machine.current_state ~= eventToState.to then
-          if not entity.stateMachine.machine.current_state.blocking then
+          if not entity.stateMachine.machine:_get_state().blocking then
             entity.stateMachine.machine:set_state(eventToState.to, ...)
           end
         end

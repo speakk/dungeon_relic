@@ -1,4 +1,5 @@
 local inGame = require 'states.inGame'
+local settings = require 'settings'
 local positionUtil = require 'utils.position'
 
 local SpatialHashSystem = Concord.system({ pool = { "position" }, interactable = { "position", "interactable" } })
@@ -30,7 +31,7 @@ local function getEntityDimensions(entity)
     local _, _, physicsWidth, physicsHeight = positionUtil.getPhysicsBodyTransform(entity)
     w, h = physicsWidth, physicsHeight
   else
-    local tileSize = inGame.mapManager.map.tileSize
+    local tileSize = settings.tileSize
     w, h = tileSize, tileSize
   end
 

@@ -119,6 +119,7 @@ function game:enter(_, isPreviousState, conf)
     ECS.s.selfDestroy,
     ECS.s.camera,
     ECS.s.sprite,
+    ECS.s.text,
     ECS.s.draw,
     ECS.s.inventoryUI,
     ECS.s.equipmentUI,

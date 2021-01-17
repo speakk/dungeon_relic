@@ -18,6 +18,8 @@ end
 
 
 function HealthSystem:takeDamage(target, damage)
+  if target.physicalImmunity then return end
+
   if functional.contains(self.pool, target) then
     if target.health.countDown == 0 then
       target.health.countDown = target.health.damageCooldown
@@ -29,6 +31,14 @@ function HealthSystem:takeDamage(target, damage)
       spurt:give('sprite', 'decals.blood.spurt' .. love.math.random(1, 3), "groundLevel", nil, 1)
       :give('position', Vector.split(target.position.vec))
       :give('selfDestroy', 200)
+
+      Concord.entity(self:getWorld())
+      :give('text', damage)
+      :give('position', Vector.split(target.position.vec))
+      :give("selfDestroy", 40)
+      :give("directionIntent", 0, -1)
+      :give("speed", 200)
+      :give("velocity", 0, 0)
 
 
       if target.health.value < 0 then
